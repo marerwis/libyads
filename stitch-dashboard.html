@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Meta Business Manager - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#3b82f6", // Meta Blue-ish
+                        "background-light": "#F3F4F6", // Light gray for light mode
+                        "background-dark": "#0B0E14", // Deep dark for requested theme
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#151921", // Slightly lighter dark for cards
+                        "sidebar-dark": "#0B0E14", // Matching sidebar
+                        "border-dark": "#2A303C",
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0E14; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2A303C; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151; 
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 font-sans antialiased transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-64 flex-shrink-0 flex flex-col justify-between bg-white dark:bg-sidebar-dark border-r border-gray-200 dark:border-border-dark transition-colors duration-200">
+<div>
+<div class="h-20 flex items-center px-6 border-b border-gray-100 dark:border-transparent">
+<div class="flex items-center gap-3">
+<span class="material-icons-outlined text-primary text-3xl">all_inclusive</span>
+<div>
+<h1 class="font-bold text-sm leading-tight text-gray-900 dark:text-white">Meta Business Manager</h1>
+<p class="text-xs text-gray-500 dark:text-gray-400">Centralized Ad Account</p>
+</div>
+</div>
+</div>
+<nav class="mt-6 px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg bg-gray-100 dark:bg-card-dark text-primary dark:text-white transition-colors" href="#">
+<span class="material-icons-outlined">dashboard</span>
+                        Dashboard
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-card-dark hover:text-gray-900 dark:hover:text-white transition-colors" href="#">
+<span class="material-icons-outlined">account_balance_wallet</span>
+                        Wallet
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-card-dark hover:text-gray-900 dark:hover:text-white transition-colors" href="#">
+<span class="material-icons-outlined">flag</span>
+                        Facebook Pages
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-card-dark hover:text-gray-900 dark:hover:text-white transition-colors" href="#">
+<span class="material-icons-outlined">campaign</span>
+                        Campaigns
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-card-dark hover:text-gray-900 dark:hover:text-white transition-colors" href="#">
+<span class="material-icons-outlined">add_circle_outline</span>
+                        Create Promotion
+                    </a>
+</nav>
+<div class="mt-8 px-4">
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-card-dark hover:text-gray-900 dark:hover:text-white transition-colors" href="#">
+<span class="material-icons-outlined">person_outline</span>
+                        Profile
+                    </a>
+</div>
+</div>
+<div class="p-4 border-t border-gray-100 dark:border-transparent">
+<a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-card-dark hover:text-red-500 dark:hover:text-red-400 transition-colors" href="#">
+<span class="material-icons-outlined">logout</span>
+                    Logout
+                </a>
+</div>
+</aside>
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-8 transition-colors duration-200">
+<header class="mb-8">
+<h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Main Dashboard Overview</h2>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-gray-200 dark:border-border-dark shadow-sm">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+<span class="material-icons-outlined text-xl">monetization_on</span>
+</div>
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Wallet Balance</span>
+</div>
+<div class="text-2xl font-bold text-gray-900 dark:text-white">$5,240.50</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-gray-200 dark:border-border-dark shadow-sm">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+<span class="material-icons-outlined text-xl">layers</span>
+</div>
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Campaigns</span>
+</div>
+<div class="text-2xl font-bold text-gray-900 dark:text-white">1,254</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-gray-200 dark:border-border-dark shadow-sm">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 rounded-lg bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">
+<span class="material-icons-outlined text-xl">play_arrow</span>
+</div>
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Campaigns</span>
+</div>
+<div class="text-2xl font-bold text-gray-900 dark:text-white">34</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-xl border border-gray-200 dark:border-border-dark shadow-sm">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+<span class="material-icons-outlined text-xl">payments</span>
+</div>
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Spent</span>
+</div>
+<div class="text-2xl font-bold text-gray-900 dark:text-white">$48,920.00</div>
+</div>
+<div class="hidden lg:block lg:col-span-4 xl:col-span-1 bg-card-light dark:bg-card-dark p-5 rounded-xl border border-gray-200 dark:border-border-dark shadow-sm">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400">
+<span class="material-icons-outlined text-xl">web</span>
+</div>
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Connected Pages</span>
+</div>
+<div class="text-2xl font-bold text-gray-900 dark:text-white">8</div>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-xl border border-gray-200 dark:border-border-dark p-6 shadow-sm">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+<div>
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white">Quick Statistics</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Recent ad performance over the last 30 days.</p>
+</div>
+<div class="relative">
+<select class="appearance-none bg-gray-50 dark:bg-[#0B0E14] border border-gray-200 dark:border-border-dark text-gray-700 dark:text-gray-300 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent cursor-pointer">
+<option>Last 30 days</option>
+<option>Last 7 days</option>
+<option>Last 24 hours</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+<span class="material-icons-outlined text-sm">expand_more</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-center gap-6 mb-6 text-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-blue-500"></span>
+<span class="text-gray-600 dark:text-gray-300">Impressions</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-cyan-400"></span>
+<span class="text-gray-600 dark:text-gray-300">Clicks</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-green-400"></span>
+<span class="text-gray-600 dark:text-gray-300">Conversions</span>
+</div>
+</div>
+<div class="chart-container relative w-full">
+<canvas id="performanceChart"></canvas>
+</div>
+<div class="mt-4 flex justify-between text-xs text-gray-400 px-2 font-mono hidden">
+<span>May 1</span>
+<span>May 8</span>
+<span>May 15</span>
+<span>May 22</span>
+<span>May 29</span>
+</div>
+</div>
+</main>
+</div>
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            // Gradients
+            let gradientBlue = ctx.createLinearGradient(0, 0, 0, 400);
+            gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.2)'); // Blue
+            gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0)');
+            let gradientCyan = ctx.createLinearGradient(0, 0, 0, 400);
+            gradientCyan.addColorStop(0, 'rgba(34, 211, 238, 0.2)'); // Cyan
+            gradientCyan.addColorStop(1, 'rgba(34, 211, 238, 0)');
+            let gradientGreen = ctx.createLinearGradient(0, 0, 0, 400);
+            gradientGreen.addColorStop(0, 'rgba(74, 222, 128, 0.2)'); // Green
+            gradientGreen.addColorStop(1, 'rgba(74, 222, 128, 0)');
+            const data = {
+                labels: ['May 1', 'May 5', 'May 8', 'May 12', 'May 15', 'May 19', 'May 22', 'May 26', 'May 29'],
+                datasets: [
+                    {
+                        label: 'Impressions',
+                        data: [50, 200, 310, 400, 500, 700, 800, 950, 1120],
+                        borderColor: '#3b82f6', // Blue 500
+                        backgroundColor: gradientBlue,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointBackgroundColor: '#1f2937', // Dark gray
+                        pointBorderColor: '#3b82f6',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        fill: true
+                    },
+                    {
+                        label: 'Clicks',
+                        data: [50, 180, 280, 380, 480, 650, 780, 900, 1100], 
+                        borderColor: '#22d3ee', // Cyan 400
+                        backgroundColor: gradientCyan,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointBackgroundColor: '#1f2937',
+                        pointBorderColor: '#22d3ee',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        fill: true
+                    },
+                    {
+                        label: 'Conversions',
+                        data: [60, 250, 400, 480, 600, 750, 900, 980, 1020],
+                        borderColor: '#4ade80', // Green 400
+                        backgroundColor: gradientGreen,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointBackgroundColor: '#1f2937',
+                        pointBorderColor: '#4ade80',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        fill: true
+                    }
+                ]
+            };
+            const config = {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Custom legend implemented in HTML
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                            titleColor: '#f3f4f6',
+                            bodyColor: '#d1d5db',
+                            borderColor: '#374151',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: true,
+                            usePointStyle: true,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#9ca3af', // Gray 400
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(75, 85, 99, 0.2)', // Gray 600 with opacity
+                                drawBorder: false,
+                                borderDash: [5, 5]
+                            },
+                            ticks: {
+                                color: '#9ca3af',
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    size: 11
+                                },
+                                stepSize: 200
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            };
+            const myChart = new Chart(ctx, config);
+        });
+    </script>
+
+</body></html>
