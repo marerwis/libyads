@@ -200,8 +200,8 @@ export default function AdminPaymentMethods() {
                                     <button
                                         onClick={() => handleQuickToggleSwitch(method.id, 'isActive', method.isActive)}
                                         className={`px-3 py-1 text-xs font-medium rounded-full border transition-colors ${method.isActive
-                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
-                                                : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'
+                                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+                                            : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'
                                             }`}
                                     >
                                         {method.isActive ? 'Active' : 'Inactive'}
@@ -220,8 +220,8 @@ export default function AdminPaymentMethods() {
                                             <button
                                                 onClick={() => handleQuickToggleSwitch(method.id, 'environment', method.environment)}
                                                 className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${method.environment === 'LIVE'
-                                                        ? 'bg-red-500/10 text-red-500 border border-red-500/20'
-                                                        : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                                    ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                                                    : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                                                     }`}
                                             >
                                                 {method.environment}
@@ -316,20 +316,25 @@ export default function AdminPaymentMethods() {
 
                                     <div>
                                         <label className="block text-sm font-medium text-slate-300 mb-2">Integration Type</label>
-                                        <select
-                                            value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:border-[#1877F2] outline-none"
-                                        >
-                                            <optgroup label="API Gateways">
-                                                <option value="STRIPE">Stripe API</option>
-                                                <option value="PAYPAL">PayPal API</option>
-                                            </optgroup>
-                                            <optgroup label="Manual Verification">
-                                                <option value="BANK_ACCOUNT">Bank Account</option>
-                                                <option value="E_WALLET">E-Wallet (Vodafone, Orange)</option>
-                                                <option value="OTHER">Other Manual</option>
-                                            </optgroup>
-                                        </select>
+                                        <div className="relative group">
+                                            <select
+                                                value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                                className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40"
+                                            >
+                                                <optgroup label="API Gateways">
+                                                    <option value="STRIPE">Stripe API</option>
+                                                    <option value="PAYPAL">PayPal API</option>
+                                                </optgroup>
+                                                <optgroup label="Manual Verification">
+                                                    <option value="BANK_ACCOUNT">Bank Account</option>
+                                                    <option value="E_WALLET">E-Wallet (Vodafone, Orange)</option>
+                                                    <option value="OTHER">Other Manual</option>
+                                                </optgroup>
+                                            </select>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-[#1877F2] transition-colors duration-300">
+                                                <span className="material-symbols-outlined text-base">arrow_drop_down</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 

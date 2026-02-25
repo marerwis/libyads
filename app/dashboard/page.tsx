@@ -90,14 +90,14 @@ export default async function Dashboard() {
                         <h3 className="text-lg font-semibold text-white">Quick Statistics</h3>
                         <p className="text-sm text-slate-400 mt-1">Recent ad performance over the last 30 days.</p>
                     </div>
-                    <div className="relative">
-                        <select className="appearance-none bg-[#0B0E14] border border-[#2A303C] text-slate-300 py-2 pl-4 pr-10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1877F2] focus:border-transparent cursor-pointer">
-                            <option>Last 30 days</option>
-                            <option>Last 7 days</option>
-                            <option>Last 24 hours</option>
+                    <div className="relative group">
+                        <select className="appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 text-slate-200 py-2.5 pl-5 pr-12 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40">
+                            <option value="30">Last 30 days</option>
+                            <option value="7">Last 7 days</option>
+                            <option value="1">Last 24 hours</option>
                         </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                            <span className="material-symbols-outlined text-sm">expand_more</span>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 group-hover:text-[#1877F2] transition-colors duration-300">
+                            <span className="material-symbols-outlined text-base">unfold_more</span>
                         </div>
                     </div>
                 </div>

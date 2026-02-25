@@ -140,15 +140,20 @@ export default function CampaignsPage() {
                             <form onSubmit={handleCreate} className="space-y-5">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-300 mb-1">Target Facebook Page</label>
-                                    <select
-                                        name="pageId" value={formData.pageId} onChange={handleChange}
-                                        className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-[#1877F2] text-sm"
-                                        required
-                                    >
-                                        {pages.map(page => (
-                                            <option key={page.id} value={page.pageId}>{page.pageName}</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative group">
+                                        <select
+                                            name="pageId" value={formData.pageId} onChange={handleChange}
+                                            className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 text-slate-200 py-2.5 pl-4 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40"
+                                            required
+                                        >
+                                            {pages.map(page => (
+                                                <option key={page.id} value={page.pageId}>{page.pageName}</option>
+                                            ))}
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-[#1877F2] transition-colors duration-300">
+                                            <span className="material-symbols-outlined text-base">arrow_drop_down</span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div>

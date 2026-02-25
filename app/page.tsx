@@ -177,6 +177,7 @@ export default async function Home() {
           <div className="pt-8 border-t border-[#2A303C] flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
             <p>© 2024 Meta Business Manager. All rights reserved.</p>
             <div className="flex items-center gap-6">
+              <Link href="/data-deletion" className="hover:text-white transition-colors font-medium">حذف بيانات المستخدم</Link>
               <Link href="/privacy-policy" className="hover:text-white transition-colors font-medium">سياسة الخصوصية</Link>
             </div>
           </div>

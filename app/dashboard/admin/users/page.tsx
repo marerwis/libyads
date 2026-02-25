@@ -165,15 +165,20 @@ export default function AdminUsersManagement() {
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <select
-                                            value={user.role}
-                                            onChange={(e) => handleRoleChange(user.id, user.name, e.target.value)}
-                                            disabled={updatingRole === user.id}
-                                            className={`bg-[#0B0E14] border border-[#2A303C] text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#1877F2] ${user.role === 'ADMIN' ? 'text-emerald-400 font-semibold' : 'text-slate-300'}`}
-                                        >
-                                            <option value="USER" className="text-slate-300">USER</option>
-                                            <option value="ADMIN" className="text-emerald-400">ADMIN</option>
-                                        </select>
+                                        <div className="relative group inline-block">
+                                            <select
+                                                value={user.role}
+                                                onChange={(e) => handleRoleChange(user.id, user.name, e.target.value)}
+                                                disabled={updatingRole === user.id}
+                                                className={`appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 text-sm rounded-xl py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40 ${user.role === 'ADMIN' ? 'text-emerald-400 font-semibold' : 'text-slate-300'}`}
+                                            >
+                                                <option value="USER" className="text-slate-300">USER</option>
+                                                <option value="ADMIN" className="text-emerald-400">ADMIN</option>
+                                            </select>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500 group-hover:text-[#1877F2] transition-colors duration-300">
+                                                <span className="material-symbols-outlined text-sm">arrow_drop_down</span>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 flex justify-end gap-3 mt-1">
                                         <button
