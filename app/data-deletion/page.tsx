@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 
 export const metadata = {
     title: 'User Data Deletion Instructions',
@@ -53,10 +52,10 @@ export default function UserDataDeletionPage() {
 
                 <div className="mt-8 flex justify-between items-center pt-6 border-t border-slate-100">
                     <Link href="/">
-                        <Button variant="outline">Return to Home</Button>
+                        <button className="px-5 py-2.5 text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg text-sm font-medium transition-colors">Return to Home</button>
                     </Link>
                     <Link href="/login">
-                        <Button>Login to Account</Button>
+                        <button className="px-5 py-2.5 bg-[#1877F2] hover:bg-blue-600 text-white border border-[#1877F2]/50 rounded-lg text-sm font-medium shadow-sm transition-colors">Login to Account</button>
                     </Link>
                 </div>
             </div>
