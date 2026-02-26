@@ -18,9 +18,21 @@ export async function GET(req: Request) {
 
         const config = await metaService.getConfig();
 
-        // Fetch latest 10 published posts for the given page
-        // We include id, message, and created_time to display in a dropdown
-        const url = `https://graph.facebook.com/v19.0/${pageId}/posts?access_token=${config.systemUserToken}&fields=id,message,created_time,full_picture,permalink_url&limit=15&is_published=true`;
+        // 1. Fetch available accounts to find the specific Page Access Token needed to read posts
+        const accountsUrl = `https://graph.facebook.com/v19.0/me/accounts?access_token=${config.systemUserToken}`;
+        const accountsRes = await fetch(accountsUrl);
+        const accountsData = await accountsRes.json();
+
+        let pageToken = config.systemUserToken;
+        if (accountsData.data) {
+            const page = accountsData.data.find((p: any) => p.id === pageId);
+            if (page && page.access_token) {
+                pageToken = page.access_token;
+            }
+        }
+
+        // 2. Fetch latest published posts for the given page using its specific token
+        const url = `https://graph.facebook.com/v19.0/${pageId}/posts?access_token=${pageToken}&fields=id,message,created_time,full_picture,permalink_url&limit=15&is_published=true`;
 
         const res = await fetch(url);
         const data = await res.json();
