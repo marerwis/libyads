@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 export default function CampaignsPage() {
     const [campaigns, setCampaigns] = useState<any[]>([]);
     const [pages, setPages] = useState<any[]>([]);
+    const [posts, setPosts] = useState<any[]>([]);
+    const [loadingPosts, setLoadingPosts] = useState(false);
     const [balance, setBalance] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -18,10 +20,10 @@ export default function CampaignsPage() {
         duration: 3
     });
 
+    // Fetch initial data (stats, pages, campaigns)
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch stats (for balance), pages, and campaigns concurrently
                 const [statsRes, pagesRes, campaignsRes] = await Promise.all([
                     fetch('/api/dashboard/stats'),
                     fetch('/api/facebook/pages'),
@@ -49,6 +51,44 @@ export default function CampaignsPage() {
         };
         fetchData();
     }, []);
+
+    // Fetch posts when selected page changes
+    useEffect(() => {
+        if (!formData.pageId) {
+            setPosts([]);
+            return;
+        }
+
+        const fetchPosts = async () => {
+            setLoadingPosts(true);
+            try {
+                const res = await fetch(`/api/facebook/posts?pageId=${formData.pageId}`);
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setPosts(data);
+                    // Automatically select the first post if available
+                    if (data.length > 0) {
+                        const firstPostId = data[0].id;
+                        const purePostId = firstPostId.includes('_') ? firstPostId.split('_')[1] : firstPostId;
+                        setFormData(prev => ({ ...prev, postId: purePostId }));
+                    } else {
+                        setFormData(prev => ({ ...prev, postId: "" }));
+                    }
+                } else {
+                    setPosts([]);
+                    setFormData(prev => ({ ...prev, postId: "" }));
+                }
+            } catch (error) {
+                console.error("Failed to fetch posts", error);
+                setPosts([]);
+                setFormData(prev => ({ ...prev, postId: "" }));
+            } finally {
+                setLoadingPosts(false);
+            }
+        };
+
+        fetchPosts();
+    }, [formData.pageId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -157,13 +197,46 @@ export default function CampaignsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-1">Post ID (Object Story)</label>
-                                    <input
-                                        type="text" name="postId" value={formData.postId} onChange={handleChange}
-                                        className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-[#1877F2] text-sm"
-                                        placeholder="Enter the Facebook Post ID" required
-                                    />
-                                    <p className="text-xs text-slate-500 mt-1">We will promote this specific post.</p>
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">Target Post (Choose from latest)</label>
+                                    {loadingPosts ? (
+                                        <div className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-3 py-2.5 text-slate-500 text-sm animate-pulse">
+                                            Fetching recent posts...
+                                        </div>
+                                    ) : posts.length === 0 ? (
+                                        <div className="w-full bg-[#0B0E14] border border-red-900/50 rounded-lg px-3 py-2.5 text-red-400 text-sm">
+                                            No recent posts found for this page.
+                                        </div>
+                                    ) : (
+                                        <div className="relative group">
+                                            <select
+                                                name="postId" value={formData.postId} onChange={handleChange}
+                                                className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 text-slate-200 py-2.5 pl-4 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40"
+                                                required
+                                            >
+                                                <option value="" disabled>Select a post to promote...</option>
+                                                {posts.map((post: any) => {
+                                                    const date = new Date(post.created_time || Date.now()).toLocaleDateString();
+                                                    // Determine the post ID to use for the Meta API. Most APIs just need the `object_story_id` which is `PAGEID_POSTID` or just the `POSTID`.
+                                                    // Our backend expects `postId` and combines it there, so give it the pure post ID.
+                                                    const purePostId = post.id.includes('_') ? post.id.split('_')[1] : post.id;
+
+                                                    const snippet = post.message
+                                                        ? (post.message.length > 60 ? post.message.substring(0, 60) + "..." : post.message)
+                                                        : "No Text (Media Post)";
+
+                                                    return (
+                                                        <option key={post.id} value={purePostId}>
+                                                            {date} - {snippet}
+                                                        </option>
+                                                    );
+                                                })}
+                                            </select>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-[#1877F2] transition-colors duration-300">
+                                                <span className="material-symbols-outlined text-base">arrow_drop_down</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-slate-500 mt-1">We will promote the selected post across Facebook and Instagram.</p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
