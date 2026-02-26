@@ -15,24 +15,47 @@ export const metaService = {
     },
 
     /**
+     * Translates common Meta API errors to friendly Arabic messages.
+     */
+    translateError(errorMsg: string, subcode?: number): string {
+        const lowerMsg = errorMsg.toLowerCase();
+        if (lowerMsg.includes("invalid post_id") || lowerMsg.includes("object_id parameter")) {
+            return "معرف المنشور (Post ID) غير صحيح أو لا توجد صلاحية للوصول إليه. يرجى التأكد من أن المنشور تابع لصفحتك المربوطة.";
+        }
+        if (lowerMsg.includes("budget_sharing_enabled")) {
+            return "يوجد خطأ في إعدادات ميزانية الحملة. حاول مجدداً.";
+        }
+        if (lowerMsg.includes("bid amount") || lowerMsg.includes("bid constraints")) {
+            return "خطأ في استراتيجية عروض الأسعار (Bid Strategy). يرجى المحاولة لاحقاً.";
+        }
+        if (lowerMsg.includes("insufficient funds") || lowerMsg.includes("payment")) {
+            return "حسابك الإعلاني على فيسبوك لا يحتوي على وسيلة دفع صالحة أو به رصيد غير كافٍ.";
+        }
+        if (lowerMsg.includes("permission") || subcode === 33) {
+            return "لا توجد صلاحيات كافية للوصول إلى هذا المورد. تأكد من ربط الصفحة وإعطاء الصلاحيات المطلوبة.";
+        }
+        return `خطأ من فيسبوك: ${errorMsg}`;
+    },
+
+    /**
      * Step 3: Create Campaign
      */
     async createCampaign(name: string): Promise<string> {
         const config = await this.getConfig();
         const url = `https://graph.facebook.com/v19.0/act_${config.adAccountId}/campaigns`;
 
-        // Using URLSearchParams as Meta API expects form-urlencoded data for most endpoints
         const params = new URLSearchParams();
         params.append("name", name);
-        params.append("objective", "OUTCOME_ENGAGEMENT"); // Required in newer Meta APIs for Post Engagement
+        params.append("objective", "OUTCOME_ENGAGEMENT");
         params.append("status", "PAUSED");
         params.append("special_ad_categories", "[]");
+        params.append("is_adset_budget_sharing_enabled", "false");
         params.append("access_token", config.systemUserToken!);
 
         const res = await fetch(url, { method: "POST", body: params });
         const data = await res.json();
 
-        if (data.error) throw new Error(`Meta API Campaign Error: ${data.error.message}`);
+        if (data.error) throw new Error(this.translateError(data.error.message, data.error.error_subcode));
         return data.id; // Returns Campaign ID
     },
 
@@ -43,7 +66,6 @@ export const metaService = {
         const config = await this.getConfig();
         const url = `https://graph.facebook.com/v19.0/act_${config.adAccountId}/adsets`;
 
-        // Meta expects budget in cents/minor units (e.g., $10 = 1000)
         const budgetInMinorUnits = Math.round(dailyBudget * 100);
 
         const now = new Date();
@@ -57,7 +79,7 @@ export const metaService = {
         params.append("end_time", endTime.toISOString());
         params.append("billing_event", "IMPRESSIONS");
         params.append("optimization_goal", "POST_ENGAGEMENT");
-        // Basic broad targeting required by Meta
+        params.append("bid_strategy", "LOWEST_COST_WITHOUT_CAP");
         params.append("targeting", JSON.stringify({ geo_locations: { countries: ["US"] } }));
         params.append("status", "PAUSED");
         params.append("access_token", config.systemUserToken!);
@@ -65,8 +87,8 @@ export const metaService = {
         const res = await fetch(url, { method: "POST", body: params });
         const data = await res.json();
 
-        if (data.error) throw new Error(`Meta API AdSet Error: ${data.error.message}`);
-        return data.id; // Returns AdSet ID
+        if (data.error) throw new Error(this.translateError(data.error.message, data.error.error_subcode));
+        return data.id;
     },
 
     /**
@@ -75,19 +97,22 @@ export const metaService = {
     async createAd(adSetId: string, pageId: string, postId: string): Promise<string> {
         const config = await this.getConfig();
 
-        // First, create an Ad Creative tied to the specific page post
         const creativeUrl = `https://graph.facebook.com/v19.0/act_${config.adAccountId}/adcreatives`;
         const creativeParams = new URLSearchParams();
         creativeParams.append("name", `Creative for Post ${postId}`);
-        creativeParams.append("object_story_id", `${pageId}_${postId}`);
-        // creativeParams.append("page_id", pageId);
+
+        // Handle standalone IDs vs PAGE_POSTID format properly if user entered valid formats
+        let finalStoryId = postId;
+        if (!postId.includes("_")) {
+            finalStoryId = `${pageId}_${postId}`;
+        }
+        creativeParams.append("object_story_id", finalStoryId);
         creativeParams.append("access_token", config.systemUserToken!);
 
         const creativeRes = await fetch(creativeUrl, { method: "POST", body: creativeParams });
         const creativeData = await creativeRes.json();
-        if (creativeData.error) throw new Error(`Meta API Creative Error: ${creativeData.error.message}`);
+        if (creativeData.error) throw new Error(this.translateError(creativeData.error.message, creativeData.error.error_subcode));
 
-        // Second, create the actual Ad linking the AdSet and the Creative
         const adUrl = `https://graph.facebook.com/v19.0/act_${config.adAccountId}/ads`;
         const adParams = new URLSearchParams();
         adParams.append("name", `Ad for Post ${postId}`);
@@ -98,9 +123,9 @@ export const metaService = {
 
         const adRes = await fetch(adUrl, { method: "POST", body: adParams });
         const adData = await adRes.json();
-        if (adData.error) throw new Error(`Meta API Ad Error: ${adData.error.message}`);
+        if (adData.error) throw new Error(this.translateError(adData.error.message, adData.error.error_subcode));
 
-        return adData.id; // Returns Ad ID
+        return adData.id;
     },
 
     /**
@@ -117,7 +142,7 @@ export const metaService = {
         const res = await fetch(url, { method: "POST", body: params });
         const data = await res.json();
 
-        if (data.error) throw new Error(`Meta API Activation Error: ${data.error.message}`);
+        if (data.error) throw new Error(this.translateError(data.error.message, data.error.error_subcode));
         return true;
     }
 };
