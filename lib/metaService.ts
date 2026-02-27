@@ -1,4 +1,8 @@
 import { prisma } from "@/lib/prisma";
+const bizSdk = require('facebook-nodejs-business-sdk');
+const AdAccount = bizSdk.AdAccount;
+const FacebookAdsApi = bizSdk.FacebookAdsApi;
+
 
 export const metaService = {
     /**
@@ -45,21 +49,23 @@ export const metaService = {
      */
     async createCampaign(name: string): Promise<string> {
         const config = await this.getConfig();
-        const url = `https://graph.facebook.com/v19.0/act_${config.adAccountId}/campaigns`;
+        FacebookAdsApi.init(config.systemUserToken!);
 
-        const params = new URLSearchParams();
-        params.append("name", name);
-        params.append("objective", "OUTCOME_ENGAGEMENT");
-        params.append("status", "PAUSED");
-        params.append("special_ad_categories", "[]");
-        params.append("is_adset_budget_sharing_enabled", "false");
-        params.append("access_token", config.systemUserToken!);
-
-        const res = await fetch(url, { method: "POST", body: params });
-        const data = await res.json();
-
-        if (data.error) throw new Error(this.translateError(data.error.message, data.error.error_subcode));
-        return data.id; // Returns Campaign ID
+        try {
+            const campaign = await (new AdAccount(`act_${config.adAccountId}`)).createCampaign(
+                [],
+                {
+                    name: name,
+                    objective: 'OUTCOME_ENGAGEMENT',
+                    status: 'PAUSED',
+                    special_ad_categories: [],
+                    is_adset_budget_sharing_enabled: false,
+                }
+            );
+            return campaign.id;
+        } catch (error: any) {
+            throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));
+        }
     },
 
     /**
@@ -67,31 +73,32 @@ export const metaService = {
      */
     async createAdSet(campaignId: string, dailyBudget: number, durationDays: number): Promise<string> {
         const config = await this.getConfig();
-        const url = `https://graph.facebook.com/v19.0/act_${config.adAccountId}/adsets`;
+        FacebookAdsApi.init(config.systemUserToken!);
 
         const budgetInMinorUnits = Math.round(dailyBudget * 100);
-
         const now = new Date();
         const endTime = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
-        const params = new URLSearchParams();
-        params.append("name", `AdSet for ${campaignId}`);
-        params.append("campaign_id", campaignId);
-        params.append("daily_budget", budgetInMinorUnits.toString());
-        params.append("start_time", now.toISOString());
-        params.append("end_time", endTime.toISOString());
-        params.append("billing_event", "IMPRESSIONS");
-        params.append("optimization_goal", "POST_ENGAGEMENT");
-        params.append("bid_strategy", "LOWEST_COST_WITHOUT_CAP");
-        params.append("targeting", JSON.stringify({ geo_locations: { countries: ["US"] } }));
-        params.append("status", "PAUSED");
-        params.append("access_token", config.systemUserToken!);
-
-        const res = await fetch(url, { method: "POST", body: params });
-        const data = await res.json();
-
-        if (data.error) throw new Error(this.translateError(data.error.message, data.error.error_subcode));
-        return data.id;
+        try {
+            const adSet = await (new AdAccount(`act_${config.adAccountId}`)).createAdSet(
+                [],
+                {
+                    name: `AdSet for ${campaignId}`,
+                    campaign_id: campaignId,
+                    daily_budget: budgetInMinorUnits,
+                    start_time: now.toISOString(),
+                    end_time: endTime.toISOString(),
+                    billing_event: 'IMPRESSIONS',
+                    optimization_goal: 'POST_ENGAGEMENT',
+                    bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
+                    targeting: { geo_locations: { countries: ["US"] } },
+                    status: 'PAUSED'
+                }
+            );
+            return adSet.id;
+        } catch (error: any) {
+            throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));
+        }
     },
 
     /**
@@ -99,36 +106,36 @@ export const metaService = {
      */
     async createAd(adSetId: string, pageId: string, postId: string): Promise<string> {
         const config = await this.getConfig();
+        FacebookAdsApi.init(config.systemUserToken!);
 
-        const creativeUrl = `https://graph.facebook.com/v19.0/act_${config.adAccountId}/adcreatives`;
-        const creativeParams = new URLSearchParams();
-        creativeParams.append("name", `Creative for Post ${postId}`);
-
-        // Handle standalone IDs vs PAGE_POSTID format properly if user entered valid formats
         let finalStoryId = postId;
         if (!postId.includes("_")) {
             finalStoryId = `${pageId}_${postId}`;
         }
-        creativeParams.append("object_story_id", finalStoryId);
-        creativeParams.append("access_token", config.systemUserToken!);
 
-        const creativeRes = await fetch(creativeUrl, { method: "POST", body: creativeParams });
-        const creativeData = await creativeRes.json();
-        if (creativeData.error) throw new Error(this.translateError(creativeData.error.message, creativeData.error.error_subcode));
+        try {
+            const account = new AdAccount(`act_${config.adAccountId}`);
+            const creative = await account.createAdCreative(
+                [],
+                {
+                    name: `Creative for Post ${postId}`,
+                    object_story_id: finalStoryId
+                }
+            );
 
-        const adUrl = `https://graph.facebook.com/v19.0/act_${config.adAccountId}/ads`;
-        const adParams = new URLSearchParams();
-        adParams.append("name", `Ad for Post ${postId}`);
-        adParams.append("adset_id", adSetId);
-        adParams.append("creative", JSON.stringify({ creative_id: creativeData.id }));
-        adParams.append("status", "PAUSED");
-        adParams.append("access_token", config.systemUserToken!);
-
-        const adRes = await fetch(adUrl, { method: "POST", body: adParams });
-        const adData = await adRes.json();
-        if (adData.error) throw new Error(this.translateError(adData.error.message, adData.error.error_subcode));
-
-        return adData.id;
+            const ad = await account.createAd(
+                [],
+                {
+                    name: `Ad for Post ${postId}`,
+                    adset_id: adSetId,
+                    creative: { creative_id: creative.id },
+                    status: 'PAUSED'
+                }
+            );
+            return ad.id;
+        } catch (error: any) {
+            throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));
+        }
     },
 
     /**
@@ -136,16 +143,17 @@ export const metaService = {
      */
     async activateCampaign(campaignId: string): Promise<boolean> {
         const config = await this.getConfig();
-        const url = `https://graph.facebook.com/v19.0/${campaignId}`;
+        FacebookAdsApi.init(config.systemUserToken!);
 
-        const params = new URLSearchParams();
-        params.append("status", "ACTIVE");
-        params.append("access_token", config.systemUserToken!);
-
-        const res = await fetch(url, { method: "POST", body: params });
-        const data = await res.json();
-
-        if (data.error) throw new Error(this.translateError(data.error.message, data.error.error_subcode));
-        return true;
+        try {
+            const Campaign = bizSdk.Campaign;
+            const campaign = new Campaign(campaignId);
+            await campaign.update([], {
+                status: 'ACTIVE'
+            });
+            return true;
+        } catch (error: any) {
+            throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));
+        }
     }
 };
