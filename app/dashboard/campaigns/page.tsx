@@ -131,7 +131,7 @@ export default function CampaignsPage() {
                 if (Array.isArray(newCampaigns)) setCampaigns(newCampaigns);
 
             } else {
-                setMessage({ type: "error", text: data.error || "Failed to create campaign." });
+                setMessage({ type: "error", text: data.details ? `${data.error} \nDetails: ${data.details}` : (data.error || "Failed to create campaign.") });
             }
         } catch (error) {
             setMessage({ type: "error", text: "A critical error occurred." });

@@ -31,8 +31,11 @@ export const metaService = {
         if (lowerMsg.includes("insufficient funds") || lowerMsg.includes("payment")) {
             return "حسابك الإعلاني على فيسبوك لا يحتوي على وسيلة دفع صالحة أو به رصيد غير كافٍ.";
         }
-        if (lowerMsg.includes("permission") || subcode === 33) {
-            return "لا توجد صلاحيات كافية للوصول إلى هذا المورد. تأكد من ربط الصفحة وإعطاء الصلاحيات المطلوبة.";
+        if (lowerMsg.includes("permission") || subcode === 33 || lowerMsg.includes("application does not have")) {
+            return "لا توجد صلاحيات كافية للوصول إلى هذا المورد. تأكد من إعطاء (System User) صلاحية إدارة الإعلانات (Manage Ads) للصفحة في مدير الأعمال (Business Manager).";
+        }
+        if (lowerMsg.includes("unknown error") && errorMsg.length < 30) {
+            return "حدث خطأ غير معروف من فيسبوك (Code 1). غالباً يعود السبب إلى عدم منح (System User) صلاحية إنشاء إعلانات للصفحة المحددة، أو أن التطبيق غير مفعل بالكامل.";
         }
         return `خطأ من فيسبوك: ${errorMsg}`;
     },
