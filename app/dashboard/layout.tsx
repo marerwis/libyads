@@ -29,8 +29,8 @@ export default function DashboardLayout({
         { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { name: "Wallet", href: "/dashboard/wallet", icon: Wallet },
         { name: "Facebook Pages", href: "/dashboard/facebook", icon: Flag },
-        { name: "Campaigns", href: "/dashboard/campaigns", icon: Megaphone },
-        { name: "Create Promotion", href: "/dashboard/campaigns", icon: PlusCircle, isPrimary: true },
+        { name: "Campaign History", href: "/dashboard/campaigns", icon: Megaphone },
+        { name: "Create Promotion", href: "/dashboard/campaigns/create", icon: PlusCircle, isPrimary: true },
     ];
 
     const adminItems = [

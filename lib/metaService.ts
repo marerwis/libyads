@@ -69,9 +69,9 @@ export const metaService = {
     },
 
     /**
-     * Step 4: Create Ad Set
+     * Step 4: Create Ad Set with Advanced Targeting
      */
-    async createAdSet(campaignId: string, dailyBudget: number, durationDays: number, pageId: string): Promise<string> {
+    async createAdSet(campaignId: string, dailyBudget: number, durationDays: number, pageId: string, targetingOptions?: { minAge?: number, maxAge?: number, genders?: number[], countries?: string[] }): Promise<string> {
         const config = await this.getConfig();
         FacebookAdsApi.init(config.systemUserToken!);
 
@@ -79,6 +79,18 @@ export const metaService = {
         const now = new Date();
         // Add 1 hour buffer to avoid "Campaign Schedule Is Too Short" errors from Facebook
         const endTime = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000 + 3600000);
+
+        // Build targeting payload
+        const targetingPayload: any = {
+            geo_locations: { countries: targetingOptions?.countries || ["US"] } // Default to US if none provided
+        };
+
+        if (targetingOptions?.minAge) targetingPayload.age_min = targetingOptions.minAge;
+        if (targetingOptions?.maxAge) targetingPayload.age_max = targetingOptions.maxAge;
+        if (targetingOptions?.genders && targetingOptions.genders.length > 0) {
+            // Meta expects genders as an array of integers (1 = Male, 2 = Female)
+            targetingPayload.genders = targetingOptions.genders;
+        }
 
         try {
             const adSet = await (new AdAccount(`act_${config.adAccountId}`)).createAdSet(
@@ -93,7 +105,7 @@ export const metaService = {
                     optimization_goal: 'REACH',
                     promoted_object: { page_id: pageId },
                     bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
-                    targeting: { geo_locations: { countries: ["US"] } },
+                    targeting: targetingPayload,
                     status: 'PAUSED'
                 }
             );
@@ -153,6 +165,23 @@ export const metaService = {
             await campaign.update([], {
                 status: 'ACTIVE'
             });
+            return true;
+        } catch (error: any) {
+            throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));
+        }
+    },
+
+    /**
+     * Step 7: Update Campaign Status (Toggle Pause/Resume)
+     */
+    async updateCampaignStatus(campaignId: string, status: "ACTIVE" | "PAUSED"): Promise<boolean> {
+        const config = await this.getConfig();
+        FacebookAdsApi.init(config.systemUserToken!);
+
+        try {
+            const Campaign = bizSdk.Campaign;
+            const campaign = new Campaign(campaignId);
+            await campaign.update([], { status });
             return true;
         } catch (error: any) {
             throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));

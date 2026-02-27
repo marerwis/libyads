@@ -19,7 +19,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const { pageId, postId, budget, duration } = await req.json();
+        const { pageId, postId, budget, duration, targetingOptions } = await req.json();
 
         if (!pageId || !postId || !budget || !duration) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
             campaignId = await metaService.createCampaign(`Promo ${postId}`);
 
             // Step 4: Create Ad Set (PAUSED)
-            adSetId = await metaService.createAdSet(campaignId, budget / duration, duration, pageId);
+            adSetId = await metaService.createAdSet(campaignId, budget / duration, duration, pageId, targetingOptions);
 
             // Step 5: Create Ad (PAUSED)
             adId = await metaService.createAd(adSetId, pageId, postId);

@@ -1,156 +1,73 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { PlusCircle, ChevronDown, Rocket, Megaphone } from "lucide-react";
+import { Megaphone, Play, Pause, Eye, Search } from "lucide-react";
 
-export default function CampaignsPage() {
+export default function CampaignsHistoryPage() {
     const [campaigns, setCampaigns] = useState<any[]>([]);
-    const [pages, setPages] = useState<any[]>([]);
-    const [posts, setPosts] = useState<any[]>([]);
-    const [loadingPosts, setLoadingPosts] = useState(false);
-    const [balance, setBalance] = useState<number>(0);
     const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
 
-    const [formData, setFormData] = useState({
-        pageId: "",
-        postId: "",
-        budget: 10,
-        duration: 3
-    });
-
-    // Fetch initial data (stats, pages, campaigns)
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [statsRes, pagesRes, campaignsRes] = await Promise.all([
-                    fetch('/api/dashboard/stats'),
-                    fetch('/api/facebook/pages'),
-                    fetch('/api/campaign/list')
-                ]);
-
-                const statsData = await statsRes.json();
-                setBalance(statsData.balance || 0);
-
-                const pagesData = await pagesRes.json();
-                if (Array.isArray(pagesData)) {
-                    setPages(pagesData);
-                    if (pagesData.length > 0) {
-                        setFormData(prev => ({ ...prev, pageId: pagesData[0].pageId }));
-                    }
-                }
-
-                const campaignsData = await campaignsRes.json();
-                if (Array.isArray(campaignsData)) setCampaigns(campaignsData);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
-
-    // Fetch posts when selected page changes
-    useEffect(() => {
-        if (!formData.pageId) {
-            setPosts([]);
-            return;
+    const fetchCampaigns = async () => {
+        try {
+            const res = await fetch('/api/campaign/list');
+            const data = await res.json();
+            if (Array.isArray(data)) setCampaigns(data);
+        } catch (error) {
+            console.error("Failed to fetch campaigns", error);
+        } finally {
+            setLoading(false);
         }
-
-        const fetchPosts = async () => {
-            setLoadingPosts(true);
-            try {
-                const res = await fetch(`/api/facebook/posts?pageId=${formData.pageId}`);
-                const data = await res.json();
-                if (Array.isArray(data)) {
-                    setPosts(data);
-                    // Automatically select the first post if available
-                    if (data.length > 0) {
-                        const firstPostId = data[0].id;
-                        const purePostId = firstPostId.includes('_') ? firstPostId.split('_')[1] : firstPostId;
-                        setFormData(prev => ({ ...prev, postId: purePostId }));
-                    } else {
-                        setFormData(prev => ({ ...prev, postId: "" }));
-                    }
-                } else {
-                    setPosts([]);
-                    setFormData(prev => ({ ...prev, postId: "" }));
-                }
-            } catch (error) {
-                console.error("Failed to fetch posts", error);
-                setPosts([]);
-                setFormData(prev => ({ ...prev, postId: "" }));
-            } finally {
-                setLoadingPosts(false);
-            }
-        };
-
-        fetchPosts();
-    }, [formData.pageId]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: name === "budget" || name === "duration" ? Number(value) : value
-        }));
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
+    useEffect(() => {
+        fetchCampaigns();
+    }, []);
 
-        if (formData.budget > balance) {
-            setMessage({ type: "error", text: "Insufficient balance to run this campaign." });
-            return;
-        }
-
-        setSubmitting(true);
-        setMessage(null);
+    const toggleCampaignStatus = async (id: string, currentStatus: string) => {
+        if (!id) return;
+        const newStatus = currentStatus === "ACTIVE" ? "PAUSED" : "ACTIVE";
 
         try {
-            const res = await fetch("/api/campaign/create", {
-                method: "POST",
+            // Update UI optimistically
+            setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
+
+            const res = await fetch(`/api/campaign/${id}/status`, {
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({ status: newStatus }),
             });
 
-            const data = await res.json();
-
-            if (res.ok) {
-                setMessage({ type: "success", text: "Campaign created and activated successfully!" });
-                setFormData(prev => ({ ...prev, postId: "" })); // reset post ID
-
-                // Refresh campaigns and balance
-                const [newStats, newCampaigns] = await Promise.all([
-                    fetch('/api/dashboard/stats').then(r => r.json()),
-                    fetch('/api/campaign/list').then(r => r.json())
-                ]);
-                setBalance(newStats.balance || 0);
-                if (Array.isArray(newCampaigns)) setCampaigns(newCampaigns);
-
-            } else {
-                setMessage({ type: "error", text: data.details ? `${data.error} \nDetails: ${data.details}` : (data.error || "Failed to create campaign.") });
+            if (!res.ok) {
+                // Revert on failure
+                const errorData = await res.json();
+                setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: currentStatus } : c));
+                setMessage({ type: "error", text: errorData.error || "Failed to update campaign status." });
             }
         } catch (error) {
-            setMessage({ type: "error", text: "A critical error occurred." });
-        } finally {
-            setSubmitting(false);
+            setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: currentStatus } : c));
+            setMessage({ type: "error", text: "Network error while updating status." });
         }
     };
 
     return (
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
             <header className="mb-8 flex justify-between items-end">
                 <div>
-                    <h2 className="text-2xl font-semibold text-white">Ad Campaigns</h2>
-                    <p className="text-slate-400 text-sm mt-1">Create new promotions and monitor active campaigns.</p>
+                    <h2 className="text-2xl font-semibold text-white">Campaign History</h2>
+                    <p className="text-slate-400 text-sm mt-1">Manage, pause, and review your active promotions.</p>
                 </div>
-                <div className="text-right">
-                    <p className="text-slate-400 text-sm">Wallet Balance</p>
-                    <p className="text-xl font-bold text-white">${balance.toFixed(2)}</p>
+                <div className="flex gap-4">
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search size={16} className="text-slate-500" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search campaigns..."
+                            className="bg-[#151921] border border-[#2A303C] text-sm text-white rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-blue-500 transition-colors w-64"
+                        />
+                    </div>
                 </div>
             </header>
 
@@ -160,180 +77,80 @@ export default function CampaignsPage() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Create Campaign Form */}
-                <div className="lg:col-span-1">
-                    <div className="bg-[#151921] rounded-xl border border-[#2A303C] p-6 shadow-sm sticky top-6">
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#2A303C]">
-                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-inner">
-                                <PlusCircle size={22} strokeWidth={2.5} />
-                            </div>
-                            <h3 className="text-lg font-medium text-white">Create Promotion</h3>
+            <div className="bg-[#151921] rounded-xl border border-[#2A303C] overflow-hidden shadow-sm">
+                {loading ? (
+                    <div className="p-12 text-center text-slate-400">Loading campaigns data...</div>
+                ) : campaigns.length === 0 ? (
+                    <div className="p-20 text-center flex flex-col items-center">
+                        <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-6 shadow-inner">
+                            <Megaphone size={36} strokeWidth={1.5} />
                         </div>
-
-                        {loading ? (
-                            <div className="text-sm text-slate-400">Loading form...</div>
-                        ) : pages.length === 0 ? (
-                            <div className="text-sm text-amber-400 bg-amber-900/20 p-4 rounded-lg border border-amber-900/50 mb-4">
-                                You must connect a Facebook Page in the "Pages" section before creating a promotion.
-                            </div>
-                        ) : (
-                            <form onSubmit={handleCreate} className="space-y-5">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-1">Target Facebook Page</label>
-                                    <div className="relative group">
-                                        <select
-                                            name="pageId" value={formData.pageId} onChange={handleChange}
-                                            className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 text-slate-200 py-2.5 pl-4 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40"
-                                            required
-                                        >
-                                            {pages.map(page => (
-                                                <option key={page.id} value={page.pageId}>{page.pageName}</option>
-                                            ))}
-                                        </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
-                                            <ChevronDown size={18} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-1">Target Post (Choose from latest)</label>
-                                    {loadingPosts ? (
-                                        <div className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-3 py-2.5 text-slate-500 text-sm animate-pulse">
-                                            Fetching recent posts...
-                                        </div>
-                                    ) : posts.length === 0 ? (
-                                        <div className="w-full bg-[#0B0E14] border border-red-900/50 rounded-lg px-3 py-2.5 text-red-400 text-sm">
-                                            No recent posts found for this page.
-                                        </div>
-                                    ) : (
-                                        <div className="relative group">
-                                            <select
-                                                name="postId" value={formData.postId} onChange={handleChange}
-                                                className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 text-slate-200 py-2.5 pl-4 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40"
-                                                required
-                                            >
-                                                <option value="" disabled>Select a post to promote...</option>
-                                                {posts.map((post: any) => {
-                                                    const date = new Date(post.created_time || Date.now()).toLocaleDateString();
-                                                    // Determine the post ID to use for the Meta API. Most APIs just need the `object_story_id` which is `PAGEID_POSTID` or just the `POSTID`.
-                                                    // Our backend expects `postId` and combines it there, so give it the pure post ID.
-                                                    const purePostId = post.id.includes('_') ? post.id.split('_')[1] : post.id;
-
-                                                    const snippet = post.message
-                                                        ? (post.message.length > 60 ? post.message.substring(0, 60) + "..." : post.message)
-                                                        : "No Text (Media Post)";
-
-                                                    return (
-                                                        <option key={post.id} value={purePostId}>
-                                                            {date} - {snippet}
-                                                        </option>
-                                                    );
-                                                })}
-                                            </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
-                                                <ChevronDown size={18} />
+                        <h3 className="text-xl font-medium text-white mb-2">No campaigns yet</h3>
+                        <p className="text-slate-400 text-sm max-w-sm mb-6">You haven't launched any promotions yet. Navigate to "Create Promotion" to get started.</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm text-slate-300">
+                            <thead className="text-xs text-slate-400 uppercase bg-[#0B0E14]/50 border-b border-[#2A303C]">
+                                <tr>
+                                    <th className="px-6 py-4 font-medium">Campaign Meta ID</th>
+                                    <th className="px-6 py-4 font-medium">Page & Post</th>
+                                    <th className="px-6 py-4 font-medium">Budget</th>
+                                    <th className="px-6 py-4 font-medium">Status</th>
+                                    <th className="px-6 py-4 font-medium">Date Created</th>
+                                    <th className="px-6 py-4 font-medium text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#2A303C]">
+                                {campaigns.map(campaign => (
+                                    <tr key={campaign.id} className="hover:bg-[#0B0E14]/30 transition-colors group">
+                                        <td className="px-6 py-4 font-mono text-xs opacity-80">{campaign.campaignId || 'Pending'}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-medium text-slate-200">Post ID: {campaign.postId}</div>
+                                            <div className="text-xs text-slate-500 mt-1">Page ID: {campaign.pageId}</div>
+                                        </td>
+                                        <td className="px-6 py-4 leading-relaxed">
+                                            <div className="font-medium text-slate-200">${campaign.budget.toFixed(2)} total</div>
+                                            <div className="text-xs text-slate-500 mt-1">{campaign.duration} Days</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full ${campaign.status === "ACTIVE" ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
+                                                    campaign.status === "FAILED" ? 'bg-red-500' :
+                                                        'bg-slate-500'
+                                                    }`} />
+                                                <span className={`font-medium ${campaign.status === "ACTIVE" ? 'text-emerald-400' :
+                                                    campaign.status === "FAILED" ? 'text-red-400' :
+                                                        'text-slate-400'
+                                                    }`}>
+                                                    {campaign.status}
+                                                </span>
                                             </div>
-                                        </div>
-                                    )}
-                                    <p className="text-xs text-slate-500 mt-1">We will promote the selected post across Facebook and Instagram.</p>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-1">Budget ($)</label>
-                                        <input
-                                            type="number" name="budget" value={formData.budget} onChange={handleChange} min="1" max={Math.floor(balance)}
-                                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-[#1877F2] text-sm"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-1">Duration (Days)</label>
-                                        <input
-                                            type="number" name="duration" value={formData.duration} onChange={handleChange} min="1" max="30"
-                                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-3 py-2.5 text-white focus:outline-none focus:border-[#1877F2] text-sm"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="pt-2">
-                                    <button
-                                        type="submit"
-                                        disabled={submitting || formData.budget > balance || pages.length === 0}
-                                        className="w-full px-4 py-3 bg-[#1877F2] hover:bg-blue-600 disabled:bg-[#151921] disabled:border disabled:border-[#2A303C] disabled:text-slate-500 text-white font-medium rounded-lg text-sm transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
-                                    >
-                                        {submitting ? (
-                                            "Executing with Meta..."
-                                        ) : formData.budget > balance ? (
-                                            "Insufficient Balance"
-                                        ) : (
-                                            <>
-                                                <Rocket size={18} />
-                                                Launch Promotion
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </form>
-                        )}
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-400">
+                                            {new Date(campaign.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-2 text-slate-500">
+                                                <button
+                                                    onClick={() => toggleCampaignStatus(campaign.id, campaign.status)}
+                                                    disabled={campaign.status === "FAILED" || !campaign.campaignId}
+                                                    className="p-2 bg-slate-800/50 hover:bg-slate-700 hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed group-hover:opacity-100"
+                                                    title={campaign.status === "ACTIVE" ? "Pause Campaign" : "Resume Campaign"}
+                                                >
+                                                    {campaign.status === "ACTIVE" ? <Pause size={16} /> : <Play size={16} />}
+                                                </button>
+                                                <button className="p-2 bg-slate-800/50 hover:bg-slate-700 hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-600 group-hover:opacity-100">
+                                                    <Eye size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-
-                {/* Campaigns List */}
-                <div className="lg:col-span-2">
-                    <div className="bg-[#151921] rounded-xl border border-[#2A303C] overflow-hidden shadow-sm">
-                        <div className="p-6 border-b border-[#2A303C] flex justify-between items-center">
-                            <h3 className="text-lg font-medium text-white">Campaign History</h3>
-                        </div>
-
-                        {loading ? (
-                            <div className="p-8 text-center text-slate-400">Loading campaigns...</div>
-                        ) : campaigns.length === 0 ? (
-                            <div className="p-12 text-center flex flex-col items-center">
-                                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
-                                    <Megaphone size={32} strokeWidth={2} />
-                                </div>
-                                <h3 className="text-white font-medium mb-1">No campaigns found</h3>
-                                <p className="text-slate-400 text-sm max-w-sm">Create your first promotion using the form to see your campaign history here.</p>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm text-slate-300">
-                                    <thead className="text-xs text-slate-400 uppercase bg-[#0B0E14]/50 border-b border-[#2A303C]">
-                                        <tr>
-                                            <th className="px-6 py-4 font-medium">Campaign ID</th>
-                                            <th className="px-6 py-4 font-medium">Budget</th>
-                                            <th className="px-6 py-4 font-medium">Status</th>
-                                            <th className="px-6 py-4 font-medium">Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-[#2A303C]">
-                                        {campaigns.map(campaign => (
-                                            <tr key={campaign.id} className="hover:bg-[#0B0E14]/30 transition-colors">
-                                                <td className="px-6 py-4 font-mono text-xs">{campaign.campaignId || 'Pending'}</td>
-                                                <td className="px-6 py-4 font-medium">${campaign.budget.toFixed(2)}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${campaign.status === "ACTIVE" ? 'bg-emerald-900/30 text-emerald-400 border-emerald-900/50' :
-                                                        campaign.status === "FAILED" ? 'bg-red-900/30 text-red-400 border-red-900/50' :
-                                                            'bg-sky-900/30 text-sky-400 border-sky-900/50'
-                                                        }`}>
-                                                        {campaign.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-slate-400">
-                                                    {new Date(campaign.createdAt).toLocaleDateString()}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );
