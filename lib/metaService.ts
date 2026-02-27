@@ -56,7 +56,7 @@ export const metaService = {
                 [],
                 {
                     name: name,
-                    objective: 'OUTCOME_ENGAGEMENT',
+                    objective: 'OUTCOME_AWARENESS',
                     status: 'PAUSED',
                     special_ad_categories: [],
                     is_adset_budget_sharing_enabled: false,
@@ -77,7 +77,8 @@ export const metaService = {
 
         const budgetInMinorUnits = Math.round(dailyBudget * 100);
         const now = new Date();
-        const endTime = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        // Add 1 hour buffer to avoid "Campaign Schedule Is Too Short" errors from Facebook
+        const endTime = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000 + 3600000);
 
         try {
             const adSet = await (new AdAccount(`act_${config.adAccountId}`)).createAdSet(
@@ -89,7 +90,7 @@ export const metaService = {
                     start_time: now.toISOString(),
                     end_time: endTime.toISOString(),
                     billing_event: 'IMPRESSIONS',
-                    optimization_goal: 'POST_ENGAGEMENT',
+                    optimization_goal: 'REACH',
                     promoted_object: { page_id: pageId },
                     bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
                     targeting: { geo_locations: { countries: ["US"] } },
