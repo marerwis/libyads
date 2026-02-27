@@ -19,8 +19,8 @@ export default function AdminUsersManagement() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingRole, setUpdatingRole] = useState<string | null>(null);
-    const [topUpModal, setTopUpModal] = useState<{ isOpen: boolean, user: User | null, amount: string, loading: boolean }>({
-        isOpen: false, user: null, amount: "50", loading: false
+    const [walletModal, setWalletModal] = useState<{ isOpen: boolean, user: User | null, amount: string, loading: boolean, action: 'add' | 'deduct' }>({
+        isOpen: false, user: null, amount: "50", loading: false, action: 'add'
     });
 
     useEffect(() => {
@@ -90,35 +90,38 @@ export default function AdminUsersManagement() {
         }
     };
 
-    const handleTopUpSubmit = async (e: React.FormEvent) => {
+    const handleWalletSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const { user, amount } = topUpModal;
+        const { user, amount, action } = walletModal;
         if (!user || isNaN(Number(amount)) || Number(amount) <= 0) return;
 
-        setTopUpModal(prev => ({ ...prev, loading: true }));
+        setWalletModal(prev => ({ ...prev, loading: true }));
         try {
             const res = await fetch(`/api/admin/users/${user.id}/wallet`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount: Number(amount) })
+                body: JSON.stringify({ amount: Number(amount), action })
             });
 
             if (res.ok) {
                 // Update local state to reflect new balance
-                setUsers(prev => prev.map(u =>
-                    u.id === user.id
-                        ? { ...u, wallet: { balance: (u.wallet?.balance || 0) + Number(amount) } }
-                        : u
-                ));
-                setTopUpModal({ isOpen: false, user: null, amount: "50", loading: false });
+                setUsers(prev => prev.map(u => {
+                    if (u.id === user.id) {
+                        const currentBalance = u.wallet?.balance || 0;
+                        const modifier = action === 'add' ? Number(amount) : -Number(amount);
+                        return { ...u, wallet: { balance: currentBalance + modifier } };
+                    }
+                    return u;
+                }));
+                setWalletModal({ isOpen: false, user: null, amount: "50", loading: false, action: 'add' });
             } else {
                 const data = await res.json();
-                alert(data.error || "Failed to top up user's wallet");
-                setTopUpModal(prev => ({ ...prev, loading: false }));
+                alert(data.error || `Failed to ${action} user's wallet`);
+                setWalletModal(prev => ({ ...prev, loading: false }));
             }
         } catch (error) {
-            alert("An error occurred during wallet top-up");
-            setTopUpModal(prev => ({ ...prev, loading: false }));
+            alert(`An error occurred during wallet ${action}`);
+            setWalletModal(prev => ({ ...prev, loading: false }));
         }
     };
 
@@ -182,11 +185,19 @@ export default function AdminUsersManagement() {
                                     </td>
                                     <td className="px-6 py-4 flex justify-end gap-3 mt-1">
                                         <button
-                                            onClick={() => setTopUpModal({ isOpen: true, user, amount: "50", loading: false })}
+                                            onClick={() => setWalletModal({ isOpen: true, user, amount: "50", loading: false, action: 'add' })}
                                             className="text-[#1877F2] hover:text-blue-400 transition-colors p-1 rounded hover:bg-blue-400/10"
-                                            title="Top Up Wallet Balance"
+                                            title="Add Wallet Balance"
                                         >
                                             <span className="material-symbols-outlined text-lg">add_circle</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setWalletModal({ isOpen: true, user, amount: user.wallet?.balance?.toString() || "0", loading: false, action: 'deduct' })}
+                                            className="text-orange-400 hover:text-orange-300 transition-colors p-1 rounded hover:bg-orange-400/10"
+                                            title="Deduct Wallet Balance"
+                                            disabled={!user.wallet?.balance || user.wallet.balance <= 0}
+                                        >
+                                            <span className="material-symbols-outlined text-lg">do_not_disturb_on</span>
                                         </button>
                                         <button
                                             onClick={() => handleDelete(user.id, user.name)}
@@ -210,24 +221,27 @@ export default function AdminUsersManagement() {
                 </div>
             </div>
 
-            {/* Top-up Modal */}
-            {topUpModal.isOpen && topUpModal.user && (
+            {/* Wallet Modal */}
+            {walletModal.isOpen && walletModal.user && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-[#151921] border border-[#2A303C] rounded-xl w-full max-w-sm shadow-xl flex flex-col">
                         <div className="p-5 border-b border-[#2A303C] flex justify-between items-center">
-                            <h3 className="text-lg font-semibold text-white">Top Up Wallet</h3>
+                            <h3 className="text-lg font-semibold text-white">
+                                {walletModal.action === 'add' ? 'Top Up Wallet' : 'Deduct Wallet Balance'}
+                            </h3>
                             <button
-                                onClick={() => setTopUpModal({ isOpen: false, user: null, amount: "50", loading: false })}
+                                onClick={() => setWalletModal({ isOpen: false, user: null, amount: "50", loading: false, action: 'add' })}
                                 className="text-slate-400 hover:text-white transition-colors"
                             >
                                 <span className="material-symbols-outlined text-xl">close</span>
                             </button>
                         </div>
-                        <form onSubmit={handleTopUpSubmit} className="p-5 space-y-4">
+                        <form onSubmit={handleWalletSubmit} className="p-5 space-y-4">
                             <div>
                                 <label className="text-sm text-slate-400 block mb-1">Target User</label>
-                                <div className="text-white font-medium bg-[#0B0E14] px-4 py-3 rounded-lg border border-[#2A303C]">
-                                    {topUpModal.user.name || topUpModal.user.email}
+                                <div className="text-white font-medium bg-[#0B0E14] px-4 py-3 rounded-lg border border-[#2A303C] flex justify-between items-center">
+                                    <span>{walletModal.user.name || walletModal.user.email}</span>
+                                    <span className="text-sm text-slate-500 font-mono">Bal: ${walletModal.user.wallet?.balance?.toFixed(2) || "0.00"}</span>
                                 </div>
                             </div>
                             <div>
@@ -236,9 +250,9 @@ export default function AdminUsersManagement() {
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
                                     <input
                                         type="number"
-                                        required min="1" step="0.01"
-                                        value={topUpModal.amount}
-                                        onChange={e => setTopUpModal(prev => ({ ...prev, amount: e.target.value }))}
+                                        required min="0.01" step="0.01" max={walletModal.action === 'deduct' ? walletModal.user.wallet?.balance : undefined}
+                                        value={walletModal.amount}
+                                        onChange={e => setWalletModal(prev => ({ ...prev, amount: e.target.value }))}
                                         className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg pl-8 pr-4 py-3 text-white text-lg font-mono focus:border-[#1877F2] outline-none"
                                         placeholder="50.00"
                                     />
@@ -246,13 +260,18 @@ export default function AdminUsersManagement() {
                             </div>
                             <button
                                 type="submit"
-                                disabled={topUpModal.loading}
-                                className="w-full mt-2 px-4 py-3 bg-[#1877F2] hover:bg-blue-600 disabled:opacity-50 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                disabled={walletModal.loading}
+                                className={`w-full mt-2 px-4 py-3 disabled:opacity-50 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${walletModal.action === 'add'
+                                        ? 'bg-[#1877F2] hover:bg-blue-600'
+                                        : 'bg-orange-500 hover:bg-orange-600'
+                                    }`}
                             >
-                                {topUpModal.loading ? "Processing..." : (
+                                {walletModal.loading ? "Processing..." : (
                                     <>
-                                        <span className="material-symbols-outlined text-sm">payments</span>
-                                        Add Funds
+                                        <span className="material-symbols-outlined text-sm">
+                                            {walletModal.action === 'add' ? 'payments' : 'money_off'}
+                                        </span>
+                                        {walletModal.action === 'add' ? 'Add Funds' : 'Deduct Funds'}
                                     </>
                                 )}
                             </button>
