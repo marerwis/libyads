@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { Wallet, ReceiptText } from "lucide-react";
 
 export default function WalletPage() {
     const [balance, setBalance] = useState<number>(0);
@@ -26,8 +27,8 @@ export default function WalletPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-[#151921] p-6 rounded-xl border border-[#2A303C] shadow-sm md:col-span-1">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-emerald-900/30 text-emerald-400 border border-emerald-900/50">
-                            <span className="material-symbols-outlined text-xl">account_balance</span>
+                        <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-inner">
+                            <Wallet size={24} strokeWidth={2.5} />
                         </div>
                         <span className="text-sm font-medium text-slate-400">Current Balance</span>
                     </div>
@@ -52,8 +53,8 @@ export default function WalletPage() {
                     <h3 className="text-lg font-medium text-white">Recent Transactions</h3>
                 </div>
                 <div className="p-12 text-center flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-500 mb-4">
-                        <span className="material-symbols-outlined text-3xl">receipt_long</span>
+                    <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-500 mb-4 shadow-inner">
+                        <ReceiptText size={32} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-white font-medium mb-1">No transactions yet</h3>
                     <p className="text-slate-400 text-sm max-w-sm">Your deductive history and refunds will appear here once you launch a campaign.</p>

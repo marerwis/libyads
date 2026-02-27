@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { Plus, CreditCard, Code, Settings, Trash2, X, ChevronDown, Landmark, Save } from "lucide-react";
 
 type PaymentMethod = {
     id: string;
@@ -168,14 +169,14 @@ export default function AdminPaymentMethods() {
                     onClick={() => handleOpenModal()}
                     className="flex items-center gap-2 px-4 py-2 bg-[#1877F2] hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
                 >
-                    <span className="material-symbols-outlined text-sm">add</span>
+                    <Plus size={16} />
                     Add Gateway / Method
                 </button>
             </header>
 
             {methods.length === 0 ? (
-                <div className="bg-[#151921] rounded-xl border border-[#2A303C] p-12 text-center">
-                    <span className="material-symbols-outlined text-6xl text-slate-600 mb-4 block">payments</span>
+                <div className="bg-[#151921] rounded-xl border border-[#2A303C] p-12 text-center flex flex-col items-center">
+                    <CreditCard size={60} strokeWidth={1} className="text-slate-600 mb-4 block" />
                     <h3 className="text-lg font-medium text-white mb-2">No Payment Methods Configured</h3>
                     <p className="text-slate-400 max-w-md mx-auto">You haven't added any payment methods yet. Add a manual method like Bank Transfer or an API Gateway like Stripe to get started.</p>
                 </div>
@@ -213,7 +214,7 @@ export default function AdminPaymentMethods() {
                                     {isApiType && (
                                         <div className="flex items-center justify-between p-3 rounded-lg border border-[#2A303C] bg-[#0B0E14]">
                                             <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-slate-400 text-sm">api</span>
+                                                <Code size={16} className="text-slate-400" />
                                                 <span className="text-sm font-medium text-slate-300">Environment</span>
                                             </div>
                                             {/* Environment Toggle Switch */}
@@ -268,14 +269,14 @@ export default function AdminPaymentMethods() {
                                         className="p-2 text-slate-400 hover:text-white hover:bg-[#2A303C] rounded-lg transition-colors flex items-center justify-center"
                                         title="Edit Settings"
                                     >
-                                        <span className="material-symbols-outlined text-lg">settings</span>
+                                        <Settings size={18} />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(method.id)}
                                         className="p-2 text-red-500/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex items-center justify-center"
                                         title="Delete"
                                     >
-                                        <span className="material-symbols-outlined text-lg">delete</span>
+                                        <Trash2 size={18} />
                                     </button>
                                 </div>
                             </div>
@@ -296,7 +297,7 @@ export default function AdminPaymentMethods() {
                                 <p className="text-sm text-slate-400 mt-1">Configure the integration and visibility settings.</p>
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white bg-[#0B0E14] p-2 rounded-lg border border-[#2A303C]">
-                                <span className="material-symbols-outlined">close</span>
+                                <X size={20} />
                             </button>
                         </div>
 
@@ -331,8 +332,8 @@ export default function AdminPaymentMethods() {
                                                     <option value="OTHER">Other Manual</option>
                                                 </optgroup>
                                             </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-[#1877F2] transition-colors duration-300">
-                                                <span className="material-symbols-outlined text-base">arrow_drop_down</span>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
+                                                <ChevronDown size={16} />
                                             </div>
                                         </div>
                                     </div>
@@ -355,8 +356,8 @@ export default function AdminPaymentMethods() {
                                 {isApiGateway ? (
                                     <div className="space-y-5">
                                         <div className="flex items-center justify-between pb-2 border-b border-[#2A303C]">
-                                            <h4 className="text-[#1877F2] font-semibold flex items-center gap-2">
-                                                <span className="material-symbols-outlined">api</span>
+                                            <h4 className="text-blue-500 font-semibold flex items-center gap-2">
+                                                <Code size={20} />
                                                 API Configuration
                                             </h4>
 
@@ -411,8 +412,8 @@ export default function AdminPaymentMethods() {
                                 ) : (
                                     <div className="space-y-5">
                                         <div className="flex items-center gap-2 pb-2 border-b border-[#2A303C]">
-                                            <span className="material-symbols-outlined text-[#1877F2]">account_balance</span>
-                                            <h4 className="text-[#1877F2] font-semibold">Manual Details</h4>
+                                            <Landmark size={20} className="text-blue-500" />
+                                            <h4 className="text-blue-500 font-semibold">Manual Details</h4>
                                         </div>
 
                                         <div>
@@ -452,7 +453,7 @@ export default function AdminPaymentMethods() {
                             >
                                 {saving ? "Saving..." : (
                                     <>
-                                        <span className="material-symbols-outlined text-sm">save</span>
+                                        <Save size={16} />
                                         Save Configuration
                                     </>
                                 )}

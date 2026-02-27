@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { PlusCircle, ChevronDown, Rocket, Megaphone } from "lucide-react";
 
 export default function CampaignsPage() {
     const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -164,8 +165,8 @@ export default function CampaignsPage() {
                 <div className="lg:col-span-1">
                     <div className="bg-[#151921] rounded-xl border border-[#2A303C] p-6 shadow-sm sticky top-6">
                         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#2A303C]">
-                            <div className="w-10 h-10 rounded-lg bg-blue-900/20 flex items-center justify-center text-[#1877F2]">
-                                <span className="material-symbols-outlined">add_circle</span>
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-inner">
+                                <PlusCircle size={22} strokeWidth={2.5} />
                             </div>
                             <h3 className="text-lg font-medium text-white">Create Promotion</h3>
                         </div>
@@ -190,8 +191,8 @@ export default function CampaignsPage() {
                                                 <option key={page.id} value={page.pageId}>{page.pageName}</option>
                                             ))}
                                         </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-[#1877F2] transition-colors duration-300">
-                                            <span className="material-symbols-outlined text-base">arrow_drop_down</span>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
+                                            <ChevronDown size={18} />
                                         </div>
                                     </div>
                                 </div>
@@ -231,8 +232,8 @@ export default function CampaignsPage() {
                                                     );
                                                 })}
                                             </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-[#1877F2] transition-colors duration-300">
-                                                <span className="material-symbols-outlined text-base">arrow_drop_down</span>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
+                                                <ChevronDown size={18} />
                                             </div>
                                         </div>
                                     )}
@@ -270,7 +271,7 @@ export default function CampaignsPage() {
                                             "Insufficient Balance"
                                         ) : (
                                             <>
-                                                <span className="material-symbols-outlined text-sm">rocket_launch</span>
+                                                <Rocket size={18} />
                                                 Launch Promotion
                                             </>
                                         )}
@@ -292,8 +293,8 @@ export default function CampaignsPage() {
                             <div className="p-8 text-center text-slate-400">Loading campaigns...</div>
                         ) : campaigns.length === 0 ? (
                             <div className="p-12 text-center flex flex-col items-center">
-                                <div className="w-16 h-16 rounded-full bg-[#1877F2]/10 flex items-center justify-center text-[#1877F2] mb-4">
-                                    <span className="material-symbols-outlined text-3xl">campaign</span>
+                                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
+                                    <Megaphone size={32} strokeWidth={2} />
                                 </div>
                                 <h3 className="text-white font-medium mb-1">No campaigns found</h3>
                                 <p className="text-slate-400 text-sm max-w-sm">Create your first promotion using the form to see your campaign history here.</p>

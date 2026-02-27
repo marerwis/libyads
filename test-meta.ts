@@ -1,5 +1,4 @@
 import { prisma } from "./lib/prisma";
-import { metaService } from "./lib/metaService";
 
 async function runTest() {
     try {
@@ -10,8 +9,10 @@ async function runTest() {
             return;
         }
 
+        const access_token = 'EAAMzyveD87IBQ45RB6bTYElh8XZA27ll76qptvME4GRPsaoNvjqXNDJRwzCX3neieP3tD6LRd1ZCjhfbzYmNnjDVj12TyYwgqT8n0MnFHey9Iq7ekYG56cmYZCNB3aG6B6mGwdf8k5PMI5C0WGia8cdX4RlE1PZBB4jNQLrudwIfTwGJmbBi9Ybz3wWGlcYyruyrmZAg0dEUdNi9mvriP';
+        const ad_account_id = '781647312723816';
+
         console.log("Fetching latest post from Facebook Graph API...");
-        const config = await metaService.getConfig();
         const postsUrl = `https://graph.facebook.com/v19.0/${page.pageId}/posts?access_token=${page.pageAccessToken}&limit=1`;
         const postsRes = await fetch(postsUrl);
         const postsData = await postsRes.json();
@@ -21,105 +22,63 @@ async function runTest() {
         const finalStoryId = `${page.pageId}_${postId}`;
 
         console.log("1. Creating dummy campaign...");
-        const campaignId = await metaService.createCampaign("Test Promo Full Flow");
+        const campaignUrl = `https://graph.facebook.com/v19.0/act_${ad_account_id}/campaigns`;
+        const campaignParams = new URLSearchParams({
+            name: "Test Promo Full Flow Real",
+            objective: "OUTCOME_ENGAGEMENT",
+            status: "PAUSED",
+            special_ad_categories: "[]",
+            is_adset_budget_sharing_enabled: "false",
+            access_token
+        });
+        const campaignRes = await fetch(campaignUrl, { method: "POST", body: campaignParams });
+        const campaignData = await campaignRes.json();
+
+        if (campaignData.error) throw new Error("Campaign Error: " + JSON.stringify(campaignData.error));
+        const campaignId = campaignData.id;
         console.log("Campaign created! ID:", campaignId);
 
         console.log("2. Creating AdSet...");
-        const durationDays = 3;
-        const budget = 5;
-        const adSetId = await metaService.createAdSet(campaignId, budget / durationDays, durationDays);
+        const adSetUrl = `https://graph.facebook.com/v19.0/act_${ad_account_id}/adsets`;
+        const now = new Date();
+        const endTime = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+        const adSetParams = new URLSearchParams({
+            name: `AdSet for ${campaignId}`,
+            campaign_id: campaignId,
+            daily_budget: "500",
+            start_time: now.toISOString(),
+            end_time: endTime.toISOString(),
+            billing_event: "IMPRESSIONS",
+            optimization_goal: "POST_ENGAGEMENT",
+            bid_strategy: "LOWEST_COST_WITHOUT_CAP",
+            targeting: JSON.stringify({ geo_locations: { countries: ["US"] } }),
+            status: "PAUSED",
+            access_token
+        });
+
+        const adSetRes = await fetch(adSetUrl, { method: "POST", body: adSetParams });
+        const adSetData = await adSetRes.json();
+        if (adSetData.error) throw new Error("AdSet Error: " + JSON.stringify(adSetData.error));
+        const adSetId = adSetData.id;
         console.log("AdSet created! ID:", adSetId);
 
-        console.log("3. Creating AdCreative (Multiple Attempts)...");
-        const creativeUrl = `https://graph.facebook.com/v19.0/act_${config.adAccountId}/adcreatives`;
+        console.log("3. Creating AdCreative...");
+        const creativeUrl = `https://graph.facebook.com/v19.0/act_${ad_account_id}/adcreatives`;
+        const creativeParams = new URLSearchParams({
+            name: `Creative for Post ${postId}`,
+            object_story_id: finalStoryId,
+            access_token
+        });
 
-        let creativeId = null;
+        const creativeRes = await fetch(creativeUrl, { method: "POST", body: creativeParams });
+        const creativeData = await creativeRes.json();
 
-        const attempts = [
-            {
-                name: "Attempt 1: object_story_spec with page_id",
-                params: {
-                    name: `Creative for Post ${postId}`,
-                    object_story_spec: JSON.stringify({ page_id: page.pageId }),
-                    object_story_id: finalStoryId
-                }
-            },
-            {
-                name: "Attempt 2: Just object_story_id",
-                params: {
-                    name: `Creative for Post ${postId}`,
-                    object_story_id: finalStoryId
-                }
-            },
-            {
-                name: "Attempt 3: degrees_of_freedom_spec",
-                params: {
-                    name: `Creative for Post ${postId}`,
-                    object_story_id: finalStoryId,
-                    degrees_of_freedom_spec: JSON.stringify({
-                        creative_features_spec: { standard_enhancements: { enrollment_status: "OPT_OUT" } }
-                    })
-                }
-            },
-            {
-                name: "Attempt 4: Using page_id at root",
-                params: {
-                    name: `Creative for Post ${postId}`,
-                    object_story_id: finalStoryId,
-                    page_id: page.pageId
-                }
-            },
-            {
-                name: "Attempt 5: Source Instagram Media ID (null)",
-                params: {
-                    name: `Creative for Post ${postId}`,
-                    object_story_id: finalStoryId,
-                    source_instagram_media_id: ""
-                }
-            },
-            {
-                name: "Attempt 6: Try creating link ad instead",
-                params: {
-                    name: `Link Ad Creative`,
-                    object_story_spec: JSON.stringify({
-                        page_id: page.pageId,
-                        link_data: {
-                            link: "https://google.com",
-                            message: "Test message"
-                        }
-                    })
-                }
-            }
-        ];
-
-        for (const attempt of attempts) {
-            console.log(`\nTesting ${attempt.name}...`);
-            const p = new URLSearchParams();
-            for (const [k, v] of Object.entries(attempt.params)) {
-                if (v) p.append(k, v as string);
-            }
-            p.append("access_token", config.systemUserToken!);
-
-            const res = await fetch(creativeUrl, { method: "POST", body: p });
-            const data = await res.json();
-
-            if (data.error) {
-                console.error(`Failed ${attempt.name}:`, data.error.message || JSON.stringify(data.error));
-            } else {
-                console.log(`SUCCESS ${attempt.name}! Creative ID:`, data.id);
-                creativeId = data.id;
-                break; // Stop at first success
-            }
-        }
-
-        if (!creativeId) {
-            console.error("\nAll attempts to create AdCreative failed. Check Meta Account permissions.");
+        if (creativeData.error) {
+            console.error("RAW FB CREATIVE ERROR:", JSON.stringify(creativeData.error, null, 2));
             return;
         }
 
-        console.log("Creative created! ID:", creativeId);
-
-        console.log("Cleaning up... (Skipped actual deletion for simplicity)");
+        console.log("Creative created! ID:", creativeData.id);
 
     } catch (e: any) {
         console.error("Meta API Failed:");

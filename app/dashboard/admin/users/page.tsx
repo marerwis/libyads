@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { ChevronDown, PlusCircle, MinusCircle, Trash2, X, CreditCard, Ban } from "lucide-react";
 
 type User = {
     id: string;
@@ -178,8 +179,8 @@ export default function AdminUsersManagement() {
                                                 <option value="USER" className="text-slate-300">USER</option>
                                                 <option value="ADMIN" className="text-emerald-400">ADMIN</option>
                                             </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500 group-hover:text-[#1877F2] transition-colors duration-300">
-                                                <span className="material-symbols-outlined text-sm">arrow_drop_down</span>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
+                                                <ChevronDown size={14} />
                                             </div>
                                         </div>
                                     </td>
@@ -189,7 +190,7 @@ export default function AdminUsersManagement() {
                                             className="text-[#1877F2] hover:text-blue-400 transition-colors p-1 rounded hover:bg-blue-400/10"
                                             title="Add Wallet Balance"
                                         >
-                                            <span className="material-symbols-outlined text-lg">add_circle</span>
+                                            <PlusCircle size={18} />
                                         </button>
                                         <button
                                             onClick={() => setWalletModal({ isOpen: true, user, amount: user.wallet?.balance?.toString() || "0", loading: false, action: 'deduct' })}
@@ -197,14 +198,14 @@ export default function AdminUsersManagement() {
                                             title="Deduct Wallet Balance"
                                             disabled={!user.wallet?.balance || user.wallet.balance <= 0}
                                         >
-                                            <span className="material-symbols-outlined text-lg">do_not_disturb_on</span>
+                                            <MinusCircle size={18} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(user.id, user.name)}
                                             className="text-red-400 hover:text-red-300 transition-colors p-1 rounded hover:bg-red-400/10"
                                             title="Delete User"
                                         >
-                                            <span className="material-symbols-outlined text-lg">delete</span>
+                                            <Trash2 size={18} />
                                         </button>
                                     </td>
                                 </tr>
@@ -233,7 +234,7 @@ export default function AdminUsersManagement() {
                                 onClick={() => setWalletModal({ isOpen: false, user: null, amount: "50", loading: false, action: 'add' })}
                                 className="text-slate-400 hover:text-white transition-colors"
                             >
-                                <span className="material-symbols-outlined text-xl">close</span>
+                                <X size={20} />
                             </button>
                         </div>
                         <form onSubmit={handleWalletSubmit} className="p-5 space-y-4">
@@ -262,15 +263,13 @@ export default function AdminUsersManagement() {
                                 type="submit"
                                 disabled={walletModal.loading}
                                 className={`w-full mt-2 px-4 py-3 disabled:opacity-50 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${walletModal.action === 'add'
-                                        ? 'bg-[#1877F2] hover:bg-blue-600'
-                                        : 'bg-orange-500 hover:bg-orange-600'
+                                    ? 'bg-[#1877F2] hover:bg-blue-600'
+                                    : 'bg-orange-500 hover:bg-orange-600'
                                     }`}
                             >
                                 {walletModal.loading ? "Processing..." : (
                                     <>
-                                        <span className="material-symbols-outlined text-sm">
-                                            {walletModal.action === 'add' ? 'payments' : 'money_off'}
-                                        </span>
+                                        {walletModal.action === 'add' ? <CreditCard size={14} /> : <Ban size={14} />}
                                         {walletModal.action === 'add' ? 'Add Funds' : 'Deduct Funds'}
                                     </>
                                 )}
@@ -279,6 +278,6 @@ export default function AdminUsersManagement() {
                     </div>
                 </div>
             )}
-        </div>
+        </div >
     );
 }

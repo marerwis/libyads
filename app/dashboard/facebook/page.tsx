@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { Facebook, LogIn, Flag } from "lucide-react";
 
 function FacebookPagesContent() {
     const [pages, setPages] = useState<any[]>([]);
@@ -84,8 +85,8 @@ function FacebookPagesContent() {
                 {/* Connect Facebook Card */}
                 <div className="lg:col-span-1">
                     <div className="bg-[#151921] rounded-xl border border-[#2A303C] p-6 shadow-sm flex flex-col items-center text-center">
-                        <div className="w-16 h-16 rounded-full bg-blue-900/20 flex items-center justify-center text-[#1877F2] mb-4">
-                            <span className="material-symbols-outlined text-4xl">facebook</span>
+                        <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
+                            <Facebook size={36} strokeWidth={2} />
                         </div>
                         <h3 className="text-lg font-medium text-white mb-2">Connect Pages</h3>
                         <p className="text-sm text-slate-400 mb-6">
@@ -100,7 +101,7 @@ function FacebookPagesContent() {
                                 "Redirecting..."
                             ) : (
                                 <>
-                                    <span className="material-symbols-outlined text-sm">login</span>
+                                    <LogIn size={18} />
                                     Connect Facebook
                                 </>
                             )}
@@ -118,8 +119,8 @@ function FacebookPagesContent() {
                             <div className="p-8 text-center text-slate-400">Loading your pages...</div>
                         ) : pages.length === 0 ? (
                             <div className="p-12 text-center flex flex-col items-center">
-                                <div className="w-16 h-16 rounded-full bg-[#1877F2]/10 flex items-center justify-center text-[#1877F2] mb-4">
-                                    <span className="material-symbols-outlined text-3xl">flag</span>
+                                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
+                                    <Flag size={32} strokeWidth={2} />
                                 </div>
                                 <h3 className="text-white font-medium mb-1">No pages connected</h3>
                                 <p className="text-slate-400 text-sm max-w-sm">Use the "Connect Facebook" button to authenticate and load your pages automatically.</p>
@@ -129,8 +130,8 @@ function FacebookPagesContent() {
                                 {pages.map(page => (
                                     <li key={page.id} className="p-6 flex items-center justify-between hover:bg-[#0B0E14]/50 transition-colors">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-lg bg-blue-900/20 flex items-center justify-center text-[#1877F2]">
-                                                <span className="material-symbols-outlined">flag</span>
+                                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-inner">
+                                                <Flag size={20} strokeWidth={2.5} />
                                             </div>
                                             <div>
                                                 <h4 className="text-white font-medium">{page.pageName}</h4>

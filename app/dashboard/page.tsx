@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import PerformanceChart from "./PerformanceChart"
+import { Coins, Layers, Play, CreditCard, ChevronsUpDown } from "lucide-react"
 
 export default async function Dashboard() {
     const session = await getServerSession()
@@ -45,8 +46,8 @@ export default async function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className="bg-[#151921] p-5 rounded-xl border border-[#2A303C] shadow-sm hover:border-[#1877F2]/50 transition-colors group cursor-pointer">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-blue-900/30 text-[#1877F2]">
-                            <span className="material-symbols-outlined text-xl">monetization_on</span>
+                        <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500">
+                            <Coins size={22} strokeWidth={2.5} />
                         </div>
                         <span className="text-sm font-medium text-slate-400 group-hover:text-slate-200 transition-colors">Wallet Balance</span>
                     </div>
@@ -55,8 +56,8 @@ export default async function Dashboard() {
 
                 <div className="bg-[#151921] p-5 rounded-xl border border-[#2A303C] shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-indigo-900/30 text-indigo-400">
-                            <span className="material-symbols-outlined text-xl">layers</span>
+                        <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
+                            <Layers size={22} strokeWidth={2.5} />
                         </div>
                         <span className="text-sm font-medium text-slate-400">Total Campaigns</span>
                     </div>
@@ -65,8 +66,8 @@ export default async function Dashboard() {
 
                 <div className="bg-[#151921] p-5 rounded-xl border border-[#2A303C] shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-sky-900/30 text-sky-400">
-                            <span className="material-symbols-outlined text-xl">play_arrow</span>
+                        <div className="p-2.5 rounded-xl bg-sky-500/10 text-sky-400">
+                            <Play size={22} strokeWidth={2.5} />
                         </div>
                         <span className="text-sm font-medium text-slate-400">Active Campaigns</span>
                     </div>
@@ -75,8 +76,8 @@ export default async function Dashboard() {
 
                 <div className="bg-[#151921] p-5 rounded-xl border border-[#2A303C] shadow-sm hidden lg:block lg:col-span-4 xl:col-span-1 border border-emerald-900/30">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-emerald-900/30 text-emerald-400">
-                            <span className="material-symbols-outlined text-xl">payments</span>
+                        <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                            <CreditCard size={22} strokeWidth={2.5} />
                         </div>
                         <span className="text-sm font-medium text-slate-400">Total Spent</span>
                     </div>
@@ -96,8 +97,8 @@ export default async function Dashboard() {
                             <option value="7">Last 7 days</option>
                             <option value="1">Last 24 hours</option>
                         </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 group-hover:text-[#1877F2] transition-colors duration-300">
-                            <span className="material-symbols-outlined text-base">unfold_more</span>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 group-hover:text-blue-500 transition-colors duration-300">
+                            <ChevronsUpDown size={16} />
                         </div>
                     </div>
                 </div>
