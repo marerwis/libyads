@@ -22,7 +22,7 @@ export async function GET(req: Request) {
         const APP_ID = metaSetting.appId;
 
         // Define scopes required for managing campaigns and viewing pages
-        const SCOPES = "pages_show_list,pages_read_engagement,pages_manage_posts";
+        const SCOPES = "pages_show_list,pages_read_engagement";
 
         // Generate the App URL based on the request origin (e.g. http://localhost:3000)
         const url = new URL(req.url);
