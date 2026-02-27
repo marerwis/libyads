@@ -49,7 +49,7 @@ export async function POST(req: Request) {
             campaignId = await metaService.createCampaign(`Promo ${postId}`);
 
             // Step 4: Create Ad Set (PAUSED)
-            adSetId = await metaService.createAdSet(campaignId, budget / duration, duration);
+            adSetId = await metaService.createAdSet(campaignId, budget / duration, duration, pageId);
 
             // Step 5: Create Ad (PAUSED)
             adId = await metaService.createAd(adSetId, pageId, postId);

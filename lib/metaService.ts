@@ -71,7 +71,7 @@ export const metaService = {
     /**
      * Step 4: Create Ad Set
      */
-    async createAdSet(campaignId: string, dailyBudget: number, durationDays: number): Promise<string> {
+    async createAdSet(campaignId: string, dailyBudget: number, durationDays: number, pageId: string): Promise<string> {
         const config = await this.getConfig();
         FacebookAdsApi.init(config.systemUserToken!);
 
@@ -90,6 +90,7 @@ export const metaService = {
                     end_time: endTime.toISOString(),
                     billing_event: 'IMPRESSIONS',
                     optimization_goal: 'POST_ENGAGEMENT',
+                    promoted_object: { page_id: pageId },
                     bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
                     targeting: { geo_locations: { countries: ["US"] } },
                     status: 'PAUSED'
