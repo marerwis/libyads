@@ -34,14 +34,19 @@ export async function POST(req: Request) {
         const user = await prisma.user.findUnique({ where: { email: session.user.email } });
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-        // We assume only one global setting row exists.
-        const existing = await prisma.metaSetting.findFirst({ where: { userId: user.id } });
+        // We ensure only one global setting row exists across the entire app.
+        const existing = await prisma.metaSetting.findFirst();
 
         let settings;
         if (existing) {
             settings = await prisma.metaSetting.update({
                 where: { id: existing.id },
-                data: { appId, appSecret, systemUserToken, businessId, adAccountId },
+                data: { appId, appSecret, systemUserToken, businessId, adAccountId, userId: user.id },
+            });
+
+            // Cleanup any accidental duplicates to enforce exactly one row
+            await prisma.metaSetting.deleteMany({
+                where: { id: { not: existing.id } }
             });
         } else {
             settings = await prisma.metaSetting.create({
