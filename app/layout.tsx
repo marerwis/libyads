@@ -28,6 +28,8 @@ export const metadata: Metadata = {
   }
 };
 
+import { LanguageProvider } from "@/components/LanguageProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,8 +40,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <SpeedInsights />
+        <LanguageProvider>
+          {children}
+          <SpeedInsights />
+        </LanguageProvider>
       </body>
     </html>
   );

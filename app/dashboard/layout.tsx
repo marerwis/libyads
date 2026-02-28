@@ -16,28 +16,32 @@ import {
     ActivitySquare
 } from "lucide-react";
 
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/components/LanguageProvider";
+
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const { t } = useLanguage();
 
     const isActive = (path: string) => pathname === path;
 
     const navItems = [
-        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { name: "Wallet", href: "/dashboard/wallet", icon: Wallet },
-        { name: "Facebook Pages", href: "/dashboard/facebook", icon: Flag },
-        { name: "Campaign History", href: "/dashboard/campaigns", icon: Megaphone },
-        { name: "Create Promotion", href: "/dashboard/campaigns/create", icon: PlusCircle, isPrimary: true },
+        { name: t("dashboard"), href: "/dashboard", icon: LayoutDashboard },
+        { name: t("wallet"), href: "/dashboard/wallet", icon: Wallet },
+        { name: t("facebookPages"), href: "/dashboard/facebook", icon: Flag },
+        { name: t("campaignHistory"), href: "/dashboard/campaigns", icon: Megaphone },
+        { name: t("createPromotion"), href: "/dashboard/campaigns/create", icon: PlusCircle, isPrimary: true },
     ];
 
     const adminItems = [
-        { name: "Settings", href: "/dashboard/settings", icon: Settings },
-        { name: "Payment Methods", href: "/dashboard/admin/payment-methods", icon: CreditCard },
-        { name: "Users Management", href: "/dashboard/admin/users", icon: Users },
-        { name: "Meta Config", href: "/dashboard/admin/meta-settings", icon: MonitorCog },
+        { name: t("settings"), href: "/dashboard/settings", icon: Settings },
+        { name: t("paymentMethods"), href: "/dashboard/admin/payment-methods", icon: CreditCard },
+        { name: t("usersManagement"), href: "/dashboard/admin/users", icon: Users },
+        { name: t("metaConfig"), href: "/dashboard/admin/meta-settings", icon: MonitorCog },
     ];
 
     return (
@@ -61,7 +65,7 @@ export default function DashboardLayout({
                     {/* Main Navigation */}
                     <nav className="mt-6 px-3 space-y-1">
                         <div className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Main Menu
+                            {t("mainMenu")}
                         </div>
                         {navItems.map((item) => {
                             const active = isActive(item.href);
@@ -95,7 +99,7 @@ export default function DashboardLayout({
                     {/* Admin Navigation */}
                     <div className="mt-8 px-3 space-y-1">
                         <div className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                            Administration
+                            {t("administration")}
                         </div>
                         {adminItems.map((item) => {
                             const active = isActive(item.href);
@@ -122,7 +126,8 @@ export default function DashboardLayout({
                 </div>
 
                 {/* Footer / Profile */}
-                <div className="p-4 border-t border-slate-800/60 bg-slate-900/20">
+                <div className="p-4 border-t border-slate-800/60 bg-slate-900/20 flex flex-col gap-4">
+                    <LanguageSwitcher />
                     <LogoutButton />
                 </div>
             </aside>
