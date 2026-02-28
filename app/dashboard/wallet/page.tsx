@@ -1,27 +1,54 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { Wallet, ReceiptText, Plus, X, ChevronDown, Upload, Landmark, FileText } from "lucide-react";
+import { Wallet, ReceiptText, Plus, X, ChevronDown, Landmark, MessageCircle } from "lucide-react";
+
+type PaymentMethod = {
+    id: string;
+    name: string;
+    type: string;
+    details: string;
+    instructions: string | null;
+};
 
 export default function WalletPage() {
     const [balance, setBalance] = useState<number>(0);
     const [loading, setLoading] = useState(true);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [amount, setAmount] = useState<string>("");
-    const [paymentMethod, setPaymentMethod] = useState<string>("bank");
+    const [selectedMethodId, setSelectedMethodId] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
+        // Fetch Balance
         fetch('/api/dashboard/stats')
             .then(res => res.json())
             .then(data => {
                 setBalance(data.balance || 0);
+            })
+            .catch(() => { });
+
+        // Fetch Payment Methods
+        fetch('/api/payment-methods')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setPaymentMethods(data);
+                    if (data.length > 0) {
+                        setSelectedMethodId(data[0].id);
+                    }
+                }
                 setLoading(false);
             })
             .catch(() => setLoading(false));
     }, []);
+
+    const selectedMethod = paymentMethods.find(m => m.id === selectedMethodId);
+
+    const isApiGateway = selectedMethod?.type === "STRIPE" || selectedMethod?.type === "PAYPAL";
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -71,7 +98,7 @@ export default function WalletPage() {
                 </div>
             </div>
 
-            {/* Add Balance Modal (Matching Payment Methods UX) */}
+            {/* Add Balance Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-[#151921] border border-[#2A303C] rounded-xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh]">
@@ -88,114 +115,119 @@ export default function WalletPage() {
 
                         {/* Modal Body */}
                         <div className="p-6 overflow-y-auto">
-                            <form className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    {/* Amount Input */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Amount to Add (USD)</label>
-                                        <div className="relative">
-                                            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 font-medium">$</span>
-                                            <input
-                                                type="number"
-                                                min="10"
-                                                placeholder="0.00"
-                                                value={amount}
-                                                onChange={(e) => setAmount(e.target.value)}
-                                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg pl-8 pr-4 py-3 text-white focus:border-[#1877F2] outline-none text-lg font-mono font-medium"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Payment Method Select */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Payment Method</label>
-                                        <div className="relative group">
-                                            <select
-                                                value={paymentMethod}
-                                                onChange={(e) => setPaymentMethod(e.target.value)}
-                                                className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40"
-                                            >
-                                                <optgroup label="API Gateways">
-                                                    <option value="stripe">Stripe (Credit Card)</option>
-                                                    <option value="paypal">PayPal</option>
-                                                </optgroup>
-                                                <optgroup label="Manual Verification">
-                                                    <option value="bank">Bank Transfer</option>
-                                                    <option value="vodafone">Vodafone Cash</option>
-                                                </optgroup>
-                                            </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
-                                                <ChevronDown size={16} />
-                                            </div>
-                                        </div>
-                                    </div>
+                            {paymentMethods.length === 0 ? (
+                                <div className="text-center py-10">
+                                    <p className="text-slate-400 mb-2">Loading payment methods or none available...</p>
                                 </div>
-
-                                <hr className="border-[#2A303C]" />
-
-                                {/* Conditional Render Based on Payment Method */}
-                                {paymentMethod === "stripe" || paymentMethod === "paypal" ? (
-                                    <div className="bg-[#1877F2]/10 border border-[#1877F2]/30 rounded-lg p-5 flex items-start gap-4">
-                                        <div className="p-2 bg-[#1877F2]/20 rounded-lg text-[#1877F2]">
-                                            <Wallet size={24} />
-                                        </div>
+                            ) : (
+                                <form className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        {/* Amount Input */}
                                         <div>
-                                            <h4 className="text-white font-medium mb-1">Instant Top-up</h4>
-                                            <p className="text-sm text-slate-400">
-                                                You will be securely redirected to the payment gateway to complete your transaction. Your balance will be updated instantly upon success.
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-5">
-                                        <div className="flex items-center gap-2 pb-2 border-b border-[#2A303C]">
-                                            <Landmark size={20} className="text-blue-500" />
-                                            <h4 className="text-blue-500 font-semibold">Manual Transfer Details</h4>
-                                        </div>
-
-                                        <div className="bg-[#0B0E14] p-4 rounded-lg border border-[#2A303C]">
-                                            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">Instructions</span>
-                                            <p className="text-sm text-slate-300 leading-relaxed mb-4">
-                                                Please calculate equivalent amount in local currency. Send the transfer to either the Bank Account or E-Wallet number. Write your username in the transfer note if applicable.
-                                            </p>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="bg-[#1A1F29]/50 p-3 rounded-md border border-[#2A303C]">
-                                                    <span className="text-xs text-slate-500 block mb-1">Bank IBAN</span>
-                                                    <span className="text-sm text-white font-mono break-all">EG380020...1234</span>
-                                                </div>
-                                                <div className="bg-[#1A1F29]/50 p-3 rounded-md border border-[#2A303C]">
-                                                    <span className="text-xs text-slate-500 block mb-1">Vodafone Cash</span>
-                                                    <span className="text-sm text-white font-mono">01012345678</span>
-                                                </div>
+                                            <label className="block text-sm font-medium text-slate-300 mb-2">Amount to Add (USD)</label>
+                                            <div className="relative">
+                                                <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 font-medium">$</span>
+                                                <input
+                                                    type="number"
+                                                    min="10"
+                                                    placeholder="0.00"
+                                                    value={amount}
+                                                    onChange={(e) => setAmount(e.target.value)}
+                                                    className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg pl-8 pr-4 py-3 text-white focus:border-[#1877F2] outline-none text-lg font-mono font-medium"
+                                                    required
+                                                />
                                             </div>
                                         </div>
 
+                                        {/* Payment Method Select */}
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">Upload Transfer Receipt</label>
-                                            <div className="flex items-center justify-center w-full">
-                                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#2A303C] border-dashed rounded-lg cursor-pointer bg-[#0B0E14] hover:bg-[#1A1F29]/50 hover:border-blue-500/50 transition-colors">
-                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                        <Upload className="w-8 h-8 mb-3 text-slate-500" />
-                                                        <p className="mb-1 text-sm text-slate-300"><span className="font-semibold text-blue-500">Click to upload</span> or drag and drop</p>
-                                                        <p className="text-xs text-slate-500">PNG, JPG or PDF (MAX. 5MB)</p>
+                                            <label className="block text-sm font-medium text-slate-300 mb-2">Payment Method</label>
+                                            <div className="relative group">
+                                                <select
+                                                    value={selectedMethodId}
+                                                    onChange={(e) => setSelectedMethodId(e.target.value)}
+                                                    className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40"
+                                                >
+                                                    {paymentMethods.map(method => (
+                                                        <option key={method.id} value={method.id}>
+                                                            {method.name} {method.type.includes('BANK') || method.type.includes('WALLET') ? '(Manual)' : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
+                                                    <ChevronDown size={16} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr className="border-[#2A303C]" />
+
+                                    {/* Conditional Render Based on Selected Target */}
+                                    {isApiGateway ? (
+                                        <div className="bg-[#1877F2]/10 border border-[#1877F2]/30 rounded-lg p-5 flex items-start gap-4">
+                                            <div className="p-2 bg-[#1877F2]/20 rounded-lg text-[#1877F2]">
+                                                <Wallet size={24} />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-white font-medium mb-1">Instant Top-up - {selectedMethod?.name}</h4>
+                                                <p className="text-sm text-slate-400">
+                                                    You will be securely redirected to the {selectedMethod?.name} gateway to complete your transaction. Your balance will be updated instantly upon success.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-5" dir="rtl">
+                                            <div className="bg-gradient-to-br from-[#0B0E14] to-[#111827] p-8 rounded-2xl border border-[#2A303C] shadow-lg relative overflow-hidden text-center">
+                                                {/* Background Accent */}
+                                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
+
+                                                <div className="relative z-10 flex flex-col items-center">
+                                                    <div className="w-16 h-16 bg-[#25D366]/10 border border-[#25D366]/30 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+                                                        <MessageCircle className="text-[#25D366] w-8 h-8" />
                                                     </div>
-                                                    <input type="file" className="hidden" accept="image/*,.pdf" />
-                                                </label>
+
+                                                    <h4 className="text-2xl font-bold text-white mb-2 tracking-wide">مرحباً بك عزيزي المستخدم</h4>
+
+                                                    <div className="space-y-3 mb-8 text-slate-300 text-sm md:text-base leading-relaxed max-w-lg mx-auto">
+                                                        <p>نظامنا في تعبئة المحفظة في الوقت الحالي يتم عن طريق مراسلتنا على رقمنا على واتساب.</p>
+
+                                                        <div className="py-4">
+                                                            <div className="inline-block bg-[#1F2937] border border-[#374151] rounded-xl px-6 py-3 shadow-inner">
+                                                                <span className="block text-xs text-slate-500 uppercase tracking-widest mb-1">الرقم المعتمد</span>
+                                                                <span className="text-2xl font-mono text-[#25D366] font-bold tracking-wider">0914333564</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <p>
+                                                            ارسل رسالة لهذا الرقم واذكر فيها رغبتك في شحن محفظتك في موقع <strong className="text-white">Libya Ads</strong> واذكر <strong className="text-white">المبلغ</strong> الذي تريده (${amount || '...'})
+                                                        </p>
+                                                        <p className="text-emerald-400 font-medium pb-2 border-b border-white/5 inline-block px-4">
+                                                            سيتم الرد عليك فوراً وشحن محفظتك بنجاح شكراً لاختيارك لنا.
+                                                        </p>
+                                                    </div>
+
+                                                    <p className="text-sm text-slate-400 mb-4 animate-pulse">اضغط على الأيقونة لمراسلتنا عبر واتساب مباشرة</p>
+
+                                                    {/* WhatsApp Button */}
+                                                    <a
+                                                        href={`https://wa.me/218914333564?text=${encodeURIComponent(`أهلاً بك، أرغب في شحن محفظتي في مساحة Libya Ads بقيمة ${amount ? '$' + amount : 'محددة'}.`)}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 font-bold text-white transition-all duration-300 bg-[#25D366] rounded-xl overflow-hidden hover:scale-105 hover:shadow-[0_0_20px_rgba(37,211,102,0.4)] active:scale-95 w-full sm:w-auto"
+                                                    >
+                                                        <MessageCircle className="w-5 h-5" />
+                                                        <span>تواصل معنا عبر واتساب</span>
+                                                        <div className="absolute inset-0 h-full w-full bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left ease-out duration-300"></div>
+                                                    </a>
+
+                                                </div>
                                             </div>
                                         </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">Reference / Transaction Number</label>
-                                            <input
-                                                type="text"
-                                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:border-[#1877F2] outline-none font-mono text-sm"
-                                                placeholder="e.g. TRN-987654321"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </form>
+                                    )}
+                                </form>
+                            )}
                         </div>
 
                         {/* Modal Footer */}
@@ -204,22 +236,24 @@ export default function WalletPage() {
                                 onClick={() => setIsModalOpen(false)}
                                 className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-[#2A303C] rounded-lg transition-colors border border-transparent hover:border-[#2A303C]"
                             >
-                                Cancel
+                                إغلاق
                             </button>
-                            <button
-                                onClick={() => {
-                                    setIsSubmitting(true);
-                                    setTimeout(() => {
-                                        setIsSubmitting(false);
-                                        setIsModalOpen(false);
-                                        alert("Balance request submitted! Pending approval for manual payments.");
-                                    }, 1500);
-                                }}
-                                disabled={isSubmitting || !amount}
-                                className="px-6 py-2.5 text-sm font-bold bg-[#1877F2] hover:bg-blue-600 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center gap-2"
-                            >
-                                {isSubmitting ? "Processing..." : paymentMethod === "stripe" || paymentMethod === "paypal" ? "Proceed to Payment" : "Submit Request"}
-                            </button>
+                            {isApiGateway && (
+                                <button
+                                    onClick={() => {
+                                        setIsSubmitting(true);
+                                        setTimeout(() => {
+                                            setIsSubmitting(false);
+                                            setIsModalOpen(false);
+                                            alert("Redirecting to API Gateway...");
+                                        }, 1500);
+                                    }}
+                                    disabled={isSubmitting || !amount}
+                                    className="px-6 py-2.5 text-sm font-bold bg-[#1877F2] hover:bg-blue-600 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    Proceed to {selectedMethod?.name}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
