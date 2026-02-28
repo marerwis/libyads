@@ -14,7 +14,7 @@ export default async function Home() {
   const session = await getServerSession();
 
   return (
-    <div className={`min-h-screen bg-[#0B0E14] font-sans text-slate-300 antialiased selection:bg-[#1877F2]/30 selection:text-white pb-20 ${inter.className}`}>
+    <div className={`min-h-screen dark:bg-[#0B0E14] bg-slate-50 font-sans dark:text-slate-300 text-slate-800 antialiased selection:bg-[#1877F2]/30 dark:selection:text-white selection:text-slate-900 pb-20 transition-colors duration-300 ${inter.className}`}>
       <HomeClientContent settings={settings} page={page} session={session} />
     </div>
   );

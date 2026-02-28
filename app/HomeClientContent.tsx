@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PortableText } from "@portabletext/react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/components/LanguageProvider";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 
 export default function HomeClientContent({ settings, page, session }: { settings: any, page: any, session: any }) {
     const { t } = useLanguage();
@@ -31,6 +32,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                         </div>
 
                         <div className="flex items-center gap-4">
+                            <ThemeSwitcher compact />
                             <LanguageSwitcher />
 
                             {session ? (
@@ -63,7 +65,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                                     {t("newRelease")}
                                 </div>
 
-                                <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+                                <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight dark:text-white text-slate-900 leading-[1.1]">
                                     {page?.heading ? page.heading.split(' ').slice(0, -2).join(' ') : 'Manage Ads'} <br />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1877F2] to-blue-400">
                                         {page?.heading ? page.heading.split(' ').slice(-2).join(' ') : 'Without Chaos'}
@@ -120,33 +122,33 @@ export default function HomeClientContent({ settings, page, session }: { setting
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#151921]/20 to-transparent pointer-events-none"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">{t("whyChoose")} {settings?.siteName || 'Meta Manager'}</h2>
-                            <p className="text-slate-400 text-lg">{settings?.siteDescription || 'Everything you need to scale your advertising efforts efficiently across the Meta ecosystem, wrapped in a dark, focused UI.'}</p>
+                            <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white text-slate-900">{t("whyChoose")} {settings?.siteName || 'Meta Manager'}</h2>
+                            <p className="dark:text-slate-400 text-slate-600 text-lg">{settings?.siteDescription || 'Everything you need to scale your advertising efforts efficiently across the Meta ecosystem, wrapped in a focused UI.'}</p>
                         </div>
 
                         <div className="grid md:grid-cols-3 gap-6">
-                            <div className="group p-8 rounded-2xl bg-[#151921] border border-[#2A303C] hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
+                            <div className="group p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
                                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
                                     <span className="material-symbols-outlined text-3xl">settings_input_component</span>
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 text-white group-hover:text-[#1877F2] transition-colors">{t("centralizedManagement")}</h3>
-                                <p className="text-slate-400 leading-relaxed text-sm">{t("centralizedDesc")}</p>
+                                <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("centralizedManagement")}</h3>
+                                <p className="dark:text-slate-400 text-slate-600 leading-relaxed text-sm">{t("centralizedDesc")}</p>
                             </div>
 
-                            <div className="group p-8 rounded-2xl bg-[#151921] border border-[#2A303C] hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
+                            <div className="group p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
                                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
                                     <span className="material-symbols-outlined text-3xl">credit_card</span>
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 text-white group-hover:text-[#1877F2] transition-colors">{t("unifiedBilling")}</h3>
-                                <p className="text-slate-400 leading-relaxed text-sm">{t("unifiedBillingDesc")}</p>
+                                <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("unifiedBilling")}</h3>
+                                <p className="dark:text-slate-400 text-slate-600 leading-relaxed text-sm">{t("unifiedBillingDesc")}</p>
                             </div>
 
-                            <div className="group p-8 rounded-2xl bg-[#151921] border border-[#2A303C] hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
+                            <div className="group p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
                                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
                                     <span className="material-symbols-outlined text-3xl">rocket_launch</span>
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 text-white group-hover:text-[#1877F2] transition-colors">{t("aiAutomation")}</h3>
-                                <p className="text-slate-400 leading-relaxed text-sm">{t("aiAutomationDesc")}</p>
+                                <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("aiAutomation")}</h3>
+                                <p className="dark:text-slate-400 text-slate-600 leading-relaxed text-sm">{t("aiAutomationDesc")}</p>
                             </div>
                         </div>
                     </div>
@@ -170,7 +172,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                 </section>
             </main>
 
-            <footer className="bg-[#151921] border-t border-[#2A303C] pt-16 pb-8 mt-12">
+            <footer className="dark:bg-[#151921] bg-slate-100 border-t dark:border-[#2A303C] border-slate-200 pt-16 pb-8 mt-12 transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="pt-8 border-t border-[#2A303C] flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
                         <p>© 2024 Meta Business Manager. {t("allRightsReserved")}</p>
