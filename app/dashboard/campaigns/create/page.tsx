@@ -5,18 +5,17 @@ import { useRouter } from "next/navigation";
 import { PlusCircle, ChevronDown, Rocket, Users, Target, CalendarDays, DollarSign, Image as ImageIcon, ChevronRight, ChevronLeft, Upload, CheckCircle2 } from "lucide-react";
 
 const availableCountries = [
-    { code: "SA", name: "Saudi Arabia (السعودية)" },
-    { code: "AE", name: "United Arab Emirates (الإمارات)" },
-    { code: "EG", name: "Egypt (مصر)" },
-    { code: "KW", name: "Kuwait (الكويت)" },
-    { code: "QA", name: "Qatar (قطر)" },
-    { code: "BH", name: "Bahrain (البحرين)" },
-    { code: "OM", name: "Oman (عمان)" },
-    { code: "JO", name: "Jordan (الأردن)" },
-    { code: "MA", name: "Morocco (المغرب)" },
-    { code: "DZ", name: "Algeria (الجزائر)" },
-    { code: "US", name: "United States (أمريكا)" },
-    { code: "GB", name: "United Kingdom (بريطانيا)" },
+    { code: "LY", name: "ليبيا (كامل الدولة)" },
+    { code: "BENGHAZI", name: "بنغازي" },
+    { code: "AL_JABAL_AL_AKHDAR", name: "الجبل الأخضر" },
+    { code: "MARJ", name: "شعبية المرج" },
+    { code: "TOBRUK", name: "طبرق ليبيا" },
+    { code: "DERNA", name: "درنة ليبيا" },
+    { code: "AJDABIYA", name: "اجدابيا" },
+    { code: "MISRATA", name: "مصراته" },
+    { code: "TARHUNA", name: "ترهونة" },
+    { code: "TRIPOLI", name: "طرابلس" },
+    { code: "JABAL_AL_GHARBI", name: "الجبل الغربي" },
 ];
 
 const OBJECTIVES = [
@@ -57,7 +56,7 @@ export default function CreateCampaignWizard() {
         minAge: 18,
         maxAge: 65,
         genders: [] as number[],
-        countries: ["SA"] as string[],
+        countries: ["LY"] as string[],
         budget: 50,
         duration: 3,
         primaryText: "",
@@ -326,15 +325,27 @@ export default function CreateCampaignWizard() {
                             <label className="block text-sm font-semibold text-slate-300 mb-3">الدول المستهدفة</label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {availableCountries.map(country => {
+                                    const isLibyaAllSelected = formData.countries.includes("LY");
                                     const isSelected = formData.countries.includes(country.code);
+                                    const isDisabled = isLibyaAllSelected && country.code !== "LY";
+
                                     return (
                                         <button
                                             key={country.code}
+                                            disabled={isDisabled}
                                             onClick={() => {
-                                                const newCountries = isSelected ? formData.countries.filter(c => c !== country.code) : [...formData.countries, country.code];
-                                                setFormData({ ...formData, countries: newCountries });
+                                                if (country.code === "LY") {
+                                                    setFormData({ ...formData, countries: isSelected ? [] : ["LY"] });
+                                                } else {
+                                                    const newCountries = isSelected
+                                                        ? formData.countries.filter(c => c !== country.code)
+                                                        : [...formData.countries.filter(c => c !== "LY"), country.code];
+                                                    setFormData({ ...formData, countries: newCountries });
+                                                }
                                             }}
-                                            className={`text-xs text-right font-medium px-3 py-2.5 rounded-lg border transition-all ${isSelected ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}
+                                            className={`text-xs text-right font-medium px-3 py-2.5 rounded-lg border transition-all ${isSelected ? 'bg-pink-500/20 border-pink-500/50 text-pink-200'
+                                                    : isDisabled ? 'bg-[#0B0E14]/50 border-[#2A303C]/30 text-slate-600 cursor-not-allowed opacity-50'
+                                                        : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
                                         >
                                             {country.name}
                                         </button>
