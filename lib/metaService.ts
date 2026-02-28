@@ -96,6 +96,8 @@ export const metaService = {
         if (regionNames.length > 0) {
             console.log(`[API] Resolving Facebook Meta geolocation keys for: ${regionNames.join(', ')}`);
             const regionKeys: { key: string }[] = [];
+            const cityKeys: { key: string }[] = [];
+
             for (const name of regionNames) {
                 try {
                     // Replace underscores with spaces (e.g. "JABAL_AKHDAR" -> "JABAL AKHDAR")
@@ -108,10 +110,12 @@ export const metaService = {
                     if (data.data && data.data.length > 0) {
                         // Attempt to strictly match places within Libya
                         const lyMatches = data.data.filter((d: any) => d.country_code === 'LY');
-                        if (lyMatches.length > 0) {
-                            regionKeys.push({ key: lyMatches[0].key });
+                        const match = lyMatches.length > 0 ? lyMatches[0] : data.data[0];
+
+                        if (match.type === 'city') {
+                            cityKeys.push({ key: match.key });
                         } else {
-                            regionKeys.push({ key: data.data[0].key });
+                            regionKeys.push({ key: match.key });
                         }
                     } else {
                         console.warn(`[API] No Facebook geolocation found for "${cleanName}"`);
@@ -122,6 +126,9 @@ export const metaService = {
             }
             if (regionKeys.length > 0) {
                 targetingPayload.geo_locations.regions = regionKeys;
+            }
+            if (cityKeys.length > 0) {
+                targetingPayload.geo_locations.cities = cityKeys;
             }
         }
 
