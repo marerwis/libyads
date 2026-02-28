@@ -98,37 +98,37 @@ export const metaService = {
             targetingPayload.geo_locations.countries = countryCodes;
         }
 
+        const LIBYA_LOCATIONS_MAP: Record<string, { type: 'city' | 'region', key: string }> = {
+            "BENGHAZI": { "type": "region", "key": "4450" },
+            "AL_JABAL_AL_AKHDAR": { "type": "region", "key": "2186" },
+            "MARJ": { "type": "region", "key": "4454" },
+            "TOBRUK": { "type": "city", "key": "1384112" },
+            "DERNA": { "type": "region", "key": "2192" },
+            "AJDABIYA": { "type": "city", "key": "1382348" },
+            "MISRATA": { "type": "region", "key": "2195" },
+            "TARHUNA": { "type": "city", "key": "1384048" },
+            "TRIPOLI": { "type": "city", "key": "1384124" },
+            "JABAL_AL_GHARBI": { "type": "region", "key": "4451" }
+        };
+
         if (regionNames.length > 0) {
-            console.log(`[API] Resolving Facebook Meta geolocation keys for: ${regionNames.join(', ')}`);
+            console.log(`[API] Mapping Facebook Meta geolocation keys for: ${regionNames.join(', ')}`);
             const regionKeys: { key: string }[] = [];
             const cityKeys: { key: string }[] = [];
 
             for (const name of regionNames) {
-                try {
-                    // Replace underscores with spaces (e.g. "JABAL_AKHDAR" -> "JABAL AKHDAR")
-                    const cleanName = name.replace(/_/g, ' ');
-                    const url = `https://graph.facebook.com/v19.0/search?type=adgeolocation&q=${encodeURIComponent(cleanName)}&location_types=['city','region']&access_token=${config.systemUserToken}`;
-
-                    const res = await fetch(url);
-                    const data = await res.json();
-
-                    if (data.data && data.data.length > 0) {
-                        // Attempt to strictly match places within Libya
-                        const lyMatches = data.data.filter((d: any) => d.country_code === 'LY');
-                        const match = lyMatches.length > 0 ? lyMatches[0] : data.data[0];
-
-                        if (match.type === 'city') {
-                            cityKeys.push({ key: match.key });
-                        } else {
-                            regionKeys.push({ key: match.key });
-                        }
+                const mapData = LIBYA_LOCATIONS_MAP[name];
+                if (mapData) {
+                    if (mapData.type === 'city') {
+                        cityKeys.push({ key: mapData.key });
                     } else {
-                        console.warn(`[API] No Facebook geolocation found for "${cleanName}"`);
+                        regionKeys.push({ key: mapData.key });
                     }
-                } catch (e) {
-                    console.error(`[API] Failed to resolve location key for: ${name}`, e);
+                } else {
+                    console.warn(`[API] No Facebook geolocation mapping found for "${name}"`);
                 }
             }
+
             if (regionKeys.length > 0) {
                 targetingPayload.geo_locations.regions = regionKeys;
             }
