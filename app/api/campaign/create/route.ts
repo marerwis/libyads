@@ -19,72 +19,140 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const { pageId, postId, budget, duration, targetingOptions } = await req.json();
+        const payload = await req.json();
+        const {
+            campaignName,
+            objective,
+            pageId,
+            adCreationType,
+            postId,
+            minAge,
+            maxAge,
+            genders,
+            countries,
+            budget,
+            duration,
+            primaryText,
+            headline,
+            mediaBase64
+        } = payload;
 
-        if (!pageId || !postId || !budget || !duration) {
+        if (!campaignName || !pageId || !budget || !duration) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        }
+
+        if (adCreationType === 'EXISTING_POST' && !postId) {
+            return NextResponse.json({ error: "Post ID is required for existing posts" }, { status: 400 });
+        }
+
+        if (adCreationType === 'NEW_CREATIVE' && !mediaBase64) {
+            return NextResponse.json({ error: "Media is required for new creatives" }, { status: 400 });
         }
 
         // Step 1: Check wallet balance
         const hasBalance = await walletService.checkBalance(user.id, budget);
         if (!hasBalance) {
-            return NextResponse.json({ error: "Insufficient balance" }, { status: 400 });
+            return NextResponse.json({ error: "Insufficient wallet balance to run this campaign" }, { status: 400 });
         }
 
-        // Step 2: Deduct amount from wallet
-        const deducted = await walletService.deductFunds(user.id, budget, `Campaign: ${postId}`);
-        if (!deducted) {
-            return NextResponse.json({ error: "Failed to deduct funds. Transaction aborted." }, { status: 500 });
-        }
+        // Generate Target Options Object
+        const targetingOptions = {
+            minAge: minAge || 18,
+            maxAge: maxAge || 65,
+            genders: genders || [],
+            countries: countries && countries.length > 0 ? countries : ["SA"]
+        };
 
-        let campaignId = "";
-        let adSetId = "";
-        let adId = "";
+        // Save campaign to database first as PENDING
+        const campaign = await prisma.campaign.create({
+            data: {
+                status: "PENDING",
+                budget: budget,
+                userId: user.id,
+                pageId: pageId,
+                postId: adCreationType === 'EXISTING_POST' ? postId : null
+            }
+        });
+
+        console.log(`[API] Created PENDING campaign record: ${campaign.id}`);
 
         try {
-            // Ensure Meta Config exists
-            await metaService.getConfig();
+            // Deduct funds immediately
+            await walletService.deductFunds(user.id, budget, `Campaign: ${campaignName}`);
+            console.log(`[API] Deducted $${budget} from User ${user.id} wallet.`);
 
-            // Step 3: Create Campaign (PAUSED)
-            campaignId = await metaService.createCampaign(`Promo ${postId}`);
+            // Upload media to Facebook if creating a new ad
+            let imageHash = null;
+            if (adCreationType === 'NEW_CREATIVE') {
+                console.log(`[API] Uploading custom media to Facebook...`);
+                imageHash = await metaService.uploadAdImage(mediaBase64);
+                console.log(`[API] Media uploaded successfully. Hash: ${imageHash}`);
+            }
 
-            // Step 4: Create Ad Set (PAUSED)
-            adSetId = await metaService.createAdSet(campaignId, budget / duration, duration, pageId, targetingOptions);
+            // Create Campaign on Meta
+            console.log(`[API] Creating Meta Campaign: ${campaignName} [${objective}]`);
+            // Note: we update metaService.createCampaign to accept objective param
+            const fbCampaignId = await metaService.createCampaign(campaignName, objective);
 
-            // Step 5: Create Ad (PAUSED)
-            adId = await metaService.createAd(adSetId, pageId, postId);
+            // Create Ad Set
+            console.log(`[API] Creating Meta AdSet for Campaign ${fbCampaignId}`);
+            const fbAdSetId = await metaService.createAdSet(fbCampaignId, budget, duration, pageId, targetingOptions);
 
-            // Step 6: Activate Ad / Campaign
-            await metaService.activateCampaign(campaignId);
+            // Create Ad
+            let fbAdId;
+            if (adCreationType === 'EXISTING_POST') {
+                console.log(`[API] Creating Meta Ad linked to existing post ${postId}`);
+                fbAdId = await metaService.createAd(fbAdSetId, pageId, postId);
+            } else {
+                console.log(`[API] Creating Meta Ad with new custom creative`);
+                fbAdId = await metaService.createNewCustomAd(fbAdSetId, pageId, imageHash!, primaryText, headline);
+            }
 
-            // Step 7: Save locally
-            const localCampaign = await prisma.campaign.create({
+            // Update local DB with success
+            await prisma.campaign.update({
+                where: { id: campaign.id },
                 data: {
-                    userId: user.id,
-                    campaignId,
-                    adsetId: adSetId,
-                    adId,
-                    budget: budget,
                     status: "ACTIVE",
+                    campaignId: fbCampaignId,
+                    adsetId: fbAdSetId,
+                    adId: fbAdId
                 }
             });
 
-            return NextResponse.json({ success: true, campaign: localCampaign });
-
-        } catch (metaError: any) {
-            console.error("Meta API Execution Failed:", metaError);
-
-            // Critical: Refund wallet automatically on Meta failure
-            await walletService.refundWallet(user.id, budget, `Meta API Failure: ${metaError.message}`);
+            console.log(`[API] Campaign fully created on Meta and local DB updated.`);
 
             return NextResponse.json({
-                error: "Failed to create promotion with Facebook. Your wallet has been refunded.",
-                details: metaError.message
+                success: true,
+                message: "Campaign created successfully",
+                campaignId: campaign.id,
+                fbCampaignId
+            });
+
+        } catch (metaError: any) {
+            console.error(`[API] Meta API Error during creation:`, metaError);
+
+            // Refund the user on failure
+            try {
+                await walletService.addFunds(user.id, budget, `Refund for failed Campaign: ${campaignName}`);
+                console.log(`[API] Refunded $${budget} to User ${user.id} wallet.`);
+            } catch (refundError) {
+                console.error(`[API] CRITICAL: Failed to process refund!`, refundError);
+            }
+
+            // Mark campaign as Failed
+            await prisma.campaign.update({
+                where: { id: campaign.id },
+                data: { status: "FAILED" }
+            });
+
+            return NextResponse.json({
+                error: "Failed to create campaign on Meta. Funds have been refunded.",
+                details: metaError.message || metaError
             }, { status: 500 });
         }
 
-    } catch (error) {
-        console.error("Critical error in Campaign Creation handler:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    } catch (error: any) {
+        console.error("[API] POST Error:", error);
+        return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
     }
 }

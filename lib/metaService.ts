@@ -47,7 +47,7 @@ export const metaService = {
     /**
      * Step 3: Create Campaign
      */
-    async createCampaign(name: string): Promise<string> {
+    async createCampaign(name: string, objective: string = 'OUTCOME_AWARENESS'): Promise<string> {
         const config = await this.getConfig();
         FacebookAdsApi.init(config.systemUserToken!);
 
@@ -56,7 +56,7 @@ export const metaService = {
                 [],
                 {
                     name: name,
-                    objective: 'OUTCOME_AWARENESS',
+                    objective: objective,
                     status: 'PAUSED',
                     special_ad_categories: [],
                     is_adset_budget_sharing_enabled: false,
@@ -141,6 +141,76 @@ export const metaService = {
                 [],
                 {
                     name: `Ad for Post ${postId}`,
+                    adset_id: adSetId,
+                    creative: { creative_id: creative.id },
+                    status: 'PAUSED'
+                }
+            );
+            return ad.id;
+        } catch (error: any) {
+            throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));
+        }
+    },
+
+    /**
+     * Upload an Image to Meta
+     */
+    async uploadAdImage(base64Image: string): Promise<string> {
+        const config = await this.getConfig();
+
+        const formData = new FormData();
+        const buffer = Buffer.from(base64Image, 'base64');
+        const blob = new Blob([buffer], { type: 'image/jpeg' });
+        formData.append('filename', blob, 'ad_image.jpg');
+        formData.append('access_token', config.systemUserToken!);
+
+        try {
+            const response = await fetch(`https://graph.facebook.com/v19.0/act_${config.adAccountId}/adimages`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                console.error("Facebook Image Upload Error:", data.error);
+                throw new Error(data.error.message);
+            }
+            return data.images["ad_image.jpg"].hash;
+        } catch (error: any) {
+            console.error("Image Upload Exception:", error);
+            throw new Error(this.translateError(error.message));
+        }
+    },
+
+    /**
+     * Create Ad (New Custom Creative)
+     */
+    async createNewCustomAd(adSetId: string, pageId: string, imageHash: string, primaryText: string, headline: string): Promise<string> {
+        const config = await this.getConfig();
+        FacebookAdsApi.init(config.systemUserToken!);
+
+        try {
+            const account = new AdAccount(`act_${config.adAccountId}`);
+            const creative = await account.createAdCreative(
+                [],
+                {
+                    name: `Custom Creative ${Date.now()}`,
+                    object_story_spec: {
+                        page_id: pageId,
+                        link_data: {
+                            image_hash: imageHash,
+                            link: `https://facebook.com/${pageId}`,
+                            message: primaryText,
+                            name: headline
+                        }
+                    }
+                }
+            );
+
+            const ad = await account.createAd(
+                [],
+                {
+                    name: `Custom Ad ${Date.now()}`,
                     adset_id: adSetId,
                     creative: { creative_id: creative.id },
                     status: 'PAUSED'

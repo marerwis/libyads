@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { PlusCircle, ChevronDown, Rocket, Users, Target, CalendarDays, DollarSign, Image as ImageIcon } from "lucide-react";
-import Link from "next/link";
+import { PlusCircle, ChevronDown, Rocket, Users, Target, CalendarDays, DollarSign, Image as ImageIcon, ChevronRight, ChevronLeft, Upload, CheckCircle2 } from "lucide-react";
 
 const availableCountries = [
     { code: "SA", name: "Saudi Arabia (السعودية)" },
@@ -20,28 +19,59 @@ const availableCountries = [
     { code: "GB", name: "United Kingdom (بريطانيا)" },
 ];
 
-export default function CreateCampaignPage() {
+const OBJECTIVES = [
+    { id: "OUTCOME_AWARENESS", name: "الوعي بالعلامة التجارية (Awareness)" },
+    { id: "OUTCOME_TRAFFIC", name: "الزيارات (Traffic)" },
+    { id: "OUTCOME_ENGAGEMENT", name: "التفاعل (Engagement)" },
+    { id: "OUTCOME_LEADS", name: "العملاء المحتملين (Leads)" },
+    { id: "OUTCOME_SALES", name: "المبيعات (Sales/Conversions)" },
+];
+
+const STEPS = [
+    { id: 1, name: "إعداد الحملة" },
+    { id: 2, name: "الصفحة والمنشور" },
+    { id: 3, name: "الجمهور" },
+    { id: 4, name: "الميزانية" },
+    { id: 5, name: "تصميم الإعلان" },
+    { id: 6, name: "المراجعة والإطلاق" }
+];
+
+export default function CreateCampaignWizard() {
     const router = useRouter();
+    const [currentStep, setCurrentStep] = useState(1);
+
+    // Global Data
     const [pages, setPages] = useState<any[]>([]);
     const [posts, setPosts] = useState<any[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(false);
     const [balance, setBalance] = useState<number>(0);
     const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
-    const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
 
+    // Form State
     const [formData, setFormData] = useState({
+        campaignName: "My New Campaign",
+        objective: "OUTCOME_AWARENESS",
         pageId: "",
+        adCreationType: "EXISTING_POST", // EXISTING_POST | NEW_CREATIVE
         postId: "",
-        budget: 10,
-        duration: 3,
         minAge: 18,
         maxAge: 65,
-        genders: [] as number[], // empty = all, 1 = men, 2 = women
-        countries: ["SA", "AE"] as string[],
+        genders: [] as number[],
+        countries: ["SA"] as string[],
+        budget: 50,
+        duration: 3,
+        primaryText: "",
+        headline: "",
     });
 
-    // Fetch initial data
+    const [mediaFile, setMediaFile] = useState<File | null>(null);
+    const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+
+    const [submitting, setSubmitting] = useState(false);
+    const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Initial Fetch
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -49,7 +79,6 @@ export default function CreateCampaignPage() {
                     fetch('/api/dashboard/stats'),
                     fetch('/api/facebook/pages')
                 ]);
-
                 const statsData = await statsRes.json();
                 setBalance(statsData.balance || 0);
 
@@ -69,101 +98,108 @@ export default function CreateCampaignPage() {
         fetchData();
     }, []);
 
-    // Fetch posts when selected page changes
+    // Fetch Posts when page changes & user uses existing post
     useEffect(() => {
-        if (!formData.pageId) {
-            setPosts([]);
-            return;
-        }
+        if (!formData.pageId || formData.adCreationType === 'NEW_CREATIVE') return;
 
         const fetchPosts = async () => {
             setLoadingPosts(true);
             try {
                 const res = await fetch(`/api/facebook/posts?pageId=${formData.pageId}`);
                 const data = await res.json();
-                if (Array.isArray(data)) {
+                if (Array.isArray(data) && data.length > 0) {
                     setPosts(data);
-                    if (data.length > 0) {
-                        const firstPostId = data[0].id;
-                        const purePostId = firstPostId.includes('_') ? firstPostId.split('_')[1] : firstPostId;
-                        setFormData(prev => ({ ...prev, postId: purePostId }));
-                    } else {
-                        setFormData(prev => ({ ...prev, postId: "" }));
-                    }
+                    const firstPostId = data[0].id;
+                    const purePostId = firstPostId.includes('_') ? firstPostId.split('_')[1] : firstPostId;
+                    setFormData(prev => ({ ...prev, postId: purePostId }));
                 } else {
                     setPosts([]);
                     setFormData(prev => ({ ...prev, postId: "" }));
                 }
             } catch (error) {
-                console.error("Failed to fetch posts", error);
-                setPosts([]);
-                setFormData(prev => ({ ...prev, postId: "" }));
+                console.error(error);
             } finally {
                 setLoadingPosts(false);
             }
         };
-
         fetchPosts();
-    }, [formData.pageId]);
+    }, [formData.pageId, formData.adCreationType]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: ["budget", "duration", "minAge", "maxAge"].includes(name) ? Number(value) : value
-        }));
-    };
-
-    const handleGenderChange = (genderVal: number | null) => {
-        setFormData(prev => ({
-            ...prev,
-            genders: genderVal === null ? [] : [genderVal]
-        }));
-    };
-
-    const handleCountryToggle = (code: string) => {
-        setFormData(prev => {
-            const current = [...prev.countries];
-            if (current.includes(code)) {
-                return { ...prev, countries: current.filter(c => c !== code) };
-            } else {
-                return { ...prev, countries: [...current, code] };
-            }
-        });
-    };
-
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (formData.budget > balance) {
-            setMessage({ type: "error", text: "صيد محفظتك غير كافٍ لإطلاق هذه الحملة. يرجى الشحن أولاً." });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
+    const handleNext = () => {
+        setMessage(null);
+        // Validation per step
+        if (currentStep === 1) {
+            if (!formData.campaignName) return setMessage({ type: "error", text: "يرجى إدخال اسم الحملة" });
+        }
+        if (currentStep === 2) {
+            if (!formData.pageId) return setMessage({ type: "error", text: "يرجى اختيار صفحة" });
+            if (formData.adCreationType === 'EXISTING_POST' && !formData.postId) return setMessage({ type: "error", text: "يرجى اختيار منشور" });
+        }
+        if (currentStep === 3) {
+            if (formData.countries.length === 0) return setMessage({ type: "error", text: "يرجى اختيار دولة واحدة على الأقل" });
+        }
+        if (currentStep === 4) {
+            if (formData.budget <= 0) return setMessage({ type: "error", text: "ميزانية غير صالحة" });
+            if (formData.budget > balance) return setMessage({ type: "error", text: "رصيد المحفظة غير كافٍ" });
+        }
+        if (currentStep === 5) {
+            if (formData.adCreationType === 'NEW_CREATIVE' && !mediaFile) return setMessage({ type: "error", text: "يرجى اختيار صورة للإعلان" });
         }
 
-        if (formData.countries.length === 0) {
-            setMessage({ type: "error", text: "يرجى اختيار دولة واحدة على الأقل للاستهداف." });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
+        // if currently at step 4 and choosing EXISTING_POST, skip step 5
+        if (currentStep === 4 && formData.adCreationType === 'EXISTING_POST') {
+            setCurrentStep(6);
+        } else if (currentStep < 6) {
+            setCurrentStep(c => c + 1);
+        }
+    };
+
+    const handleBack = () => {
+        setMessage(null);
+        if (currentStep === 6 && formData.adCreationType === 'EXISTING_POST') {
+            setCurrentStep(4);
+        } else if (currentStep > 1) {
+            setCurrentStep(c => c - 1);
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setMediaFile(file);
+            setMediaPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleLaunch = async () => {
+        if (formData.budget > balance) {
+            return setMessage({ type: "error", text: "الرصيد غير كافٍ." });
         }
 
         setSubmitting(true);
         setMessage(null);
 
-        const payload = {
-            pageId: formData.pageId,
-            postId: formData.postId,
-            budget: formData.budget,
-            duration: formData.duration,
-            targetingOptions: {
-                minAge: formData.minAge,
-                maxAge: formData.maxAge,
-                genders: formData.genders,
-                countries: formData.countries
-            }
-        };
-
         try {
+            let mediaBase64 = undefined;
+            if (formData.adCreationType === 'NEW_CREATIVE' && mediaFile) {
+                // Read file as base64
+                const reader = new FileReader();
+                await new Promise((resolve) => {
+                    reader.onload = () => {
+                        // remove data:image/png;base64, prefix
+                        const result = reader.result as string;
+                        mediaBase64 = result.split(',')[1];
+                        resolve(null);
+                    };
+                    reader.readAsDataURL(mediaFile);
+                });
+            }
+
+            const payload = {
+                ...formData,
+                mediaBase64: mediaBase64
+            };
+
             const res = await fetch("/api/campaign/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -173,280 +209,351 @@ export default function CreateCampaignPage() {
             const data = await res.json();
 
             if (res.ok) {
-                setMessage({ type: "success", text: "تم إنشاء الحملة وإطلاقها بنجاح! سيتم توجيهك إلى سجل الحملات..." });
-                setTimeout(() => {
-                    router.push('/dashboard/campaigns');
-                }, 2000);
+                setMessage({ type: "success", text: "تم إطلاق الحملة بنجاح! جاري التوجيه..." });
+                setTimeout(() => router.push('/dashboard/campaigns'), 2000);
             } else {
                 setMessage({ type: "error", text: data.details ? `${data.error} \nالتفاصيل: ${data.details}` : (data.error || "فشل إنشاء الحملة.") });
-                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         } catch (error) {
-            setMessage({ type: "error", text: "حدث خطأ غير متوقع بالخادم." });
+            setMessage({ type: "error", text: "حدث خطأ بالاتصال مع الخادم." });
         } finally {
             setSubmitting(false);
         }
     };
 
-    if (loading) {
-        return <div className="p-12 text-center text-slate-400">جاري تحميل لوحة إنشاء الإعلانات...</div>;
-    }
+    // Components for Steps
+    const renderStepContent = () => {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <h3 className="text-xl font-bold text-white mb-2">إعداد الحملة الأساسي</h3>
+                        <p className="text-sm text-slate-400 mb-6">ما هو هدفك التسويقي من هذه الحملة؟</p>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">اسم الحملة</label>
+                            <input
+                                type="text"
+                                value={formData.campaignName}
+                                onChange={(e) => setFormData({ ...formData, campaignName: e.target.value })}
+                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500 transition-all"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">هدف الحملة (Objective)</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {OBJECTIVES.map(obj => (
+                                    <button
+                                        key={obj.id}
+                                        onClick={() => setFormData({ ...formData, objective: obj.id })}
+                                        className={`p-4 rounded-xl border text-right transition-all flex items-center justify-between ${formData.objective === obj.id ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-600'}`}
+                                    >
+                                        <span className="font-medium text-sm">{obj.name}</span>
+                                        {formData.objective === obj.id && <CheckCircle2 size={18} className="text-indigo-400" />}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 2:
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <h3 className="text-xl font-bold text-white mb-2">الصفحة ونوع الإعلان</h3>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">صفحة فيسبوك</label>
+                            <select
+                                value={formData.pageId}
+                                onChange={(e) => setFormData({ ...formData, pageId: e.target.value })}
+                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500"
+                            >
+                                {pages.map(p => <option key={p.id} value={p.pageId}>{p.pageName}</option>)}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-3 mt-6">نوع الإعلان</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => setFormData({ ...formData, adCreationType: 'EXISTING_POST' })}
+                                    className={`p-4 rounded-xl border transition-all ${formData.adCreationType === 'EXISTING_POST' ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
+                                >
+                                    ترويج منشور حالي
+                                </button>
+                                <button
+                                    onClick={() => setFormData({ ...formData, adCreationType: 'NEW_CREATIVE' })}
+                                    className={`p-4 rounded-xl border transition-all ${formData.adCreationType === 'NEW_CREATIVE' ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
+                                >
+                                    إنشاء تصميم جديد
+                                </button>
+                            </div>
+                        </div>
+
+                        {formData.adCreationType === 'EXISTING_POST' && (
+                            <div className="mt-4 animate-in fade-in">
+                                <label className="block text-sm font-semibold text-slate-300 mb-2">اختر المنشور</label>
+                                {loadingPosts ? (
+                                    <div className="text-slate-500 text-sm">جاري الجلب...</div>
+                                ) : (
+                                    <select
+                                        value={formData.postId}
+                                        onChange={(e) => setFormData({ ...formData, postId: e.target.value })}
+                                        className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500"
+                                    >
+                                        <option value="" disabled>اختر منشوراً...</option>
+                                        {posts.map((post: any) => {
+                                            const purePostId = post.id.includes('_') ? post.id.split('_')[1] : post.id;
+                                            return (
+                                                <option key={post.id} value={purePostId}>
+                                                    {post.message ? post.message.substring(0, 60) + "..." : "منشور وسائط"}
+                                                </option>
+                                            )
+                                        })}
+                                    </select>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                );
+            case 3:
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <h3 className="text-xl font-bold text-white mb-2">الجمهور والاستهداف</h3>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-3">الدول المستهدفة</label>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {availableCountries.map(country => {
+                                    const isSelected = formData.countries.includes(country.code);
+                                    return (
+                                        <button
+                                            key={country.code}
+                                            onClick={() => {
+                                                const newCountries = isSelected ? formData.countries.filter(c => c !== country.code) : [...formData.countries, country.code];
+                                                setFormData({ ...formData, countries: newCountries });
+                                            }}
+                                            className={`text-xs text-right font-medium px-3 py-2.5 rounded-lg border transition-all ${isSelected ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}
+                                        >
+                                            {country.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6 mt-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-300 mb-2">العمر</label>
+                                <div className="flex gap-2">
+                                    <input type="number" value={formData.minAge} onChange={(e) => setFormData({ ...formData, minAge: Number(e.target.value) })} className="w-1/2 bg-[#0B0E14] border border-[#2A303C] rounded-lg p-2 text-white text-center" min="13" max="65" />
+                                    <span className="text-slate-500 self-center">-</span>
+                                    <input type="number" value={formData.maxAge} onChange={(e) => setFormData({ ...formData, maxAge: Number(e.target.value) })} className="w-1/2 bg-[#0B0E14] border border-[#2A303C] rounded-lg p-2 text-white text-center" min="13" max="65" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-300 mb-2">الجنس</label>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setFormData({ ...formData, genders: [] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.length === 0 ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>الكل</button>
+                                    <button onClick={() => setFormData({ ...formData, genders: [1] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.includes(1) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>رجال</button>
+                                    <button onClick={() => setFormData({ ...formData, genders: [2] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.includes(2) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>نساء</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 4:
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <h3 className="text-xl font-bold text-white mb-2">الميزانية والجدولة</h3>
+
+                        <div className="bg-[#0B0E14] p-5 rounded-xl border border-[#2A303C] flex justify-between items-center mb-6">
+                            <span className="text-slate-400">رصيد محفظتك المتاح</span>
+                            <span className="text-emerald-400 font-bold text-xl">${balance.toFixed(2)}</span>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">الميزانية الإجمالية (دولار)</label>
+                            <input
+                                type="number"
+                                value={formData.budget}
+                                onChange={(e) => setFormData({ ...formData, budget: Number(e.target.value) })}
+                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white text-lg font-bold"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">مدة الإعلان (أيام)</label>
+                            <input
+                                type="number"
+                                value={formData.duration}
+                                onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
+                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white"
+                            />
+                        </div>
+
+                        <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl">
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="text-blue-200/50">الإنفاق اليومي:</span>
+                                <span className="text-blue-300">${(formData.budget / formData.duration).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-blue-200/50">الرصيد المتبقي:</span>
+                                <span className={`${balance - formData.budget < 0 ? 'text-red-400' : 'text-blue-300'}`}>${(balance - formData.budget).toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 5:
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <h3 className="text-xl font-bold text-white mb-2">تصميم الإعلان (Creative)</h3>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">الصورة الإعلانية</label>
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full h-40 bg-[#0B0E14] border-2 border-dashed border-[#2A303C] hover:border-indigo-500/50 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden"
+                            >
+                                {mediaPreview ? (
+                                    <img src={mediaPreview} alt="Preview" className="object-cover w-full h-full opacity-50" />
+                                ) : (
+                                    <div className="flex flex-col items-center text-slate-500">
+                                        <Upload size={24} className="mb-2" />
+                                        <span className="text-sm font-medium">اضغط لرفع صورة إعلانك</span>
+                                    </div>
+                                )}
+                                {mediaPreview && <div className="absolute inset-0 flex items-center justify-center font-bold text-white shadow-black drop-shadow-md">تغيير الصورة</div>}
+                            </div>
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/png, image/jpeg" onChange={handleFileChange} />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">الوصف الأساسي (Primary Text)</label>
+                            <textarea
+                                rows={3}
+                                value={formData.primaryText}
+                                onChange={(e) => setFormData({ ...formData, primaryText: e.target.value })}
+                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white text-sm"
+                                placeholder="اكتب النص الذي سيظهر فوق الإعلان الممول..."
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">العنوان (Headline)</label>
+                            <input
+                                type="text"
+                                value={formData.headline}
+                                onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
+                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white text-sm"
+                                placeholder="عنوان جذاب عريض يظهر بجانب الزر..."
+                            />
+                        </div>
+                    </div>
+                );
+            case 6:
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <h3 className="text-xl font-bold text-white mb-2">المراجعة النهائية</h3>
+
+                        <div className="bg-[#0B0E14] border border-[#2A303C] rounded-xl p-5 space-y-4 text-sm">
+                            <div className="flex justify-between border-b border-[#2A303C] pb-2">
+                                <span className="text-slate-400">اسم الحملة:</span>
+                                <span className="text-white font-medium">{formData.campaignName}</span>
+                            </div>
+                            <div className="flex justify-between border-b border-[#2A303C] pb-2">
+                                <span className="text-slate-400">الهدف المختار:</span>
+                                <span className="text-white font-medium">{OBJECTIVES.find(o => o.id === formData.objective)?.name}</span>
+                            </div>
+                            <div className="flex justify-between border-b border-[#2A303C] pb-2">
+                                <span className="text-slate-400">الميزانية والمدة:</span>
+                                <span className="text-white font-medium">${formData.budget} لمدة {formData.duration} أيام</span>
+                            </div>
+                            <div className="flex justify-between pb-2">
+                                <span className="text-slate-400">نوع الإعلان:</span>
+                                <span className="text-indigo-400 font-bold">{formData.adCreationType === 'NEW_CREATIVE' ? 'تصميم مخصص جديد' : 'منشور حالي'}</span>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-amber-900/10 border border-amber-500/20 rounded-xl text-amber-200/80 text-xs text-center leading-relaxed">
+                            تأكد من صحة البيانات. سيتم فحص المحتوى وخلق الحملة الإعلانية على خوادم فيسبوك مباشرة وخصم التكلفة.
+                        </div>
+                    </div>
+                );
+        }
+    };
+
+    if (loading) return <div className="p-12 text-center text-slate-400">جاري تحميل واجهة الإعداد...</div>;
 
     return (
-        <div className="max-w-7xl mx-auto" dir="rtl">
-            <header className="mb-8 flex justify-between items-end">
-                <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">إنشاء إعلان جديد المتقدم</h2>
-                    <p className="text-slate-400 text-sm">حدد جمهورك، ميزانيتك، والمنشور للوصول إلى أهدافك بضغطة زر.</p>
-                </div>
-                <div className="text-left bg-blue-900/20 px-6 py-3 rounded-2xl border border-blue-500/30 shadow-inner">
-                    <p className="text-blue-300 text-sm font-medium mb-1">رصيد المحفظة</p>
-                    <p className="text-2xl font-bold text-white">${balance.toFixed(2)}</p>
-                </div>
+        <div className="max-w-4xl mx-auto" dir="rtl">
+            <header className="mb-8">
+                <h2 className="text-2xl font-bold text-white mb-2">إنشاء حملة إعلانية جديدة</h2>
+                <div className="text-slate-400 text-sm">حدد خياراتك بدقة وصمم إعلانك خطوة بخطوة.</div>
             </header>
 
             {message && (
-                <div className={`p-4 mb-8 rounded-xl text-sm font-medium shadow-lg backdrop-blur-sm ${message.type === 'error' ? 'bg-red-900/40 text-red-200 border border-red-500/50' : 'bg-emerald-900/40 text-emerald-200 border border-emerald-500/50'}`}>
+                <div className={`p-4 mb-6 rounded-xl text-sm font-medium shadow-lg animate-in fade-in ${message.type === 'error' ? 'bg-red-900/40 text-red-200 border border-red-500/50' : 'bg-emerald-900/40 text-emerald-200 border border-emerald-500/50'}`}>
                     {message.text}
                 </div>
             )}
 
-            <form onSubmit={handleCreate} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-                {/* Left Column: Form Sections */}
-                <div className="lg:col-span-2 space-y-6">
-
-                    {/* Section 1: Identity */}
-                    <div className="bg-[#151921] rounded-2xl border border-[#2A303C] p-7 shadow-xl">
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#2A303C]">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 shadow-inner">
-                                <ImageIcon size={20} strokeWidth={2.5} />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-white">الهوية والإعلان</h3>
-                                <p className="text-xs text-slate-400 mt-1">اختر الصفحة والمنشور الذي تريد الترويج له.</p>
-                            </div>
-                        </div>
-
-                        {pages.length === 0 ? (
-                            <div className="text-sm text-amber-400 bg-amber-900/20 p-4 rounded-lg border border-amber-900/50">
-                                يجب عليك ربط صفحة فيسبوك أولاً من قسم (Facebook Pages).
-                            </div>
-                        ) : (
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-300 mb-2">صفحة فيسبوك المستهدفة</label>
-                                    <div className="relative group">
-                                        <select
-                                            name="pageId" value={formData.pageId} onChange={handleChange}
-                                            className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-indigo-500/50 text-slate-200 py-3 pr-4 pl-10 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all cursor-pointer shadow-sm"
-                                            required
-                                        >
-                                            {pages.map(page => (
-                                                <option key={page.id} value={page.pageId}>{page.pageName}</option>
-                                            ))}
-                                        </select>
-                                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 pointer-events-none">
-                                            <ChevronDown size={18} />
-                                        </div>
+            <div className="bg-[#151921] rounded-2xl border border-[#2A303C] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[500px]">
+                {/* Left Sidebar Steps Indicator */}
+                <div className="w-full md:w-1/3 bg-[#0E1117] p-6 border-l border-[#2A303C]">
+                    <div className="space-y-6">
+                        {STEPS.filter(s => !(s.id === 5 && formData.adCreationType === 'EXISTING_POST')).map((step, idx) => {
+                            const isActive = currentStep === step.id;
+                            const isPast = currentStep > step.id;
+                            return (
+                                <div key={step.id} className="flex items-center gap-4">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${isActive ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 ring-2 ring-indigo-500/50 ring-offset-2 ring-offset-[#0E1117]' : isPast ? 'bg-emerald-500/20 text-emerald-400' : 'bg-[#2A303C] text-slate-500'}`}>
+                                        {isPast ? <CheckCircle2 size={16} /> : idx + 1}
                                     </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-300 mb-2">المنشور المستهدف</label>
-                                    {loadingPosts ? (
-                                        <div className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl px-4 py-3 text-slate-500 text-sm animate-pulse">
-                                            جاري جلب المنشورات...
-                                        </div>
-                                    ) : posts.length === 0 ? (
-                                        <div className="w-full bg-[#0B0E14] border border-red-900/50 rounded-xl px-4 py-3 text-red-400 text-sm">
-                                            لا توجد منشورات في هذه الصفحة.
-                                        </div>
-                                    ) : (
-                                        <div className="relative group">
-                                            <select
-                                                name="postId" value={formData.postId} onChange={handleChange}
-                                                className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-indigo-500/50 text-slate-200 py-3 pr-4 pl-10 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all cursor-pointer shadow-sm"
-                                                required
-                                            >
-                                                <option value="" disabled>اختر منشوراً للترويج...</option>
-                                                {posts.map((post: any) => {
-                                                    const date = new Date(post.created_time || Date.now()).toLocaleDateString('ar-EG');
-                                                    const purePostId = post.id.includes('_') ? post.id.split('_')[1] : post.id;
-                                                    const snippet = post.message
-                                                        ? (post.message.length > 50 ? post.message.substring(0, 50) + "..." : post.message)
-                                                        : "بدون نص (صورة أو فيديو)";
-                                                    return (
-                                                        <option key={post.id} value={purePostId}>
-                                                            {date} - {snippet}
-                                                        </option>
-                                                    );
-                                                })}
-                                            </select>
-                                            <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 pointer-events-none">
-                                                <ChevronDown size={18} />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Section 2: Audience */}
-                    <div className="bg-[#151921] rounded-2xl border border-[#2A303C] p-7 shadow-xl">
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#2A303C]">
-                            <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 shadow-inner">
-                                <Users size={20} strokeWidth={2.5} />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-white">الجمهور والاستهداف</h3>
-                                <p className="text-xs text-slate-400 mt-1">حدد من ترغب في وصول الإعلان إليه بشكل دقيق.</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-8">
-                            {/* Locations */}
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
-                                    <Target size={16} className="text-slate-500" /> الموقع الجغرافي
-                                </label>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                    {availableCountries.map(country => {
-                                        const isSelected = formData.countries.includes(country.code);
-                                        return (
-                                            <button
-                                                type="button"
-                                                key={country.code}
-                                                onClick={() => handleCountryToggle(country.code)}
-                                                className={`text-xs text-right font-medium px-3 py-2.5 rounded-lg border transition-all ${isSelected
-                                                        ? 'bg-pink-500/20 border-pink-500/50 text-pink-200'
-                                                        : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-600'
-                                                    }`}
-                                            >
-                                                {country.name}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Age and Gender */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-300 mb-3">العمر (من - إلى)</label>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="number" name="minAge" value={formData.minAge} onChange={handleChange} min="13" max="65"
-                                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-pink-500 text-sm text-center"
-                                        />
-                                        <span className="text-slate-500">-</span>
-                                        <input
-                                            type="number" name="maxAge" value={formData.maxAge} onChange={handleChange} min="13" max="65"
-                                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-pink-500 text-sm text-center"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-300 mb-3">الجنس</label>
-                                    <div className="flex gap-2">
-                                        <button type="button" onClick={() => handleGenderChange(null)} className={`flex-1 py-2.5 text-sm font-medium rounded-xl border transition-all ${formData.genders.length === 0 ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>الكل</button>
-                                        <button type="button" onClick={() => handleGenderChange(1)} className={`flex-1 py-2.5 text-sm font-medium rounded-xl border transition-all ${formData.genders.includes(1) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>الرجال</button>
-                                        <button type="button" onClick={() => handleGenderChange(2)} className={`flex-1 py-2.5 text-sm font-medium rounded-xl border transition-all ${formData.genders.includes(2) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>النساء</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Column: Budget & Summary */}
-                <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-[#151921] rounded-2xl border border-[#2A303C] p-7 shadow-xl sticky top-6">
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#2A303C]">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 shadow-inner">
-                                <DollarSign size={20} strokeWidth={2.5} />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-white">الميزانية والجدولة</h3>
-                            </div>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
-                                    الميزانية الإجمالية (دولار)
-                                </label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-emerald-500 font-bold">
-                                        $
-                                    </div>
-                                    <input
-                                        type="number" name="budget" value={formData.budget} onChange={handleChange} min="1" max={Math.floor(balance)}
-                                        className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 pr-10 pl-4 text-white focus:outline-none focus:border-emerald-500 text-lg font-bold shadow-sm"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
-                                    <CalendarDays size={16} className="text-slate-500" /> مدة الإعلان (بالأيام)
-                                </label>
-                                <input
-                                    type="number" name="duration" value={formData.duration} onChange={handleChange} min="1" max="30"
-                                    className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-emerald-500 text-md font-bold shadow-sm"
-                                    required
-                                />
-                                <div className="flex gap-2 mt-3">
-                                    {[1, 3, 7, 14].map(days => (
-                                        <button
-                                            key={days}
-                                            type="button"
-                                            onClick={() => setFormData(p => ({ ...p, duration: days }))}
-                                            className={`flex-1 py-1.5 text-xs font-medium rounded-lg border transition-all ${formData.duration === days ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
-                                        >
-                                            {days} أيام
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="pt-4 border-t border-[#2A303C]">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-slate-400 text-sm">التكلفة اليومية التقريبية:</span>
-                                    <span className="text-white font-medium">${(formData.budget / (formData.duration || 1)).toFixed(2)} / يوم</span>
-                                </div>
-                                <div className="flex justify-between items-center mb-6">
-                                    <span className="text-slate-400 text-sm">الرصيد المتبقي بعد الإطلاق:</span>
-                                    <span className={`font-medium ${balance - formData.budget < 0 ? 'text-red-400' : 'text-slate-300'}`}>
-                                        ${Math.max(0, balance - formData.budget).toFixed(2)}
+                                    <span className={`text-sm font-medium transition-colors ${isActive ? 'text-white' : isPast ? 'text-slate-300' : 'text-slate-600'}`}>
+                                        {step.name}
                                     </span>
                                 </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={submitting || formData.budget > balance || pages.length === 0 || formData.countries.length === 0}
-                                    className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-[#1877F2] hover:from-blue-500 hover:to-blue-600 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:shadow-none text-white font-bold rounded-xl text-md transition-all shadow-lg shadow-blue-500/25 active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                    {submitting ? (
-                                        <span className="animate-pulse">جاري الإطلاق...</span>
-                                    ) : formData.budget > balance ? (
-                                        "رصيد غير كافٍ"
-                                    ) : (
-                                        <>
-                                            <Rocket size={20} />
-                                            إطلاق الحملة الآن
-                                        </>
-                                    )}
-                                </button>
-                                <p className="text-center text-[11px] text-slate-500 mt-3">سيتم خصم المبلغ من محفظتك فوراً.</p>
-                            </div>
-                        </div>
+                            );
+                        })}
                     </div>
                 </div>
-            </form>
+
+                {/* Right Content Area */}
+                <div className="w-full md:w-2/3 p-8 flex flex-col justify-between">
+                    <div>
+                        {renderStepContent()}
+                    </div>
+
+                    <div className="flex justify-between mt-10 pt-6 border-t border-[#2A303C]">
+                        <button
+                            onClick={handleBack}
+                            disabled={currentStep === 1 || submitting}
+                            className="px-6 py-2.5 rounded-xl border border-[#2A303C] text-slate-300 hover:bg-[#2A303C] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+                        >
+                            <ChevronRight size={18} /> رجوع
+                        </button>
+
+                        {currentStep < 6 ? (
+                            <button
+                                onClick={handleNext}
+                                className="px-8 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 text-sm font-medium flex items-center gap-2 transition-all active:scale-95"
+                            >
+                                التالي <ChevronLeft size={18} />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleLaunch}
+                                disabled={submitting}
+                                className="px-8 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 text-sm font-bold flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                            >
+                                {submitting ? "جاري الإطلاق..." : "إطلاق الحملة!"} <Rocket size={18} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
