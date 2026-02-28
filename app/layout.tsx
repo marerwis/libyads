@@ -14,14 +14,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InTag - Advanced Ad Manager",
+  title: "Libya Ads - Advanced Ad Manager",
   description: "Advanced Ad Creation and Management Platform",
   openGraph: {
     type: "website",
     url: "https://intag.vercel.app",
-    title: "InTag - Advanced Ad Manager",
+    title: "Libya Ads - Advanced Ad Manager",
     description: "Advanced Ad Creation and Management Platform",
-    siteName: "InTag",
+    siteName: "Libya Ads",
   },
   other: {
     "fb:app_id": "146492924904048", // Used from the previously configured FB App ID

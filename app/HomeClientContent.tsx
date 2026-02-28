@@ -17,12 +17,10 @@ export default function HomeClientContent({ settings, page, session }: { setting
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#1877F2]/10 rounded-xl flex items-center justify-center border border-[#1877F2]/20">
-                                <svg className="w-6 h-6 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M16.5 6C14.567 6 13 7.567 13 9.5C13 11.433 14.567 13 16.5 13C18.433 13 20 11.433 20 9.5C20 7.567 18.433 6 16.5 6ZM7.5 6C5.567 6 4 7.567 4 9.5C4 11.433 5.567 13 7.5 13C9.433 13 11 11.433 11 9.5C11 7.567 9.433 6 7.5 6ZM16.5 14.5C14.0147 14.5 12 16.5147 12 19C12 21.4853 14.0147 23.5 16.5 23.5C18.9853 23.5 21 21.4853 21 19C21 16.5147 18.9853 14.5 16.5 14.5ZM7.5 14.5C5.0147 14.5 3 16.5147 3 19C3 21.4853 5.0147 23.5 7.5 23.5C9.9853 23.5 12 21.4853 12 19C12 16.5147 9.9853 14.5 7.5 14.5Z" />
-                                </svg>
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
+                                <img src="/logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                             </div>
-                            <span className="font-bold text-xl tracking-tight text-white">{settings?.siteName || 'Meta'} <span className="text-[#1877F2]">Manager</span></span>
+                            <span className="font-bold text-xl tracking-tight text-white">{settings?.siteName || 'Libya'} <span className="text-[#1877F2]">Ads</span></span>
                         </div>
 
                         <div className="hidden md:flex items-center space-x-8 bg-[#151921]/50 px-6 py-2 rounded-full border border-white/5 mx-4">
@@ -122,7 +120,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#151921]/20 to-transparent pointer-events-none"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white text-slate-900">{t("whyChoose")} {settings?.siteName || 'Meta Manager'}</h2>
+                            <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white text-slate-900">{t("whyChoose")} {settings?.siteName || 'Libya Ads'}</h2>
                             <p className="dark:text-slate-400 text-slate-600 text-lg">{settings?.siteDescription || 'Everything you need to scale your advertising efforts efficiently across the Meta ecosystem, wrapped in a focused UI.'}</p>
                         </div>
 
@@ -175,7 +173,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
             <footer className="dark:bg-[#151921] bg-slate-100 border-t dark:border-[#2A303C] border-slate-200 pt-16 pb-8 mt-12 transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="pt-8 border-t border-[#2A303C] flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-                        <p>© 2024 Meta Business Manager. {t("allRightsReserved")}</p>
+                        <p>© 2024 Libya Ads. {t("allRightsReserved")}</p>
                         <div className="flex items-center gap-6">
                             <Link href="/data-deletion" className="hover:text-white transition-colors font-medium">{t("deleteUserData")}</Link>
                             <Link href="/privacy-policy" className="hover:text-white transition-colors font-medium">{t("privacyPolicy")}</Link>

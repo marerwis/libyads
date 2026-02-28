@@ -66,10 +66,10 @@ export default function DashboardLayout({
             {/* Mobile Top Bar */}
             <div className="md:hidden flex items-center justify-between p-4 border-b dark:border-slate-800/60 border-slate-200 dark:bg-[#0a0a0b] bg-white z-40 fixed top-0 left-0 right-0 h-16 transition-colors duration-300">
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-[#1877F2] text-white">
-                        <ActivitySquare size={18} strokeWidth={2.5} />
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-sm border border-white/10">
+                        <img src="/logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                     </div>
-                    <h1 className="font-bold text-sm tracking-tight dark:text-slate-100 text-slate-900" dir="ltr">Meta Manager</h1>
+                    <h1 className="font-bold text-sm tracking-tight dark:text-slate-100 text-slate-900" dir="ltr">Libya Ads</h1>
                 </div>
                 <button
                     onClick={() => setIsMobileMenuOpen(true)}
@@ -93,11 +93,11 @@ export default function DashboardLayout({
                     {/* Logo Section */}
                     <div className="h-16 md:h-20 flex items-center justify-between px-6 border-b dark:border-slate-800/60 border-slate-200 transition-colors duration-300">
                         <Link href="/" className="flex items-center gap-3 group">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-[#1877F2] text-white shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300">
-                                <ActivitySquare size={18} strokeWidth={2.5} />
+                            <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300 border border-white/10">
+                                <img src="/logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                             </div>
                             <div>
-                                <h1 className="font-bold text-sm tracking-tight dark:text-slate-100 text-slate-800 group-hover:text-[#1877F2] transition-colors" dir="ltr">Meta Manager</h1>
+                                <h1 className="font-bold text-sm tracking-tight dark:text-slate-100 text-slate-800 group-hover:text-[#1877F2] transition-colors" dir="ltr">Libya Ads</h1>
                                 <p className="text-[10px] uppercase font-medium tracking-wider dark:text-slate-500 text-slate-400 mt-0.5" dir="ltr">Centralized Account</p>
                             </div>
                         </Link>

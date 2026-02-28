@@ -82,12 +82,10 @@ export default function LoginPage() {
 
             <div className="sm:mx-auto sm:w-full sm:max-w-md text-center group">
                 <Link href="/" className="inline-flex items-center gap-3 justify-center">
-                    <div className="w-12 h-12 bg-[#1877F2]/10 rounded-xl flex items-center justify-center border border-[#1877F2]/20 group-hover:scale-105 transition-transform">
-                        <svg className="w-7 h-7 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M16.5 6C14.567 6 13 7.567 13 9.5C13 11.433 14.567 13 16.5 13C18.433 13 20 11.433 20 9.5C20 7.567 18.433 6 16.5 6ZM7.5 6C5.567 6 4 7.567 4 9.5C4 11.433 5.567 13 7.5 13C9.433 13 11 11.433 11 9.5C11 7.567 9.433 6 7.5 6ZM16.5 14.5C14.0147 14.5 12 16.5147 12 19C12 21.4853 14.0147 23.5 16.5 23.5C18.9853 23.5 21 21.4853 21 19C21 16.5147 18.9853 14.5 16.5 14.5ZM7.5 14.5C5.0147 14.5 3 16.5147 3 19C3 21.4853 5.0147 23.5 7.5 23.5C9.9853 23.5 12 21.4853 12 19C12 16.5147 9.9853 14.5 7.5 14.5Z" />
-                        </svg>
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                        <img src="/logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                     </div>
-                    <span className="font-bold text-3xl tracking-tight text-white">Meta <span className="text-[#1877F2]">Manager</span></span>
+                    <span className="font-bold text-3xl tracking-tight text-white">Libya <span className="text-[#1877F2]">Ads</span></span>
                 </Link>
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-white tracking-tight">
                     {isLogin ? "Sign in to your account" : "Create your account"}
