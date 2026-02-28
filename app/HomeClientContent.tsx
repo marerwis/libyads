@@ -18,7 +18,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
-                                <img src="/logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
+                                <img src="/logo.jpg?v=2" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                             </div>
                             <span className="font-bold text-xl tracking-tight text-white">{settings?.siteName || 'Libya'} <span className="text-[#1877F2]">Ads</span></span>
                         </div>
