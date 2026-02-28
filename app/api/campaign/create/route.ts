@@ -83,17 +83,44 @@ export async function POST(req: Request) {
 
             // Create Campaign on Meta
             console.log(`[API] Creating Meta Campaign: ${campaignName} [${objective}]`);
-            // Note: we update metaService.createCampaign to accept objective param
-            const fbCampaignId = await metaService.createCampaign(campaignName, objective);
+            let fbCampaignId;
+            try {
+                fbCampaignId = await metaService.createCampaign(campaignName, objective);
+            } catch (err: any) {
+                console.error('[MetaError - Campaign] failed:', err.message);
+                throw new Error("Campaign Creation Failed: " + err.message);
+            }
+
+            // Determine the correct Optimization Goal based on Campaign Objective
+            let optimizationGoal = 'REACH';
+            switch (objective) {
+                case 'OUTCOME_AWARENESS': optimizationGoal = 'REACH'; break;
+                case 'OUTCOME_TRAFFIC': optimizationGoal = 'LINK_CLICKS'; break;
+                case 'OUTCOME_ENGAGEMENT': optimizationGoal = 'POST_ENGAGEMENT'; break;
+                case 'OUTCOME_LEADS': optimizationGoal = 'LEAD_GENERATION'; break;
+                case 'OUTCOME_SALES': optimizationGoal = 'OFFSITE_CONVERSIONS'; break;
+            }
 
             // Create Ad Set
-            console.log(`[API] Creating Meta AdSet for Campaign ${fbCampaignId}`);
+            console.log(`[API] Creating Meta AdSet for Campaign ${fbCampaignId} with goal ${optimizationGoal}`);
             const dailyBudgetForMeta = budget / duration;
-            const fbAdSetId = await metaService.createAdSet(fbCampaignId, dailyBudgetForMeta, duration, pageId, targetingOptions);
+            let fbAdSetId;
+            try {
+                fbAdSetId = await metaService.createAdSet(fbCampaignId, dailyBudgetForMeta, duration, pageId, optimizationGoal, targetingOptions);
+            } catch (err: any) {
+                console.error('[MetaError - AdSet] failed:', err.message);
+                throw new Error("AdSet Creation Failed: " + err.message);
+            }
 
             // Create Ad
             console.log(`[API] Creating Meta Ad linked to existing post ${postId}`);
-            const fbAdId = await metaService.createAd(fbAdSetId, pageId, postId);
+            let fbAdId;
+            try {
+                fbAdId = await metaService.createAd(fbAdSetId, pageId, postId);
+            } catch (err: any) {
+                console.error('[MetaError - Ad] failed:', err.message);
+                throw new Error("Ad Creation Failed: " + (err.message || JSON.stringify(err)));
+            }
 
             // Update local DB with success
             await prisma.campaign.update({

@@ -76,7 +76,7 @@ export const metaService = {
     /**
      * Step 4: Create Ad Set with Advanced Targeting
      */
-    async createAdSet(campaignId: string, dailyBudget: number, durationDays: number, pageId: string, targetingOptions?: { minAge?: number, maxAge?: number, genders?: number[], countries?: string[] }): Promise<string> {
+    async createAdSet(campaignId: string, dailyBudget: number, durationDays: number, pageId: string, optimizationGoal: string, targetingOptions?: { minAge?: number, maxAge?: number, genders?: number[], countries?: string[] }): Promise<string> {
         const config = await this.getConfig();
         FacebookAdsApi.init(config.systemUserToken!);
 
@@ -147,6 +147,7 @@ export const metaService = {
         if (targetingOptions?.genders && targetingOptions.genders.length > 0) {
             // Meta expects genders as an array of integers (1 = Male, 2 = Female)
             targetingPayload.genders = targetingOptions.genders;
+            // NOTE: We could inject budget tracking logging here if we needed to trace budget depletion across targets
         }
 
         try {
@@ -159,7 +160,7 @@ export const metaService = {
                     start_time: now.toISOString(),
                     end_time: endTime.toISOString(),
                     billing_event: 'IMPRESSIONS',
-                    optimization_goal: 'REACH',
+                    optimization_goal: optimizationGoal,
                     promoted_object: { page_id: pageId },
                     bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
                     targeting: targetingPayload,
