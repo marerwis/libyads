@@ -80,64 +80,64 @@ export default function UserSettings() {
     return (
         <div className="max-w-2xl">
             <header className="mb-8">
-                <h2 className="text-2xl font-semibold text-white">{t("accountSettings")}</h2>
-                <p className="text-slate-400 text-sm mt-1">{t("manageProfile")}</p>
+                <h2 className="text-2xl font-semibold dark:text-white text-slate-900">{t("accountSettings")}</h2>
+                <p className="dark:text-slate-400 text-slate-500 text-sm mt-1">{t("manageProfile")}</p>
             </header>
 
             {message && (
-                <div className={`p-4 mb-6 rounded-lg text-sm font-medium ${message.type === 'error' ? 'bg-red-900/30 text-red-400 border border-red-900/50' : 'bg-emerald-900/30 text-emerald-400 border border-emerald-900/50'}`}>
+                <div className={`p-4 mb-6 rounded-lg text-sm font-medium ${message.type === 'error' ? 'dark:bg-red-900/30 bg-red-50 dark:text-red-400 text-red-600 border dark:border-red-900/50 border-red-200' : 'dark:bg-emerald-900/30 bg-emerald-50 dark:text-emerald-400 text-emerald-600 border dark:border-emerald-900/50 border-emerald-200'}`}>
                     {message.text}
                 </div>
             )}
 
-            <div className="bg-[#151921] rounded-xl border border-[#2A303C] shadow-sm">
-                <form onSubmit={handleSubmit} className="divide-y divide-[#2A303C]">
+            <div className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 shadow-sm transition-colors">
+                <form onSubmit={handleSubmit} className="divide-y dark:divide-[#2A303C] divide-slate-200">
                     {/* General Settings */}
                     <div className="p-6 space-y-6">
-                        <h3 className="text-lg font-medium text-white mb-4">{t("generalSettings")}</h3>
+                        <h3 className="text-lg font-medium dark:text-white text-slate-900 mb-4">{t("generalSettings")}</h3>
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("fullName")}</label>
+                            <label className="block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2">{t("fullName")}</label>
                             <input
                                 type="text" name="name" value={formData.name} onChange={handleChange}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
+                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
                                 placeholder={t("fullName")} required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("emailAddress")}</label>
+                            <label className="block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2">{t("emailAddress")}</label>
                             <input
                                 type="email" value={email} disabled
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-slate-500 cursor-not-allowed"
+                                className="w-full dark:bg-[#0B0E14] bg-slate-100 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-slate-500 text-slate-400 cursor-not-allowed"
                                 dir="ltr"
                             />
-                            <p className="text-xs text-slate-500 mt-2">Email address cannot be changed natively.</p>
+                            <p className="text-xs dark:text-slate-500 text-slate-400 mt-2">Email address cannot be changed natively.</p>
                         </div>
                     </div>
 
                     {/* Security Settings */}
                     <div className="p-6 space-y-6">
-                        <h3 className="text-lg font-medium text-white mb-4">{t("securityPassword")}</h3>
+                        <h3 className="text-lg font-medium dark:text-white text-slate-900 mb-4">{t("securityPassword")}</h3>
 
                         {isOAuth ? (
-                            <div className="bg-blue-900/20 border border-blue-900/50 rounded-lg p-4">
-                                <p className="text-sm text-blue-400">{t("thirdPartyLogin")}</p>
+                            <div className="dark:bg-blue-900/20 bg-blue-50 border dark:border-blue-900/50 border-blue-200 rounded-lg p-4">
+                                <p className="text-sm dark:text-blue-400 text-blue-600">{t("thirdPartyLogin")}</p>
                             </div>
                         ) : (
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">{t("newPassword")}</label>
+                                        <label className="block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2">{t("newPassword")}</label>
                                         <input
                                             type="password" name="newPassword" value={formData.newPassword} onChange={handleChange}
-                                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
+                                            className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
                                             placeholder={t("newPassword")}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">{t("confirmPassword")}</label>
+                                        <label className="block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2">{t("confirmPassword")}</label>
                                         <input
                                             type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange}
-                                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
+                                            className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
                                             placeholder={t("confirmPassword")}
                                         />
                                     </div>
@@ -146,7 +146,7 @@ export default function UserSettings() {
                         )}
                     </div>
 
-                    <div className={`p-6 bg-[#0B0E14]/50 flex ${locale === 'ar' ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`p-6 dark:bg-[#0B0E14]/50 bg-slate-50 flex ${locale === 'ar' ? 'justify-start' : 'justify-end'} rounded-b-xl`}>
                         <button
                             type="submit"
                             disabled={saving}

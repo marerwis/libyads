@@ -72,13 +72,13 @@ function FacebookPagesContent() {
         <div className="max-w-4xl mx-auto space-y-6">
             <header className="mb-8 flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-semibold text-white">{t("facebookPages")}</h2>
-                    <p className="text-slate-400 text-sm mt-1">{t("manageAndTrack")}</p>
+                    <h2 className="text-2xl font-semibold dark:text-white text-slate-900">{t("facebookPages")}</h2>
+                    <p className="dark:text-slate-400 text-slate-500 text-sm mt-1">{t("manageAndTrack")}</p>
                 </div>
             </header>
 
             {message && (
-                <div className={`p-4 rounded-lg text-sm font-medium ${message.type === 'error' ? 'bg-red-900/30 text-red-400 border border-red-900/50' : 'bg-emerald-900/30 text-emerald-400 border border-emerald-900/50'}`}>
+                <div className={`p-4 rounded-lg text-sm font-medium ${message.type === 'error' ? 'dark:bg-red-900/30 bg-red-50 dark:text-red-400 text-red-600 border dark:border-red-900/50 border-red-200' : 'dark:bg-emerald-900/30 bg-emerald-50 dark:text-emerald-400 text-emerald-600 border dark:border-emerald-900/50 border-emerald-200'}`}>
                     {message.text}
                 </div>
             )}
@@ -86,12 +86,12 @@ function FacebookPagesContent() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Connect Facebook Card */}
                 <div className="lg:col-span-1">
-                    <div className="bg-[#151921] rounded-xl border border-[#2A303C] p-6 shadow-sm flex flex-col items-center text-center">
+                    <div className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 p-6 shadow-sm flex flex-col items-center text-center transition-colors">
                         <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
                             <Facebook size={36} strokeWidth={2} />
                         </div>
-                        <h3 className="text-lg font-medium text-white mb-2">Connect Pages</h3>
-                        <p className="text-sm text-slate-400 mb-6">
+                        <h3 className="text-lg font-medium dark:text-white text-slate-900 mb-2">Connect Pages</h3>
+                        <p className="text-sm dark:text-slate-400 text-slate-600 mb-6">
                             Securely link your Facebook account to manage pages and run ad campaigns automatically.
                         </p>
                         <button
@@ -113,34 +113,34 @@ function FacebookPagesContent() {
 
                 {/* Pages List */}
                 <div className="lg:col-span-2">
-                    <div className="bg-[#151921] rounded-xl border border-[#2A303C] overflow-hidden shadow-sm h-full">
-                        <div className="p-6 border-b border-[#2A303C]">
-                            <h3 className="text-lg font-medium text-white">{t("facebookPages")}</h3>
+                    <div className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 overflow-hidden shadow-sm h-full transition-colors">
+                        <div className="p-6 border-b dark:border-[#2A303C] border-slate-200">
+                            <h3 className="text-lg font-medium dark:text-white text-slate-900">{t("facebookPages")}</h3>
                         </div>
                         {loading ? (
-                            <div className="p-8 text-center text-slate-400">{t("fetchingPages")}</div>
+                            <div className="p-8 text-center dark:text-slate-400 text-slate-500">{t("fetchingPages")}</div>
                         ) : pages.length === 0 ? (
                             <div className="p-12 text-center flex flex-col items-center">
                                 <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
                                     <Flag size={32} strokeWidth={2} />
                                 </div>
-                                <h3 className="text-white font-medium mb-1">{t("noPagesLinked")}</h3>
-                                <p className="text-slate-400 text-sm max-w-sm">Use the "Connect Facebook" button to authenticate and load your pages automatically.</p>
+                                <h3 className="dark:text-white text-slate-900 font-medium mb-1">{t("noPagesLinked")}</h3>
+                                <p className="dark:text-slate-400 text-slate-500 text-sm max-w-sm">Use the "Connect Facebook" button to authenticate and load your pages automatically.</p>
                             </div>
                         ) : (
-                            <ul className="divide-y divide-[#2A303C]">
+                            <ul className="divide-y dark:divide-[#2A303C] divide-slate-200">
                                 {pages.map(page => (
-                                    <li key={page.id} className="p-6 flex items-center justify-between hover:bg-[#0B0E14]/50 transition-colors">
+                                    <li key={page.id} className="p-6 flex items-center justify-between dark:hover:bg-[#0B0E14]/50 hover:bg-slate-50 transition-colors">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-inner">
                                                 <Flag size={20} strokeWidth={2.5} />
                                             </div>
                                             <div>
-                                                <h4 className="text-white font-medium">{page.pageName}</h4>
-                                                <p className="text-slate-400 text-xs mt-0.5">ID: {page.pageId}</p>
+                                                <h4 className="dark:text-white text-slate-900 font-medium">{page.pageName}</h4>
+                                                <p className="dark:text-slate-400 text-slate-500 text-xs mt-0.5">ID: {page.pageId}</p>
                                             </div>
                                         </div>
-                                        <span className="px-3 py-1 rounded-full bg-emerald-900/30 text-emerald-400 text-xs font-medium border border-emerald-900/50">
+                                        <span className="px-3 py-1 rounded-full dark:bg-emerald-900/30 bg-emerald-50 dark:text-emerald-400 text-emerald-600 text-xs font-medium border dark:border-emerald-900/50 border-emerald-200">
                                             Connected
                                         </span>
                                     </li>
