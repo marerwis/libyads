@@ -64,7 +64,12 @@ export const metaService = {
             );
             return campaign.id;
         } catch (error: any) {
-            throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));
+            const metaErr = error.response?.error;
+            let details = "";
+            if (metaErr) {
+                details = `\n[تفاصيل فيسبوك التقنية: ${metaErr.error_user_msg || metaErr.message || JSON.stringify(metaErr)}]`;
+            }
+            throw new Error(this.translateError(error.message || metaErr?.message, metaErr?.error_subcode) + details);
         }
     },
 
@@ -163,7 +168,12 @@ export const metaService = {
             );
             return adSet.id;
         } catch (error: any) {
-            throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));
+            const metaErr = error.response?.error;
+            let details = "";
+            if (metaErr) {
+                details = `\n[تفاصيل فيسبوك التقنية: ${metaErr.error_user_msg || metaErr.message || JSON.stringify(metaErr)}]`;
+            }
+            throw new Error(this.translateError(error.message || metaErr?.message, metaErr?.error_subcode) + details);
         }
     },
 
@@ -200,7 +210,12 @@ export const metaService = {
             );
             return ad.id;
         } catch (error: any) {
-            throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));
+            const metaErr = error.response?.error;
+            let details = "";
+            if (metaErr) {
+                details = `\n[تفاصيل فيسبوك التقنية: ${metaErr.error_user_msg || metaErr.message || JSON.stringify(metaErr)}]`;
+            }
+            throw new Error(this.translateError(error.message || metaErr?.message, metaErr?.error_subcode) + details);
         }
     },
 

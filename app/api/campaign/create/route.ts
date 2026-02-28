@@ -70,7 +70,7 @@ export async function POST(req: Request) {
                 budget: budget,
                 userId: user.id,
                 pageId: pageId,
-                postId: adCreationType === 'EXISTING_POST' ? postId : null
+                postId: postId
             }
         });
 
@@ -80,14 +80,6 @@ export async function POST(req: Request) {
             // Deduct funds immediately
             await walletService.deductFunds(user.id, budget, `Campaign: ${campaignName}`);
             console.log(`[API] Deducted $${budget} from User ${user.id} wallet.`);
-
-            // Upload media to Facebook if creating a new ad
-            let imageHash = null;
-            if (adCreationType === 'NEW_CREATIVE') {
-                console.log(`[API] Uploading custom media to Facebook...`);
-                imageHash = await metaService.uploadAdImage(mediaBase64);
-                console.log(`[API] Media uploaded successfully. Hash: ${imageHash}`);
-            }
 
             // Create Campaign on Meta
             console.log(`[API] Creating Meta Campaign: ${campaignName} [${objective}]`);
@@ -100,14 +92,8 @@ export async function POST(req: Request) {
             const fbAdSetId = await metaService.createAdSet(fbCampaignId, dailyBudgetForMeta, duration, pageId, targetingOptions);
 
             // Create Ad
-            let fbAdId;
-            if (adCreationType === 'EXISTING_POST') {
-                console.log(`[API] Creating Meta Ad linked to existing post ${postId}`);
-                fbAdId = await metaService.createAd(fbAdSetId, pageId, postId);
-            } else {
-                console.log(`[API] Creating Meta Ad with new custom creative`);
-                fbAdId = await metaService.createNewCustomAd(fbAdSetId, pageId, imageHash!, primaryText, headline);
-            }
+            console.log(`[API] Creating Meta Ad linked to existing post ${postId}`);
+            const fbAdId = await metaService.createAd(fbAdSetId, pageId, postId);
 
             // Update local DB with success
             await prisma.campaign.update({

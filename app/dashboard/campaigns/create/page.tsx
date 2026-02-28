@@ -31,8 +31,7 @@ const STEPS = [
     { id: 2, name: "الصفحة والمنشور" },
     { id: 3, name: "الجمهور" },
     { id: 4, name: "الميزانية" },
-    { id: 5, name: "تصميم الإعلان" },
-    { id: 6, name: "المراجعة والإطلاق" }
+    { id: 5, name: "المراجعة والإطلاق" }
 ];
 
 export default function CreateCampaignWizard() {
@@ -132,7 +131,7 @@ export default function CreateCampaignWizard() {
         }
         if (currentStep === 2) {
             if (!formData.pageId) return setMessage({ type: "error", text: "يرجى اختيار صفحة" });
-            if (formData.adCreationType === 'EXISTING_POST' && !formData.postId) return setMessage({ type: "error", text: "يرجى اختيار منشور" });
+            if (!formData.postId) return setMessage({ type: "error", text: "يرجى اختيار منشور" });
         }
         if (currentStep === 3) {
             if (formData.countries.length === 0) return setMessage({ type: "error", text: "يرجى اختيار دولة واحدة على الأقل" });
@@ -141,23 +140,15 @@ export default function CreateCampaignWizard() {
             if (formData.budget <= 0) return setMessage({ type: "error", text: "ميزانية غير صالحة" });
             if (formData.budget > balance) return setMessage({ type: "error", text: "رصيد المحفظة غير كافٍ" });
         }
-        if (currentStep === 5) {
-            if (formData.adCreationType === 'NEW_CREATIVE' && !mediaFile) return setMessage({ type: "error", text: "يرجى اختيار صورة للإعلان" });
-        }
 
-        // if currently at step 4 and choosing EXISTING_POST, skip step 5
-        if (currentStep === 4 && formData.adCreationType === 'EXISTING_POST') {
-            setCurrentStep(6);
-        } else if (currentStep < 6) {
+        if (currentStep < 5) {
             setCurrentStep(c => c + 1);
         }
     };
 
     const handleBack = () => {
         setMessage(null);
-        if (currentStep === 6 && formData.adCreationType === 'EXISTING_POST') {
-            setCurrentStep(4);
-        } else if (currentStep > 1) {
+        if (currentStep > 1) {
             setCurrentStep(c => c - 1);
         }
     };
@@ -259,7 +250,7 @@ export default function CreateCampaignWizard() {
             case 2:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">الصفحة ونوع الإعلان</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">الصفحة والمنشور</h3>
 
                         <div>
                             <label className="block text-sm font-semibold text-slate-300 mb-2">صفحة فيسبوك</label>
@@ -272,48 +263,28 @@ export default function CreateCampaignWizard() {
                             </select>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-3 mt-6">نوع الإعلان</label>
-                            <div className="grid grid-cols-2 gap-4">
-                                <button
-                                    onClick={() => setFormData({ ...formData, adCreationType: 'EXISTING_POST' })}
-                                    className={`p-4 rounded-xl border transition-all ${formData.adCreationType === 'EXISTING_POST' ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
+                        <div className="mt-4 animate-in fade-in">
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">اختر المنشور للترويج</label>
+                            {loadingPosts ? (
+                                <div className="text-slate-500 text-sm">جاري الجلب...</div>
+                            ) : (
+                                <select
+                                    value={formData.postId}
+                                    onChange={(e) => setFormData({ ...formData, postId: e.target.value })}
+                                    className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500"
                                 >
-                                    ترويج منشور حالي
-                                </button>
-                                <button
-                                    onClick={() => setFormData({ ...formData, adCreationType: 'NEW_CREATIVE' })}
-                                    className={`p-4 rounded-xl border transition-all ${formData.adCreationType === 'NEW_CREATIVE' ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
-                                >
-                                    إنشاء تصميم جديد
-                                </button>
-                            </div>
+                                    <option value="" disabled>اختر منشوراً...</option>
+                                    {posts.map((post: any) => {
+                                        const purePostId = post.id.includes('_') ? post.id.split('_')[1] : post.id;
+                                        return (
+                                            <option key={post.id} value={purePostId}>
+                                                {post.message ? post.message.substring(0, 60) + "..." : "منشور وسائط"}
+                                            </option>
+                                        )
+                                    })}
+                                </select>
+                            )}
                         </div>
-
-                        {formData.adCreationType === 'EXISTING_POST' && (
-                            <div className="mt-4 animate-in fade-in">
-                                <label className="block text-sm font-semibold text-slate-300 mb-2">اختر المنشور</label>
-                                {loadingPosts ? (
-                                    <div className="text-slate-500 text-sm">جاري الجلب...</div>
-                                ) : (
-                                    <select
-                                        value={formData.postId}
-                                        onChange={(e) => setFormData({ ...formData, postId: e.target.value })}
-                                        className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500"
-                                    >
-                                        <option value="" disabled>اختر منشوراً...</option>
-                                        {posts.map((post: any) => {
-                                            const purePostId = post.id.includes('_') ? post.id.split('_')[1] : post.id;
-                                            return (
-                                                <option key={post.id} value={purePostId}>
-                                                    {post.message ? post.message.substring(0, 60) + "..." : "منشور وسائط"}
-                                                </option>
-                                            )
-                                        })}
-                                    </select>
-                                )}
-                            </div>
-                        )}
                     </div>
                 );
             case 3:
@@ -344,8 +315,8 @@ export default function CreateCampaignWizard() {
                                                 }
                                             }}
                                             className={`text-xs text-right font-medium px-3 py-2.5 rounded-lg border transition-all ${isSelected ? 'bg-pink-500/20 border-pink-500/50 text-pink-200'
-                                                    : isDisabled ? 'bg-[#0B0E14]/50 border-[#2A303C]/30 text-slate-600 cursor-not-allowed opacity-50'
-                                                        : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
+                                                : isDisabled ? 'bg-[#0B0E14]/50 border-[#2A303C]/30 text-slate-600 cursor-not-allowed opacity-50'
+                                                    : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
                                         >
                                             {country.name}
                                         </button>
@@ -419,53 +390,6 @@ export default function CreateCampaignWizard() {
             case 5:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">تصميم الإعلان (Creative)</h3>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">الصورة الإعلانية</label>
-                            <div
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-full h-40 bg-[#0B0E14] border-2 border-dashed border-[#2A303C] hover:border-indigo-500/50 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden"
-                            >
-                                {mediaPreview ? (
-                                    <img src={mediaPreview} alt="Preview" className="object-cover w-full h-full opacity-50" />
-                                ) : (
-                                    <div className="flex flex-col items-center text-slate-500">
-                                        <Upload size={24} className="mb-2" />
-                                        <span className="text-sm font-medium">اضغط لرفع صورة إعلانك</span>
-                                    </div>
-                                )}
-                                {mediaPreview && <div className="absolute inset-0 flex items-center justify-center font-bold text-white shadow-black drop-shadow-md">تغيير الصورة</div>}
-                            </div>
-                            <input type="file" ref={fileInputRef} className="hidden" accept="image/png, image/jpeg" onChange={handleFileChange} />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">الوصف الأساسي (Primary Text)</label>
-                            <textarea
-                                rows={3}
-                                value={formData.primaryText}
-                                onChange={(e) => setFormData({ ...formData, primaryText: e.target.value })}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white text-sm"
-                                placeholder="اكتب النص الذي سيظهر فوق الإعلان الممول..."
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">العنوان (Headline)</label>
-                            <input
-                                type="text"
-                                value={formData.headline}
-                                onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white text-sm"
-                                placeholder="عنوان جذاب عريض يظهر بجانب الزر..."
-                            />
-                        </div>
-                    </div>
-                );
-            case 6:
-                return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <h3 className="text-xl font-bold text-white mb-2">المراجعة النهائية</h3>
 
                         <div className="bg-[#0B0E14] border border-[#2A303C] rounded-xl p-5 space-y-4 text-sm">
@@ -477,13 +401,9 @@ export default function CreateCampaignWizard() {
                                 <span className="text-slate-400">الهدف المختار:</span>
                                 <span className="text-white font-medium">{OBJECTIVES.find(o => o.id === formData.objective)?.name}</span>
                             </div>
-                            <div className="flex justify-between border-b border-[#2A303C] pb-2">
+                            <div className="flex justify-between pb-2">
                                 <span className="text-slate-400">الميزانية والمدة:</span>
                                 <span className="text-white font-medium">${formData.budget} لمدة {formData.duration} أيام</span>
-                            </div>
-                            <div className="flex justify-between pb-2">
-                                <span className="text-slate-400">نوع الإعلان:</span>
-                                <span className="text-indigo-400 font-bold">{formData.adCreationType === 'NEW_CREATIVE' ? 'تصميم مخصص جديد' : 'منشور حالي'}</span>
                             </div>
                         </div>
 
