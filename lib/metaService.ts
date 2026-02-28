@@ -330,7 +330,26 @@ export const metaService = {
         try {
             const Campaign = bizSdk.Campaign;
             const campaign = new Campaign(campaignId);
+
+            // 1. Update Campaign
             await campaign.update([], { status });
+
+            // 2. Fetch and Update all AdSets for this campaign
+            const adSets = await campaign.getAdSets(['id', 'status']);
+            for (const adSet of adSets) {
+                if (adSet.status !== status) {
+                    await adSet.update([], { status });
+                }
+            }
+
+            // 3. Fetch and Update all Ads for this campaign
+            const ads = await campaign.getAds(['id', 'status']);
+            for (const ad of ads) {
+                if (ad.status !== status) {
+                    await ad.update([], { status });
+                }
+            }
+
             return true;
         } catch (error: any) {
             throw new Error(this.translateError(error.message || error.response?.error?.message, error.response?.error?.error_subcode));

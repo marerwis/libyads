@@ -140,9 +140,14 @@ export default function CampaignsHistoryPage() {
                                                 >
                                                     {campaign.status === "ACTIVE" ? <Pause size={16} /> : <Play size={16} />}
                                                 </button>
-                                                <button className="p-2 bg-slate-800/50 hover:bg-slate-700 hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-600 group-hover:opacity-100">
+                                                <a
+                                                    href={`https://facebook.com/${campaign.pageId}/posts/${campaign.postId?.includes('_') ? campaign.postId.split('_')[1] : campaign.postId}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    title="View Promoted Post"
+                                                    className="p-2 bg-slate-800/50 hover:bg-slate-700 hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-600 group-hover:opacity-100 flex items-center justify-center">
                                                     <Eye size={16} />
-                                                </button>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
