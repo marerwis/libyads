@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Facebook, LogIn, Flag } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 function FacebookPagesContent() {
     const [pages, setPages] = useState<any[]>([]);
@@ -12,6 +13,7 @@ function FacebookPagesContent() {
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
 
     const searchParams = useSearchParams();
+    const { t } = useLanguage();
 
     useEffect(() => {
         // Handle URL parameters from the OAuth callback
@@ -70,8 +72,8 @@ function FacebookPagesContent() {
         <div className="max-w-4xl mx-auto space-y-6">
             <header className="mb-8 flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-semibold text-white">Facebook Pages</h2>
-                    <p className="text-slate-400 text-sm mt-1">Manage connected Facebook Pages to run destination ad campaigns.</p>
+                    <h2 className="text-2xl font-semibold text-white">{t("facebookPages")}</h2>
+                    <p className="text-slate-400 text-sm mt-1">{t("manageAndTrack")}</p>
                 </div>
             </header>
 
@@ -113,16 +115,16 @@ function FacebookPagesContent() {
                 <div className="lg:col-span-2">
                     <div className="bg-[#151921] rounded-xl border border-[#2A303C] overflow-hidden shadow-sm h-full">
                         <div className="p-6 border-b border-[#2A303C]">
-                            <h3 className="text-lg font-medium text-white">Connected Pages</h3>
+                            <h3 className="text-lg font-medium text-white">{t("facebookPages")}</h3>
                         </div>
                         {loading ? (
-                            <div className="p-8 text-center text-slate-400">Loading your pages...</div>
+                            <div className="p-8 text-center text-slate-400">{t("fetchingPages")}</div>
                         ) : pages.length === 0 ? (
                             <div className="p-12 text-center flex flex-col items-center">
                                 <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
                                     <Flag size={32} strokeWidth={2} />
                                 </div>
-                                <h3 className="text-white font-medium mb-1">No pages connected</h3>
+                                <h3 className="text-white font-medium mb-1">{t("noPagesLinked")}</h3>
                                 <p className="text-slate-400 text-sm max-w-sm">Use the "Connect Facebook" button to authenticate and load your pages automatically.</p>
                             </div>
                         ) : (

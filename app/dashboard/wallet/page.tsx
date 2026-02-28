@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Wallet, ReceiptText, Plus, X, ChevronDown, Landmark, MessageCircle } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type PaymentMethod = {
     id: string;
@@ -21,6 +22,8 @@ export default function WalletPage() {
     const [amount, setAmount] = useState<string>("");
     const [selectedMethodId, setSelectedMethodId] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const { t, locale } = useLanguage();
 
     useEffect(() => {
         // Fetch Balance
@@ -53,48 +56,50 @@ export default function WalletPage() {
     return (
         <div className="max-w-4xl mx-auto">
             <header className="mb-8">
-                <h2 className="text-2xl font-semibold text-white">Wallet Management</h2>
-                <p className="text-slate-400 text-sm mt-1">Manage your funds and view transaction history.</p>
+                <h2 className="text-2xl font-semibold text-white">{t("walletManagement")}</h2>
+                <p className="text-slate-400 text-sm mt-1">{t("manageFunds")}</p>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-[#151921] p-6 rounded-xl border border-[#2A303C] shadow-sm md:col-span-1">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-inner">
-                            <Wallet size={24} strokeWidth={2.5} />
+                <div className="bg-[#151921] p-6 rounded-xl border border-[#2A303C] shadow-sm md:col-span-1" dir="ltr">
+                    <div className="flex items-center gap-3 mb-4 justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-inner">
+                                <Wallet size={24} strokeWidth={2.5} />
+                            </div>
+                            <span className="text-sm font-medium text-slate-400">{t("currentBalance")}</span>
                         </div>
-                        <span className="text-sm font-medium text-slate-400">Current Balance</span>
                     </div>
                     {loading ? (
                         <div className="text-2xl font-bold text-slate-500 animate-pulse">$...</div>
                     ) : (
-                        <div className="text-3xl font-bold text-white">${balance.toFixed(2)}</div>
+                        <div className="text-3xl font-bold text-white text-left">${balance.toFixed(2)}</div>
                     )}
                 </div>
 
                 <div className="bg-[#151921] p-6 rounded-xl border border-[#2A303C] shadow-sm md:col-span-2 flex flex-col justify-center items-center text-center">
-                    <h3 className="text-lg font-medium text-white mb-2">Top Up Funds</h3>
-                    <p className="text-sm text-slate-400 mb-4 max-w-sm">Add funds to your wallet to continue running Meta Ad Campaigns without interruption.</p>
+                    <h3 className="text-lg font-medium text-white mb-2">{t("topUpFunds")}</h3>
+                    <p className="text-sm text-slate-400 mb-4 max-w-sm">{t("addFundsToWallet")}</p>
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="px-6 py-2 bg-[#1877F2] hover:bg-blue-600 text-white font-medium rounded-lg text-sm transition-all shadow-lg active:scale-95 flex items-center gap-2"
                     >
                         <Plus size={16} />
-                        Add Balance
+                        {t("addBalance")}
                     </button>
                 </div>
             </div>
 
             <div className="bg-[#151921] rounded-xl border border-[#2A303C] overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-[#2A303C]">
-                    <h3 className="text-lg font-medium text-white">Recent Transactions</h3>
+                    <h3 className="text-lg font-medium text-white">{t("recentTransactions")}</h3>
                 </div>
                 <div className="p-12 text-center flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-500 mb-4 shadow-inner">
                         <ReceiptText size={32} strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-white font-medium mb-1">No transactions yet</h3>
-                    <p className="text-slate-400 text-sm max-w-sm">Your deductive history and refunds will appear here once you launch a campaign.</p>
+                    <h3 className="text-white font-medium mb-1">{t("noTransactionsYet")}</h3>
+                    <p className="text-slate-400 text-sm max-w-sm">{t("deductiveHistory")}</p>
                 </div>
             </div>
 
@@ -105,8 +110,8 @@ export default function WalletPage() {
                         {/* Modal Header */}
                         <div className="flex items-center justify-between p-6 border-b border-[#2A303C] shrink-0">
                             <div>
-                                <h3 className="text-xl font-semibold text-white">Add Balance</h3>
-                                <p className="text-sm text-slate-400 mt-1">Top up your wallet to continue running ad campaigns.</p>
+                                <h3 className="text-xl font-semibold text-white">{t("addBalance")}</h3>
+                                <p className="text-sm text-slate-400 mt-1">{t("topUpWallet")}</p>
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white bg-[#0B0E14] p-2 rounded-lg border border-[#2A303C]">
                                 <X size={20} />
@@ -123,8 +128,8 @@ export default function WalletPage() {
                                 <form className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         {/* Amount Input */}
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">Amount to Add (USD)</label>
+                                        <div dir="ltr" className="text-left">
+                                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("amountToAdd")}</label>
                                             <div className="relative">
                                                 <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 font-medium">$</span>
                                                 <input
@@ -141,7 +146,7 @@ export default function WalletPage() {
 
                                         {/* Payment Method Select */}
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">Payment Method</label>
+                                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("paymentMethod")}</label>
                                             <div className="relative group">
                                                 <select
                                                     value={selectedMethodId}
@@ -150,7 +155,7 @@ export default function WalletPage() {
                                                 >
                                                     {paymentMethods.map(method => (
                                                         <option key={method.id} value={method.id}>
-                                                            {method.name} {method.type.includes('BANK') || method.type.includes('WALLET') ? '(Manual)' : ''}
+                                                            {method.name} {method.type.includes('BANK') || method.type.includes('WALLET') ? `(${t('manualVerification')})` : ''}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -170,14 +175,14 @@ export default function WalletPage() {
                                                 <Wallet size={24} />
                                             </div>
                                             <div>
-                                                <h4 className="text-white font-medium mb-1">Instant Top-up - {selectedMethod?.name}</h4>
+                                                <h4 className="text-white font-medium mb-1">{t("instantTopUp")} - {selectedMethod?.name}</h4>
                                                 <p className="text-sm text-slate-400">
-                                                    You will be securely redirected to the {selectedMethod?.name} gateway to complete your transaction. Your balance will be updated instantly upon success.
+                                                    {t("secureRedirect")}
                                                 </p>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="space-y-5" dir="rtl">
+                                        <div className="space-y-5" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
                                             <div className="bg-gradient-to-br from-[#0B0E14] to-[#111827] p-8 rounded-2xl border border-[#2A303C] shadow-lg relative overflow-hidden text-center">
                                                 {/* Background Accent */}
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
@@ -188,37 +193,42 @@ export default function WalletPage() {
                                                         <MessageCircle className="text-[#25D366] w-8 h-8" />
                                                     </div>
 
-                                                    <h4 className="text-2xl font-bold text-white mb-2 tracking-wide">مرحباً بك عزيزي المستخدم</h4>
+                                                    <h4 className="text-2xl font-bold text-white mb-2 tracking-wide">{t("welcomeDearUser")}</h4>
 
                                                     <div className="space-y-3 mb-8 text-slate-300 text-sm md:text-base leading-relaxed max-w-lg mx-auto">
-                                                        <p>نظامنا في تعبئة المحفظة في الوقت الحالي يتم عن طريق مراسلتنا على رقمنا على واتساب.</p>
+                                                        <p>{t("transferInstructions")}</p>
 
                                                         <div className="py-4">
-                                                            <div className="inline-block bg-[#1F2937] border border-[#374151] rounded-xl px-6 py-3 shadow-inner">
-                                                                <span className="block text-xs text-slate-500 uppercase tracking-widest mb-1">الرقم المعتمد</span>
-                                                                <span className="text-2xl font-mono text-[#25D366] font-bold tracking-wider">0914333564</span>
+                                                            <div className="inline-block bg-[#1F2937] border border-[#374151] rounded-xl px-6 py-3 shadow-inner" dir="ltr">
+                                                                <span className="block text-xs text-slate-500 uppercase tracking-widest mb-1">{t("officialNumber")}</span>
+                                                                <span className="text-2xl font-mono text-[#25D366] font-bold tracking-wider text-center block">0914333564</span>
                                                             </div>
                                                         </div>
 
                                                         <p>
-                                                            ارسل رسالة لهذا الرقم واذكر فيها رغبتك في شحن محفظتك في موقع <strong className="text-white">Libya Ads</strong> واذكر <strong className="text-white">المبلغ</strong> الذي تريده (${amount || '...'})
+                                                            {locale === 'en' ? (
+                                                                <>Please send a message to this number stating your desire to recharge your wallet on <strong className="text-white">Libya Ads</strong> and mention the <strong className="text-white">Amount</strong> you want (${amount || '...'}).</>
+                                                            ) : (
+                                                                <>ارسل رسالة لهذا الرقم واذكر فيها رغبتك في شحن محفظتك في موقع <strong className="text-white">Libya Ads</strong> واذكر <strong className="text-white">المبلغ</strong> الذي تريده (${amount || '...'})</>
+                                                            )}
                                                         </p>
                                                         <p className="text-emerald-400 font-medium pb-2 border-b border-white/5 inline-block px-4">
-                                                            سيتم الرد عليك فوراً وشحن محفظتك بنجاح شكراً لاختيارك لنا.
+                                                            {t("immediateResponse")}
                                                         </p>
                                                     </div>
 
-                                                    <p className="text-sm text-slate-400 mb-4 animate-pulse">اضغط على الأيقونة لمراسلتنا عبر واتساب مباشرة</p>
+                                                    <p className="text-sm text-slate-400 mb-4 animate-pulse">{t("clickToWhatsApp")}</p>
 
                                                     {/* WhatsApp Button */}
                                                     <a
-                                                        href={`https://wa.me/218914333564?text=${encodeURIComponent(`أهلاً بك، أرغب في شحن محفظتي في مساحة Libya Ads بقيمة ${amount ? '$' + amount : 'محددة'}.`)}`}
+                                                        href={`https://wa.me/218914333564?text=${encodeURIComponent(locale === 'ar' ? `أهلاً بك، أرغب في شحن محفظتي في مساحة Libya Ads بقيمة ${amount ? '$' + amount : 'محددة'}.` : `Hello, I would like to top up my Libya Ads wallet by ${amount ? '$' + amount : 'a specific amount'}.`)}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 font-bold text-white transition-all duration-300 bg-[#25D366] rounded-xl overflow-hidden hover:scale-105 hover:shadow-[0_0_20px_rgba(37,211,102,0.4)] active:scale-95 w-full sm:w-auto"
+                                                        dir="ltr"
                                                     >
                                                         <MessageCircle className="w-5 h-5" />
-                                                        <span>تواصل معنا عبر واتساب</span>
+                                                        <span>{t("contactViaWhatsApp")}</span>
                                                         <div className="absolute inset-0 h-full w-full bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left ease-out duration-300"></div>
                                                     </a>
 
@@ -231,12 +241,12 @@ export default function WalletPage() {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-6 border-t border-[#2A303C] flex justify-end gap-3 bg-[#0B0E14] rounded-b-xl shrink-0">
+                        <div className="p-6 border-t border-[#2A303C] flex justify-end gap-3 bg-[#0B0E14] rounded-b-xl shrink-0" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
                             <button
                                 onClick={() => setIsModalOpen(false)}
                                 className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-[#2A303C] rounded-lg transition-colors border border-transparent hover:border-[#2A303C]"
                             >
-                                إغلاق
+                                {t("close")}
                             </button>
                             {isApiGateway && (
                                 <button
@@ -251,7 +261,7 @@ export default function WalletPage() {
                                     disabled={isSubmitting || !amount}
                                     className="px-6 py-2.5 text-sm font-bold bg-[#1877F2] hover:bg-blue-600 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center gap-2"
                                 >
-                                    Proceed to {selectedMethod?.name}
+                                    {t("proceedToPayment")}
                                 </button>
                             )}
                         </div>

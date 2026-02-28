@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronDown, PlusCircle, MinusCircle, Trash2, X, CreditCard, Ban } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type User = {
     id: string;
@@ -24,6 +25,8 @@ export default function AdminUsersManagement() {
         isOpen: false, user: null, amount: "50", loading: false, action: 'add'
     });
 
+    const { t, locale } = useLanguage();
+
     useEffect(() => {
         fetchUsers();
     }, []);
@@ -43,7 +46,7 @@ export default function AdminUsersManagement() {
     };
 
     const handleRoleChange = async (userId: string, userName: string | null, newRole: string) => {
-        const confirmMsg = `Are you sure you want to change the role of ${userName || 'this user'} to ${newRole}?`;
+        const confirmMsg = t("confirmRoleChange").replace('{name}', userName || 'this user').replace('{role}', newRole);
         if (!window.confirm(confirmMsg)) {
             return; // Exit without changing
         }
@@ -70,7 +73,7 @@ export default function AdminUsersManagement() {
     };
 
     const handleDelete = async (userId: string, userName: string | null) => {
-        const confirmMsg = `Are you sure you want to delete ${userName || 'this user'}? This action cannot be undone and will delete all their data.`;
+        const confirmMsg = t("confirmDeleteUser").replace('{name}', userName || 'this user');
         if (!window.confirm(confirmMsg)) {
             return;
         }
@@ -131,8 +134,8 @@ export default function AdminUsersManagement() {
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             <header className="mb-8">
-                <h2 className="text-2xl font-semibold text-white">Users Management</h2>
-                <p className="text-slate-400 text-sm mt-1">View all registered users, their balances, and manage their system roles.</p>
+                <h2 className="text-2xl font-semibold text-white">{t("usersManagement")}</h2>
+                <p className="text-slate-400 text-sm mt-1">{t("viewAllUsers")}</p>
             </header>
 
             <div className="bg-[#151921] rounded-xl border border-[#2A303C] overflow-hidden">
@@ -140,13 +143,13 @@ export default function AdminUsersManagement() {
                     <table className="w-full text-left text-sm text-slate-300">
                         <thead className="bg-[#0B0E14] text-xs uppercase text-slate-400 border-b border-[#2A303C]">
                             <tr>
-                                <th className="px-6 py-4 font-medium">Name / Email</th>
-                                <th className="px-6 py-4 font-medium">Wallet Balance</th>
-                                <th className="px-6 py-4 font-medium">Pages</th>
-                                <th className="px-6 py-4 font-medium">Campaigns</th>
-                                <th className="px-6 py-4 font-medium">Joined</th>
-                                <th className="px-6 py-4 font-medium">Role</th>
-                                <th className="px-6 py-4 font-medium text-right">Actions</th>
+                                <th className="px-6 py-4 font-medium">{t("nameEmail")}</th>
+                                <th className="px-6 py-4 font-medium">{t("walletBalance")}</th>
+                                <th className="px-6 py-4 font-medium text-center">{t("pages")}</th>
+                                <th className="px-6 py-4 font-medium text-center">{t("campaigns")}</th>
+                                <th className="px-6 py-4 font-medium">{t("joined")}</th>
+                                <th className="px-6 py-4 font-medium">{t("role")}</th>
+                                <th className={`px-6 py-4 font-medium ${locale === 'ar' ? 'text-left' : 'text-right'}`}>{t("actions")}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#2A303C]">
@@ -156,7 +159,7 @@ export default function AdminUsersManagement() {
                                         <div className="font-medium text-white">{user.name || "N/A"}</div>
                                         <div className="text-xs text-slate-500">{user.email}</div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 text-left" dir="ltr">
                                         <span className="font-mono">${user.wallet?.balance?.toFixed(2) || "0.00"}</span>
                                     </td>
                                     <td className="px-6 py-4 text-center">
@@ -165,7 +168,7 @@ export default function AdminUsersManagement() {
                                     <td className="px-6 py-4 text-center">
                                         {user._count.campaigns}
                                     </td>
-                                    <td className="px-6 py-4 text-slate-400">
+                                    <td className="px-6 py-4 text-slate-400" dir="ltr">
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4">
@@ -174,28 +177,28 @@ export default function AdminUsersManagement() {
                                                 value={user.role}
                                                 onChange={(e) => handleRoleChange(user.id, user.name, e.target.value)}
                                                 disabled={updatingRole === user.id}
-                                                className={`appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 text-sm rounded-xl py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40 ${user.role === 'ADMIN' ? 'text-emerald-400 font-semibold' : 'text-slate-300'}`}
+                                                className={`appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 text-sm rounded-xl py-1.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40 ${user.role === 'ADMIN' ? 'text-emerald-400 font-semibold' : 'text-slate-300'} ${locale === 'ar' ? 'pr-3 pl-8' : 'pl-3 pr-8'}`}
                                             >
                                                 <option value="USER" className="text-slate-300">USER</option>
                                                 <option value="ADMIN" className="text-emerald-400">ADMIN</option>
                                             </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
+                                            <div className={`pointer-events-none absolute inset-y-0 flex items-center px-2 text-slate-500 group-hover:text-blue-500 transition-colors duration-300 ${locale === 'ar' ? 'left-0' : 'right-0'}`}>
                                                 <ChevronDown size={14} />
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 flex justify-end gap-3 mt-1">
+                                    <td className={`px-6 py-4 flex ${locale === 'ar' ? 'justify-start' : 'justify-end'} gap-3 mt-1`}>
                                         <button
                                             onClick={() => setWalletModal({ isOpen: true, user, amount: "50", loading: false, action: 'add' })}
                                             className="text-[#1877F2] hover:text-blue-400 transition-colors p-1 rounded hover:bg-blue-400/10"
-                                            title="Add Wallet Balance"
+                                            title={t("addWalletBalance")}
                                         >
                                             <PlusCircle size={18} />
                                         </button>
                                         <button
                                             onClick={() => setWalletModal({ isOpen: true, user, amount: user.wallet?.balance?.toString() || "0", loading: false, action: 'deduct' })}
                                             className="text-orange-400 hover:text-orange-300 transition-colors p-1 rounded hover:bg-orange-400/10"
-                                            title="Deduct Wallet Balance"
+                                            title={t("deductWalletBalance")}
                                             disabled={!user.wallet?.balance || user.wallet.balance <= 0}
                                         >
                                             <MinusCircle size={18} />
@@ -203,7 +206,7 @@ export default function AdminUsersManagement() {
                                         <button
                                             onClick={() => handleDelete(user.id, user.name)}
                                             className="text-red-400 hover:text-red-300 transition-colors p-1 rounded hover:bg-red-400/10"
-                                            title="Delete User"
+                                            title={t("deleteUser")}
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -213,7 +216,7 @@ export default function AdminUsersManagement() {
                             {users.length === 0 && (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
-                                        No users found.
+                                        {t("noUsersFound")}
                                     </td>
                                 </tr>
                             )}
@@ -228,7 +231,7 @@ export default function AdminUsersManagement() {
                     <div className="bg-[#151921] border border-[#2A303C] rounded-xl w-full max-w-sm shadow-xl flex flex-col">
                         <div className="p-5 border-b border-[#2A303C] flex justify-between items-center">
                             <h3 className="text-lg font-semibold text-white">
-                                {walletModal.action === 'add' ? 'Top Up Wallet' : 'Deduct Wallet Balance'}
+                                {walletModal.action === 'add' ? t("topUpWallet") : t("deductWalletBalance")}
                             </h3>
                             <button
                                 onClick={() => setWalletModal({ isOpen: false, user: null, amount: "50", loading: false, action: 'add' })}
@@ -239,15 +242,15 @@ export default function AdminUsersManagement() {
                         </div>
                         <form onSubmit={handleWalletSubmit} className="p-5 space-y-4">
                             <div>
-                                <label className="text-sm text-slate-400 block mb-1">Target User</label>
-                                <div className="text-white font-medium bg-[#0B0E14] px-4 py-3 rounded-lg border border-[#2A303C] flex justify-between items-center">
+                                <label className="text-sm text-slate-400 block mb-1">{t("targetUser")}</label>
+                                <div className="text-white font-medium bg-[#0B0E14] px-4 py-3 rounded-lg border border-[#2A303C] flex justify-between items-center" dir="ltr">
                                     <span>{walletModal.user.name || walletModal.user.email}</span>
                                     <span className="text-sm text-slate-500 font-mono">Bal: ${walletModal.user.wallet?.balance?.toFixed(2) || "0.00"}</span>
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm text-slate-400 block mb-1">Amount ($)</label>
-                                <div className="relative">
+                                <label className="text-sm text-slate-400 block mb-1 text-left">{t("amountUSD")}</label>
+                                <div className="relative" dir="ltr">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
                                     <input
                                         type="number"
@@ -267,10 +270,10 @@ export default function AdminUsersManagement() {
                                     : 'bg-orange-500 hover:bg-orange-600'
                                     }`}
                             >
-                                {walletModal.loading ? "Processing..." : (
+                                {walletModal.loading ? t("saving") : (
                                     <>
                                         {walletModal.action === 'add' ? <CreditCard size={14} /> : <Ban size={14} />}
-                                        {walletModal.action === 'add' ? 'Add Funds' : 'Deduct Funds'}
+                                        {walletModal.action === 'add' ? t("addFunds") : t("deductFunds")}
                                     </>
                                 )}
                             </button>

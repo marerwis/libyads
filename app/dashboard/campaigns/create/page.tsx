@@ -3,40 +3,43 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PlusCircle, ChevronDown, Rocket, Users, Target, CalendarDays, DollarSign, Image as ImageIcon, ChevronRight, ChevronLeft, Upload, CheckCircle2 } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
+// Define these here because we might need to map them locally, but translating the names using dictionary keys
 const availableCountries = [
-    { code: "LY", name: "ليبيا (كامل الدولة)" },
-    { code: "BENGHAZI", name: "بنغازي" },
-    { code: "AL_JABAL_AL_AKHDAR", name: "الجبل الأخضر" },
-    { code: "MARJ", name: "شعبية المرج" },
-    { code: "TOBRUK", name: "طبرق ليبيا" },
-    { code: "DERNA", name: "درنة ليبيا" },
-    { code: "AJDABIYA", name: "اجدابيا" },
-    { code: "MISRATA", name: "مصراته" },
-    { code: "TARHUNA", name: "ترهونة" },
-    { code: "TRIPOLI", name: "طرابلس" },
-    { code: "JABAL_AL_GHARBI", name: "الجبل الغربي" },
+    { code: "LY", dictKey: "libyaAll" },
+    { code: "BENGHAZI", dictKey: "benghazi" },
+    { code: "AL_JABAL_AL_AKHDAR", dictKey: "alJabalAlAkhdar" },
+    { code: "MARJ", dictKey: "marj" },
+    { code: "TOBRUK", dictKey: "tobruk" },
+    { code: "DERNA", dictKey: "derna" },
+    { code: "AJDABIYA", dictKey: "ajdabiya" },
+    { code: "MISRATA", dictKey: "misrata" },
+    { code: "TARHUNA", dictKey: "tarhuna" },
+    { code: "TRIPOLI", dictKey: "tripoli" },
+    { code: "JABAL_AL_GHARBI", dictKey: "jabalAlGharbi" },
 ];
 
 const OBJECTIVES = [
-    { id: "OUTCOME_AWARENESS", name: "الوعي بالعلامة التجارية (Awareness)" },
-    { id: "OUTCOME_TRAFFIC", name: "الزيارات (Traffic)" },
-    { id: "OUTCOME_ENGAGEMENT", name: "التفاعل (Engagement)" },
-    { id: "OUTCOME_LEADS", name: "العملاء المحتملين (Leads)" },
-    { id: "OUTCOME_SALES", name: "المبيعات (Sales/Conversions)" },
+    { id: "OUTCOME_AWARENESS", dictKey: "brandAwareness" },
+    { id: "OUTCOME_TRAFFIC", dictKey: "traffic" },
+    { id: "OUTCOME_ENGAGEMENT", dictKey: "engagement" },
+    { id: "OUTCOME_LEADS", dictKey: "leadGeneration" },
+    { id: "OUTCOME_SALES", dictKey: "sales" },
 ];
 
 const STEPS = [
-    { id: 1, name: "إعداد الحملة" },
-    { id: 2, name: "الصفحة والمنشور" },
-    { id: 3, name: "الجمهور" },
-    { id: 4, name: "الميزانية" },
-    { id: 5, name: "المراجعة والإطلاق" }
+    { id: 1, dictKey: "campaignSetupStep" },
+    { id: 2, dictKey: "pagePostStep" },
+    { id: 3, dictKey: "audienceStep" },
+    { id: 4, dictKey: "budgetStep" },
+    { id: 5, dictKey: "reviewLaunchStep" }
 ];
 
 export default function CreateCampaignWizard() {
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(1);
+    const { t, locale } = useLanguage();
 
     // Global Data
     const [pages, setPages] = useState<any[]>([]);
@@ -127,18 +130,18 @@ export default function CreateCampaignWizard() {
         setMessage(null);
         // Validation per step
         if (currentStep === 1) {
-            if (!formData.campaignName) return setMessage({ type: "error", text: "يرجى إدخال اسم الحملة" });
+            if (!formData.campaignName) return setMessage({ type: "error", text: t("errCampaignName") });
         }
         if (currentStep === 2) {
-            if (!formData.pageId) return setMessage({ type: "error", text: "يرجى اختيار صفحة" });
-            if (!formData.postId) return setMessage({ type: "error", text: "يرجى اختيار منشور" });
+            if (!formData.pageId) return setMessage({ type: "error", text: t("errSelectPage") });
+            if (!formData.postId) return setMessage({ type: "error", text: t("errSelectPost") });
         }
         if (currentStep === 3) {
-            if (formData.countries.length === 0) return setMessage({ type: "error", text: "يرجى اختيار دولة واحدة على الأقل" });
+            if (formData.countries.length === 0) return setMessage({ type: "error", text: t("errSelectCountry") });
         }
         if (currentStep === 4) {
-            if (formData.budget <= 0) return setMessage({ type: "error", text: "ميزانية غير صالحة" });
-            if (formData.budget > balance) return setMessage({ type: "error", text: "رصيد المحفظة غير كافٍ" });
+            if (formData.budget <= 0) return setMessage({ type: "error", text: t("errInvalidBudget") });
+            if (formData.budget > balance) return setMessage({ type: "error", text: t("errInsufficientBalance") });
         }
 
         if (currentStep < 5) {
@@ -163,7 +166,7 @@ export default function CreateCampaignWizard() {
 
     const handleLaunch = async () => {
         if (formData.budget > balance) {
-            return setMessage({ type: "error", text: "الرصيد غير كافٍ." });
+            return setMessage({ type: "error", text: t("errInsufficientBalance") });
         }
 
         setSubmitting(true);
@@ -199,13 +202,13 @@ export default function CreateCampaignWizard() {
             const data = await res.json();
 
             if (res.ok) {
-                setMessage({ type: "success", text: "تم إطلاق الحملة بنجاح! جاري التوجيه..." });
+                setMessage({ type: "success", text: t("successCampaignLaunch") });
                 setTimeout(() => router.push('/dashboard/campaigns'), 2000);
             } else {
-                setMessage({ type: "error", text: data.details ? `${data.error} \nالتفاصيل: ${data.details}` : (data.error || "فشل إنشاء الحملة.") });
+                setMessage({ type: "error", text: data.details ? `${data.error} \n${t("details")} ${data.details}` : (data.error || t("errCampaignCreateFailed")) });
             }
         } catch (error) {
-            setMessage({ type: "error", text: "حدث خطأ بالاتصال مع الخادم." });
+            setMessage({ type: "error", text: t("errServerConnection") });
         } finally {
             setSubmitting(false);
         }
@@ -217,29 +220,30 @@ export default function CreateCampaignWizard() {
             case 1:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">إعداد الحملة الأساسي</h3>
-                        <p className="text-sm text-slate-400 mb-6">ما هو هدفك التسويقي من هذه الحملة؟</p>
+                        <h3 className="text-xl font-bold text-white mb-2">{t("basicCampaignSetup")}</h3>
+                        <p className="text-sm text-slate-400 mb-6">{t("marketingObjective")}</p>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">اسم الحملة</label>
+                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("campaignName")}</label>
                             <input
                                 type="text"
                                 value={formData.campaignName}
                                 onChange={(e) => setFormData({ ...formData, campaignName: e.target.value })}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500 transition-all"
+                                className={`w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500 transition-all ${locale === 'ar' ? 'text-right' : 'text-left'}`}
+                                dir="ltr"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">هدف الحملة (Objective)</label>
+                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("campaignObjectiveTitle")}</label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {OBJECTIVES.map(obj => (
                                     <button
                                         key={obj.id}
                                         onClick={() => setFormData({ ...formData, objective: obj.id })}
-                                        className={`p-4 rounded-xl border text-right transition-all flex items-center justify-between ${formData.objective === obj.id ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-600'}`}
+                                        className={`p-4 rounded-xl border transition-all flex items-center justify-between ${formData.objective === obj.id ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-600'} ${locale === 'ar' ? 'text-right' : 'text-left'}`}
                                     >
-                                        <span className="font-medium text-sm">{obj.name}</span>
+                                        <span className="font-medium text-sm">{t(obj.dictKey as any)}</span>
                                         {formData.objective === obj.id && <CheckCircle2 size={18} className="text-indigo-400" />}
                                     </button>
                                 ))}
@@ -250,35 +254,36 @@ export default function CreateCampaignWizard() {
             case 2:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">الصفحة والمنشور</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{t("pageAndPost")}</h3>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">صفحة فيسبوك</label>
+                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("facebookPage")}</label>
                             <select
                                 value={formData.pageId}
                                 onChange={(e) => setFormData({ ...formData, pageId: e.target.value })}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500"
+                                className={`w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500 ${locale === 'ar' ? 'text-right' : 'text-left'}`}
                             >
                                 {pages.map(p => <option key={p.id} value={p.pageId}>{p.pageName}</option>)}
                             </select>
                         </div>
 
                         <div className="mt-4 animate-in fade-in">
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">اختر المنشور للترويج</label>
+                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("selectPostToPromote")}</label>
                             {loadingPosts ? (
-                                <div className="text-slate-500 text-sm">جاري الجلب...</div>
+                                <div className={`text-slate-500 text-sm ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("fetching")}</div>
                             ) : (
                                 <select
                                     value={formData.postId}
                                     onChange={(e) => setFormData({ ...formData, postId: e.target.value })}
-                                    className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500"
+                                    className={`w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500 ${locale === 'ar' ? 'text-right' : 'text-left'}`}
+                                    dir="ltr"
                                 >
-                                    <option value="" disabled>اختر منشوراً...</option>
+                                    <option value="" disabled>{t("selectAPost")}</option>
                                     {posts.map((post: any) => {
                                         const purePostId = post.id.includes('_') ? post.id.split('_')[1] : post.id;
                                         return (
                                             <option key={post.id} value={purePostId}>
-                                                {post.message ? post.message.substring(0, 60) + "..." : "منشور وسائط"}
+                                                {post.message ? post.message.substring(0, 60) + "..." : t("mediaPost")}
                                             </option>
                                         )
                                     })}
@@ -290,10 +295,10 @@ export default function CreateCampaignWizard() {
             case 3:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">الجمهور والاستهداف</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{t("audienceAndTargeting")}</h3>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-3">الدول المستهدفة</label>
+                            <label className={`block text-sm font-semibold text-slate-300 mb-3 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("targetCountries")}</label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {availableCountries.map(country => {
                                     const isLibyaAllSelected = formData.countries.includes("LY");
@@ -314,11 +319,11 @@ export default function CreateCampaignWizard() {
                                                     setFormData({ ...formData, countries: newCountries });
                                                 }
                                             }}
-                                            className={`text-xs text-right font-medium px-3 py-2.5 rounded-lg border transition-all ${isSelected ? 'bg-pink-500/20 border-pink-500/50 text-pink-200'
+                                            className={`text-xs font-medium px-3 py-2.5 rounded-lg border transition-all ${locale === 'ar' ? 'text-right' : 'text-left'} ${isSelected ? 'bg-pink-500/20 border-pink-500/50 text-pink-200'
                                                 : isDisabled ? 'bg-[#0B0E14]/50 border-[#2A303C]/30 text-slate-600 cursor-not-allowed opacity-50'
                                                     : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
                                         >
-                                            {country.name}
+                                            {t(country.dictKey as any)}
                                         </button>
                                     );
                                 })}
@@ -327,19 +332,19 @@ export default function CreateCampaignWizard() {
 
                         <div className="grid grid-cols-2 gap-6 mt-6">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-300 mb-2">العمر</label>
-                                <div className="flex gap-2">
+                                <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("age")}</label>
+                                <div className="flex gap-2" dir="ltr">
                                     <input type="number" value={formData.minAge} onChange={(e) => setFormData({ ...formData, minAge: Number(e.target.value) })} className="w-1/2 bg-[#0B0E14] border border-[#2A303C] rounded-lg p-2 text-white text-center" min="13" max="65" />
                                     <span className="text-slate-500 self-center">-</span>
                                     <input type="number" value={formData.maxAge} onChange={(e) => setFormData({ ...formData, maxAge: Number(e.target.value) })} className="w-1/2 bg-[#0B0E14] border border-[#2A303C] rounded-lg p-2 text-white text-center" min="13" max="65" />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-300 mb-2">الجنس</label>
+                                <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("gender")}</label>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setFormData({ ...formData, genders: [] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.length === 0 ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>الكل</button>
-                                    <button onClick={() => setFormData({ ...formData, genders: [1] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.includes(1) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>رجال</button>
-                                    <button onClick={() => setFormData({ ...formData, genders: [2] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.includes(2) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>نساء</button>
+                                    <button onClick={() => setFormData({ ...formData, genders: [] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.length === 0 ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>{t("all")}</button>
+                                    <button onClick={() => setFormData({ ...formData, genders: [1] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.includes(1) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>{t("male")}</button>
+                                    <button onClick={() => setFormData({ ...formData, genders: [2] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.includes(2) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>{t("female")}</button>
                                 </div>
                             </div>
                         </div>
@@ -348,41 +353,43 @@ export default function CreateCampaignWizard() {
             case 4:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">الميزانية والجدولة</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{t("budgetAndSchedule")}</h3>
 
-                        <div className="bg-[#0B0E14] p-5 rounded-xl border border-[#2A303C] flex justify-between items-center mb-6">
-                            <span className="text-slate-400">رصيد محفظتك المتاح</span>
+                        <div className="bg-[#0B0E14] p-5 rounded-xl border border-[#2A303C] flex justify-between items-center mb-6" dir="ltr">
                             <span className="text-emerald-400 font-bold text-xl">${balance.toFixed(2)}</span>
+                            <span className="text-slate-400">{t("availableWalletBalance")}</span>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">الميزانية الإجمالية (دولار)</label>
+                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("totalBudgetUsd")}</label>
                             <input
                                 type="number"
                                 value={formData.budget}
                                 onChange={(e) => setFormData({ ...formData, budget: Number(e.target.value) })}
                                 className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white text-lg font-bold"
+                                dir="ltr"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-300 mb-2">مدة الإعلان (أيام)</label>
+                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("adDurationDays")}</label>
                             <input
                                 type="number"
                                 value={formData.duration}
                                 onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
                                 className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white"
+                                dir="ltr"
                             />
                         </div>
 
                         <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl">
-                            <div className="flex justify-between text-sm mb-1">
-                                <span className="text-blue-200/50">الإنفاق اليومي:</span>
+                            <div className="flex justify-between text-sm mb-1" dir="ltr">
                                 <span className="text-blue-300">${(formData.budget / formData.duration).toFixed(2)}</span>
+                                <span className="text-blue-200/50">{t("dailySpending")}</span>
                             </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-blue-200/50">الرصيد المتبقي:</span>
+                            <div className="flex justify-between text-sm" dir="ltr">
                                 <span className={`${balance - formData.budget < 0 ? 'text-red-400' : 'text-blue-300'}`}>${(balance - formData.budget).toFixed(2)}</span>
+                                <span className="text-blue-200/50">{t("remainingBalance")}</span>
                             </div>
                         </div>
                     </div>
@@ -390,38 +397,38 @@ export default function CreateCampaignWizard() {
             case 5:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">المراجعة النهائية</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{t("finalReview")}</h3>
 
                         <div className="bg-[#0B0E14] border border-[#2A303C] rounded-xl p-5 space-y-4 text-sm">
                             <div className="flex justify-between border-b border-[#2A303C] pb-2">
-                                <span className="text-slate-400">اسم الحملة:</span>
-                                <span className="text-white font-medium">{formData.campaignName}</span>
+                                <span className="text-white font-medium" dir="ltr">{formData.campaignName}</span>
+                                <span className="text-slate-400">{t("campaignNameLabel")}</span>
                             </div>
                             <div className="flex justify-between border-b border-[#2A303C] pb-2">
-                                <span className="text-slate-400">الهدف المختار:</span>
-                                <span className="text-white font-medium">{OBJECTIVES.find(o => o.id === formData.objective)?.name}</span>
+                                <span className="text-white font-medium">{t(OBJECTIVES.find(o => o.id === formData.objective)?.dictKey as any)}</span>
+                                <span className="text-slate-400">{t("selectedObjective")}</span>
                             </div>
                             <div className="flex justify-between pb-2">
-                                <span className="text-slate-400">الميزانية والمدة:</span>
-                                <span className="text-white font-medium">${formData.budget} لمدة {formData.duration} أيام</span>
+                                <span className="text-white font-medium" dir="ltr">${formData.budget} / {formData.duration} {t("days")}</span>
+                                <span className="text-slate-400">{t("budgetAndDuration")}</span>
                             </div>
                         </div>
 
                         <div className="p-4 bg-amber-900/10 border border-amber-500/20 rounded-xl text-amber-200/80 text-xs text-center leading-relaxed">
-                            تأكد من صحة البيانات. سيتم فحص المحتوى وخلق الحملة الإعلانية على خوادم فيسبوك مباشرة وخصم التكلفة.
+                            {t("reviewWarning")}
                         </div>
                     </div>
                 );
         }
     };
 
-    if (loading) return <div className="p-12 text-center text-slate-400">جاري تحميل واجهة الإعداد...</div>;
+    if (loading) return <div className="p-12 text-center text-slate-400">{t("loadingWizard")}</div>;
 
     return (
-        <div className="max-w-4xl mx-auto" dir="rtl">
+        <div className="max-w-4xl mx-auto" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
             <header className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">إنشاء حملة إعلانية جديدة</h2>
-                <div className="text-slate-400 text-sm">حدد خياراتك بدقة وصمم إعلانك خطوة بخطوة.</div>
+                <h2 className="text-2xl font-bold text-white mb-2">{t("createNewAdCampaign")}</h2>
+                <div className="text-slate-400 text-sm">{t("wizardSubtitle")}</div>
             </header>
 
             {message && (
@@ -432,7 +439,7 @@ export default function CreateCampaignWizard() {
 
             <div className="bg-[#151921] rounded-2xl border border-[#2A303C] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[500px]">
                 {/* Left Sidebar Steps Indicator */}
-                <div className="w-full md:w-1/3 bg-[#0E1117] p-6 border-l border-[#2A303C]">
+                <div className={`w-full md:w-1/3 bg-[#0E1117] p-6 border-[#2A303C] ${locale === 'ar' ? 'border-l' : 'border-r'}`}>
                     <div className="space-y-6">
                         {STEPS.filter(s => !(s.id === 5 && formData.adCreationType === 'EXISTING_POST')).map((step, idx) => {
                             const isActive = currentStep === step.id;
@@ -443,7 +450,7 @@ export default function CreateCampaignWizard() {
                                         {isPast ? <CheckCircle2 size={16} /> : idx + 1}
                                     </div>
                                     <span className={`text-sm font-medium transition-colors ${isActive ? 'text-white' : isPast ? 'text-slate-300' : 'text-slate-600'}`}>
-                                        {step.name}
+                                        {t(step.dictKey as any)}
                                     </span>
                                 </div>
                             );
@@ -461,25 +468,25 @@ export default function CreateCampaignWizard() {
                         <button
                             onClick={handleBack}
                             disabled={currentStep === 1 || submitting}
-                            className="px-6 py-2.5 rounded-xl border border-[#2A303C] text-slate-300 hover:bg-[#2A303C] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+                            className={`px-6 py-2.5 rounded-xl border border-[#2A303C] text-slate-300 hover:bg-[#2A303C] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 ${locale === 'ar' ? 'flex-row' : 'flex-row-reverse'}`}
                         >
-                            <ChevronRight size={18} /> رجوع
+                            {t("back")} {locale === 'ar' ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
                         </button>
 
                         {currentStep < 5 ? (
                             <button
                                 onClick={handleNext}
-                                className="px-8 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 text-sm font-medium flex items-center gap-2 transition-all active:scale-95"
+                                className={`px-8 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 text-sm font-medium flex items-center gap-2 transition-all active:scale-95 ${locale === 'ar' ? 'flex-row' : 'flex-row-reverse'}`}
                             >
-                                التالي <ChevronLeft size={18} />
+                                {t("next")} {locale === 'ar' ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
                             </button>
                         ) : (
                             <button
                                 onClick={handleLaunch}
                                 disabled={submitting}
-                                className="px-8 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 text-sm font-bold flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                                className={`px-8 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 text-sm font-bold flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 ${locale === 'ar' ? 'flex-row' : 'flex-row-reverse'}`}
                             >
-                                {submitting ? "جاري الإطلاق..." : "الترويج الآن!"} <Rocket size={18} />
+                                {submitting ? t("launching") : t("promoteNow")} <Rocket size={18} />
                             </button>
                         )}
                     </div>

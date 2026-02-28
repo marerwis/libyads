@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function UserSettings() {
     const [loading, setLoading] = useState(true);
@@ -8,6 +9,8 @@ export default function UserSettings() {
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
     const [isOAuth, setIsOAuth] = useState(false);
     const [email, setEmail] = useState("");
+
+    const { t, locale } = useLanguage();
 
     const [formData, setFormData] = useState({
         name: "",
@@ -61,7 +64,7 @@ export default function UserSettings() {
 
             if (res.ok) {
                 setMessage({ type: "success", text: "Settings saved successfully!" });
-                setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
+                setFormData(prev => ({ ...prev, newPassword: "", confirmPassword: "" }));
             } else {
                 setMessage({ type: "error", text: data.error || "Failed to save settings." });
             }
@@ -77,8 +80,8 @@ export default function UserSettings() {
     return (
         <div className="max-w-2xl">
             <header className="mb-8">
-                <h2 className="text-2xl font-semibold text-white">Account Settings</h2>
-                <p className="text-slate-400 text-sm mt-1">Manage your personal profile and security preferences.</p>
+                <h2 className="text-2xl font-semibold text-white">{t("accountSettings")}</h2>
+                <p className="text-slate-400 text-sm mt-1">{t("manageProfile")}</p>
             </header>
 
             {message && (
@@ -91,20 +94,21 @@ export default function UserSettings() {
                 <form onSubmit={handleSubmit} className="divide-y divide-[#2A303C]">
                     {/* General Settings */}
                     <div className="p-6 space-y-6">
-                        <h3 className="text-lg font-medium text-white mb-4">Profile Information</h3>
+                        <h3 className="text-lg font-medium text-white mb-4">{t("generalSettings")}</h3>
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("fullName")}</label>
                             <input
                                 type="text" name="name" value={formData.name} onChange={handleChange}
                                 className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
-                                placeholder="John Doe" required
+                                placeholder={t("fullName")} required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("emailAddress")}</label>
                             <input
                                 type="email" value={email} disabled
                                 className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-slate-500 cursor-not-allowed"
+                                dir="ltr"
                             />
                             <p className="text-xs text-slate-500 mt-2">Email address cannot be changed natively.</p>
                         </div>
@@ -112,29 +116,29 @@ export default function UserSettings() {
 
                     {/* Security Settings */}
                     <div className="p-6 space-y-6">
-                        <h3 className="text-lg font-medium text-white mb-4">Security</h3>
+                        <h3 className="text-lg font-medium text-white mb-4">{t("securityPassword")}</h3>
 
                         {isOAuth ? (
                             <div className="bg-blue-900/20 border border-blue-900/50 rounded-lg p-4">
-                                <p className="text-sm text-blue-400">You are logged in via a third-party provider (e.g., Google). Password changes must be managed through that provider.</p>
+                                <p className="text-sm text-blue-400">{t("thirdPartyLogin")}</p>
                             </div>
                         ) : (
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">New Password</label>
+                                        <label className="block text-sm font-medium text-slate-300 mb-2">{t("newPassword")}</label>
                                         <input
                                             type="password" name="newPassword" value={formData.newPassword} onChange={handleChange}
                                             className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
-                                            placeholder="New Password"
+                                            placeholder={t("newPassword")}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Confirm New Password</label>
+                                        <label className="block text-sm font-medium text-slate-300 mb-2">{t("confirmPassword")}</label>
                                         <input
                                             type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange}
                                             className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
-                                            placeholder="Confirm Password"
+                                            placeholder={t("confirmPassword")}
                                         />
                                     </div>
                                 </div>
@@ -142,13 +146,13 @@ export default function UserSettings() {
                         )}
                     </div>
 
-                    <div className="p-6 bg-[#0B0E14]/50 flex justify-end">
+                    <div className={`p-6 bg-[#0B0E14]/50 flex ${locale === 'ar' ? 'justify-start' : 'justify-end'}`}>
                         <button
                             type="submit"
                             disabled={saving}
                             className="px-6 py-3 bg-[#1877F2] hover:bg-blue-600 disabled:opacity-50 text-white font-semibold rounded-lg shadow-lg transition-all active:scale-95"
                         >
-                            {saving ? "Saving Changes..." : "Save Settings"}
+                            {saving ? t("saving") : t("saveChanges")}
                         </button>
                     </div>
                 </form>

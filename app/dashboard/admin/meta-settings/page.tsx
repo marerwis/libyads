@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function AdminMetaSettings() {
     const [loading, setLoading] = useState(true);
@@ -13,6 +14,8 @@ export default function AdminMetaSettings() {
         businessId: "",
         adAccountId: ""
     });
+
+    const { t, locale } = useLanguage();
 
     useEffect(() => {
         fetch('/api/meta/settings')
@@ -65,8 +68,8 @@ export default function AdminMetaSettings() {
     return (
         <div className="max-w-3xl">
             <header className="mb-8">
-                <h2 className="text-2xl font-semibold text-white">Admin: Meta API Configuration</h2>
-                <p className="text-slate-400 text-sm mt-1">Configure the central System User Token for automated ad creation. This is an admin control panel.</p>
+                <h2 className="text-2xl font-semibold text-white">{t("adminMetaConfig")}</h2>
+                <p className="text-slate-400 text-sm mt-1">{t("configureSystemToken")}</p>
             </header>
 
             {message && (
@@ -78,60 +81,60 @@ export default function AdminMetaSettings() {
             <div className="bg-[#151921] rounded-xl border border-[#2A303C] p-6 shadow-sm">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Meta App ID</label>
+                        <div dir="ltr">
+                            <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("metaAppId")}</label>
                             <input
                                 type="text" name="appId" value={formData.appId} onChange={handleChange}
                                 className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
-                                placeholder="Enter App ID" required
+                                placeholder={t("enterAppId")} required
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Meta App Secret</label>
+                        <div dir="ltr">
+                            <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("metaAppSecret")}</label>
                             <input
                                 type="password" name="appSecret" value={formData.appSecret} onChange={handleChange}
                                 className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
-                                placeholder="Enter App Secret" required
+                                placeholder={t("enterAppSecret")} required
                             />
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">System User Token (Critical)</label>
+                    <div dir="ltr">
+                        <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("systemUserToken")}</label>
                         <input
                             type="password" name="systemUserToken" value={formData.systemUserToken} onChange={handleChange}
-                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
+                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors flex-1"
                             placeholder="EAAC... token" required
                         />
-                        <p className="text-xs text-slate-500 mt-2">This token will be used to execute all ad campaigns on behalf of users.</p>
+                        <p className={`text-xs text-slate-500 mt-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`} dir={locale === 'ar' ? 'rtl' : 'ltr'}>{t("systemTokenDesc")}</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Business Manager ID</label>
+                        <div dir="ltr">
+                            <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("businessManagerId")}</label>
                             <input
                                 type="text" name="businessId" value={formData.businessId} onChange={handleChange}
                                 className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
-                                placeholder="Enter Business ID" required
+                                placeholder={t("enterBusinessId")} required
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Ad Account ID</label>
+                        <div dir="ltr">
+                            <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("adAccountId")}</label>
                             <input
                                 type="text" name="adAccountId" value={formData.adAccountId} onChange={handleChange}
                                 className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
-                                placeholder="Example: 123456789 (without act_ prefix)" required
+                                placeholder={t("adAccountExample")} required
                             />
                         </div>
                     </div>
 
-                    <div className="pt-4 border-t border-[#2A303C] flex justify-end">
+                    <div className={`pt-4 border-t border-[#2A303C] flex ${locale === 'ar' ? 'justify-start' : 'justify-end'}`}>
                         <button
                             type="submit"
                             disabled={saving}
                             className="px-6 py-3 bg-[#1877F2] hover:bg-blue-600 disabled:opacity-50 text-white font-semibold rounded-lg shadow-lg transition-all active:scale-95"
                         >
-                            {saving ? "Saving..." : "Save Configuration"}
+                            {saving ? t("saving") : t("saveConfiguration")}
                         </button>
                     </div>
                 </form>

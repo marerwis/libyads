@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Plus, CreditCard, Code, Settings, Trash2, X, ChevronDown, Landmark, Save } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type PaymentMethod = {
     id: string;
@@ -25,6 +26,8 @@ export default function AdminPaymentMethods() {
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
+
+    const { t, locale } = useLanguage();
 
     const [formData, setFormData] = useState({
         name: "",
@@ -162,23 +165,23 @@ export default function AdminPaymentMethods() {
         <div className="max-w-7xl mx-auto space-y-6">
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h2 className="text-2xl font-semibold text-white">Payment Methods & Gateways</h2>
-                    <p className="text-slate-400 text-sm mt-1">Configure manual methods or API-based gateways (Stripe, PayPal).</p>
+                    <h2 className="text-2xl font-semibold text-white">{t("paymentMethodsAndGateways")}</h2>
+                    <p className="text-slate-400 text-sm mt-1">{t("configureManualMethods")}</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
                     className="flex items-center gap-2 px-4 py-2 bg-[#1877F2] hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                     <Plus size={16} />
-                    Add Gateway / Method
+                    {t("addGatewayMethod")}
                 </button>
             </header>
 
             {methods.length === 0 ? (
                 <div className="bg-[#151921] rounded-xl border border-[#2A303C] p-12 text-center flex flex-col items-center">
                     <CreditCard size={60} strokeWidth={1} className="text-slate-600 mb-4 block" />
-                    <h3 className="text-lg font-medium text-white mb-2">No Payment Methods Configured</h3>
-                    <p className="text-slate-400 max-w-md mx-auto">You haven't added any payment methods yet. Add a manual method like Bank Transfer or an API Gateway like Stripe to get started.</p>
+                    <h3 className="text-lg font-medium text-white mb-2">{t("noPaymentMethodsConfigured")}</h3>
+                    <p className="text-slate-400 max-w-md mx-auto">{t("noPaymentMethodsDesc")}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -205,7 +208,7 @@ export default function AdminPaymentMethods() {
                                             : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'
                                             }`}
                                     >
-                                        {method.isActive ? 'Active' : 'Inactive'}
+                                        {method.isActive ? t("activeStatus") : t("inactiveStatus")}
                                     </button>
                                 </div>
 
@@ -215,7 +218,7 @@ export default function AdminPaymentMethods() {
                                         <div className="flex items-center justify-between p-3 rounded-lg border border-[#2A303C] bg-[#0B0E14]">
                                             <div className="flex items-center gap-2">
                                                 <Code size={16} className="text-slate-400" />
-                                                <span className="text-sm font-medium text-slate-300">Environment</span>
+                                                <span className="text-sm font-medium text-slate-300">{t("environment")}</span>
                                             </div>
                                             {/* Environment Toggle Switch */}
                                             <button
@@ -225,15 +228,15 @@ export default function AdminPaymentMethods() {
                                                     : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                                                     }`}
                                             >
-                                                {method.environment}
+                                                {method.environment === "SANDBOX" ? t("sandboxTest") : t("live")}
                                             </button>
                                         </div>
                                     )}
 
                                     {!isApiType && (
                                         <div>
-                                            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-1">Account Info</span>
-                                            <p className="text-sm text-slate-300 font-mono break-all bg-[#0B0E14] p-3 rounded-lg border border-[#2A303C]">
+                                            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-1">{t("accountInfo")}</span>
+                                            <p className="text-sm text-slate-300 font-mono break-all bg-[#0B0E14] p-3 rounded-lg border border-[#2A303C]" dir="ltr">
                                                 {method.details || "N/A"}
                                             </p>
                                         </div>
@@ -241,7 +244,7 @@ export default function AdminPaymentMethods() {
 
                                     {method.instructions && (
                                         <div>
-                                            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-1">Instructions</span>
+                                            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-1">{t("instructions")}</span>
                                             <p className="text-sm text-slate-400 bg-[#0B0E14] p-3 rounded-lg border border-[#2A303C] line-clamp-3">
                                                 {method.instructions}
                                             </p>
@@ -249,13 +252,13 @@ export default function AdminPaymentMethods() {
                                     )}
 
                                     {isApiType && (
-                                        <div className="space-y-2 mt-auto pt-4 border-t border-[#2A303C]">
+                                        <div className="space-y-2 mt-auto pt-4 border-t border-[#2A303C]" dir="ltr">
                                             <div className="flex justify-between items-center text-xs">
-                                                <span className="text-slate-500">Public Key</span>
+                                                <span className="text-slate-500">{t("publicKey")}</span>
                                                 <span className="font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded">{method.publicKey ? '••••••••' + method.publicKey.slice(-4) : 'Not Set'}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-xs">
-                                                <span className="text-slate-500">Secret Key</span>
+                                                <span className="text-slate-500">{t("secretKey")}</span>
                                                 <span className="font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded">{method.secretKey ? '••••••••••••••••' : 'Not Set'}</span>
                                             </div>
                                         </div>
@@ -263,11 +266,11 @@ export default function AdminPaymentMethods() {
                                 </div>
 
                                 {/* Footer Actions */}
-                                <div className="p-4 border-t border-[#2A303C] bg-[#0B0E14] flex justify-end gap-2">
+                                <div className="p-4 border-t border-[#2A303C] bg-[#0B0E14] flex justify-end gap-2" dir="ltr">
                                     <button
                                         onClick={() => handleOpenModal(method)}
                                         className="p-2 text-slate-400 hover:text-white hover:bg-[#2A303C] rounded-lg transition-colors flex items-center justify-center"
-                                        title="Edit Settings"
+                                        title={t("editConfiguration")}
                                     >
                                         <Settings size={18} />
                                     </button>
@@ -292,9 +295,9 @@ export default function AdminPaymentMethods() {
                         <div className="flex items-center justify-between p-6 border-b border-[#2A303C] shrink-0">
                             <div>
                                 <h3 className="text-xl font-semibold text-white">
-                                    {editingMethod ? "Edit Configuration" : "Add Payment Method"}
+                                    {editingMethod ? t("editConfiguration") : t("addPaymentMethod")}
                                 </h3>
-                                <p className="text-sm text-slate-400 mt-1">Configure the integration and visibility settings.</p>
+                                <p className="text-sm text-slate-400 mt-1">{t("configureIntegration")}</p>
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white bg-[#0B0E14] p-2 rounded-lg border border-[#2A303C]">
                                 <X size={20} />
@@ -306,7 +309,7 @@ export default function AdminPaymentMethods() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Platform / Name</label>
+                                        <label className="block text-sm font-medium text-slate-300 mb-2">{t("platformName")}</label>
                                         <input
                                             type="text" required
                                             value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -316,20 +319,20 @@ export default function AdminPaymentMethods() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Integration Type</label>
+                                        <label className="block text-sm font-medium text-slate-300 mb-2">{t("integrationType")}</label>
                                         <div className="relative group">
                                             <select
                                                 value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                                                 className="w-full appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40"
                                             >
-                                                <optgroup label="API Gateways">
-                                                    <option value="STRIPE">Stripe API</option>
-                                                    <option value="PAYPAL">PayPal API</option>
+                                                <optgroup label={t("apiGateways")}>
+                                                    <option value="STRIPE">{t("stripeApi")}</option>
+                                                    <option value="PAYPAL">{t("paypalApi")}</option>
                                                 </optgroup>
-                                                <optgroup label="Manual Verification">
-                                                    <option value="BANK_ACCOUNT">Bank Account</option>
-                                                    <option value="E_WALLET">E-Wallet (Vodafone, Orange)</option>
-                                                    <option value="OTHER">Other Manual</option>
+                                                <optgroup label={t("manualVerification")}>
+                                                    <option value="BANK_ACCOUNT">{t("bankAccount")}</option>
+                                                    <option value="E_WALLET">{t("eWallet")}</option>
+                                                    <option value="OTHER">{t("otherManual")}</option>
                                                 </optgroup>
                                             </select>
                                             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-hover:text-blue-500 transition-colors duration-300">
@@ -342,8 +345,8 @@ export default function AdminPaymentMethods() {
                                 {/* Active Toggle */}
                                 <div className="flex items-center gap-3 p-4 bg-[#0B0E14] border border-[#2A303C] rounded-lg">
                                     <div className="flex-1">
-                                        <label className="text-sm font-medium text-white block">Method is Active</label>
-                                        <span className="text-xs text-slate-400">If disabled, users will not see this option.</span>
+                                        <label className="text-sm font-medium text-white block">{t("methodIsActive")}</label>
+                                        <span className="text-xs text-slate-400">{t("ifDisabledUsersNotSee")}</span>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input type="checkbox" className="sr-only peer" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} />
@@ -358,29 +361,29 @@ export default function AdminPaymentMethods() {
                                         <div className="flex items-center justify-between pb-2 border-b border-[#2A303C]">
                                             <h4 className="text-blue-500 font-semibold flex items-center gap-2">
                                                 <Code size={20} />
-                                                API Configuration
+                                                {t("apiConfiguration")}
                                             </h4>
 
-                                            <div className="flex bg-[#0B0E14] border border-[#2A303C] rounded-lg overflow-hidden p-1">
+                                            <div className="flex bg-[#0B0E14] border border-[#2A303C] rounded-lg overflow-hidden p-1" dir="ltr">
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, environment: "SANDBOX" })}
                                                     className={`px-4 py-1.5 text-xs font-bold rounded-md transition-colors ${formData.environment === 'SANDBOX' ? 'bg-amber-500/20 text-amber-500' : 'text-slate-500 hover:text-white'}`}
                                                 >
-                                                    SANDBOX (Test)
+                                                    {t("sandboxTest")}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, environment: "LIVE" })}
                                                     className={`px-4 py-1.5 text-xs font-bold rounded-md transition-colors ${formData.environment === 'LIVE' ? 'bg-red-500/20 text-red-500' : 'text-slate-500 hover:text-white'}`}
                                                 >
-                                                    LIVE
+                                                    {t("live")}
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">Public Key (Publishable Key)</label>
+                                        <div dir="ltr">
+                                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("publicKey")}</label>
                                             <input
                                                 type="text" required={isApiGateway}
                                                 value={formData.publicKey} onChange={(e) => setFormData({ ...formData, publicKey: e.target.value })}
@@ -389,8 +392,8 @@ export default function AdminPaymentMethods() {
                                             />
                                         </div>
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">Secret Key</label>
+                                        <div dir="ltr">
+                                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("secretKey")}</label>
                                             <input
                                                 type="text" required={isApiGateway}
                                                 value={formData.secretKey} onChange={(e) => setFormData({ ...formData, secretKey: e.target.value })}
@@ -399,8 +402,8 @@ export default function AdminPaymentMethods() {
                                             />
                                         </div>
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">Webhook Secret (Optional)</label>
+                                        <div dir="ltr">
+                                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("webhookSecret")}</label>
                                             <input
                                                 type="text"
                                                 value={formData.webhookSecret} onChange={(e) => setFormData({ ...formData, webhookSecret: e.target.value })}
@@ -413,11 +416,11 @@ export default function AdminPaymentMethods() {
                                     <div className="space-y-5">
                                         <div className="flex items-center gap-2 pb-2 border-b border-[#2A303C]">
                                             <Landmark size={20} className="text-blue-500" />
-                                            <h4 className="text-blue-500 font-semibold">Manual Details</h4>
+                                            <h4 className="text-blue-500 font-semibold">{t("manualDetails")}</h4>
                                         </div>
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">Account Number / Link</label>
+                                        <div dir="ltr">
+                                            <label className="block text-sm font-medium text-slate-300 mb-2 text-left">{t("accountNumberLink")}</label>
                                             <input
                                                 type="text" required={!isApiGateway}
                                                 value={formData.details} onChange={(e) => setFormData({ ...formData, details: e.target.value })}
@@ -427,7 +430,7 @@ export default function AdminPaymentMethods() {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-2">Transfer Instructions</label>
+                                            <label className="block text-sm font-medium text-slate-300 mb-2">{t("transferInstructionsAdmin")}</label>
                                             <textarea
                                                 rows={4}
                                                 value={formData.instructions} onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
@@ -440,21 +443,21 @@ export default function AdminPaymentMethods() {
                             </form>
                         </div>
 
-                        <div className="p-6 border-t border-[#2A303C] flex justify-end gap-3 bg-[#0B0E14] rounded-b-xl shrink-0">
+                        <div className={`p-6 border-t border-[#2A303C] flex ${locale === 'ar' ? 'justify-start' : 'justify-end'} gap-3 bg-[#0B0E14] rounded-b-xl shrink-0`}>
                             <button
                                 type="button" onClick={() => setIsModalOpen(false)}
                                 className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-[#2A303C] rounded-lg transition-colors border border-transparent hover:border-[#2A303C]"
                             >
-                                Cancel
+                                {t("cancel")}
                             </button>
                             <button
                                 form="payment-method-form" type="submit" disabled={saving}
                                 className="px-6 py-2.5 text-sm font-bold bg-[#1877F2] hover:bg-blue-600 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center gap-2"
                             >
-                                {saving ? "Saving..." : (
+                                {saving ? t("saving") : (
                                     <>
                                         <Save size={16} />
-                                        Save Configuration
+                                        {t("saveConfiguration")}
                                     </>
                                 )}
                             </button>
