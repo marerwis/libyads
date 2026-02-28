@@ -4,7 +4,10 @@ import React from "react";
 import {
     BarChart3,
     ArrowRight,
-    LayoutDashboard
+    LayoutDashboard,
+    Settings2,
+    CreditCard,
+    Rocket
 } from "lucide-react";
 import Link from "next/link";
 import { PortableText } from "@portabletext/react";
@@ -25,7 +28,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
                                 <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                             </div>
-                            <span className="font-bold text-xl tracking-tight text-white">{settings?.siteName || 'Libya'} <span className="text-[#1877F2]">Ads</span></span>
+                            <span className="font-bold text-xl tracking-tight text-white">{settings?.siteName || 'Libya Ads'}</span>
                         </div>
 
                         <div className="hidden md:flex items-center space-x-8 bg-[#151921]/50 px-6 py-2 rounded-full border border-white/5 mx-4">
@@ -96,7 +99,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                         <div className="grid md:grid-cols-3 gap-6">
                             <div className="group p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
                                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
-                                    <span className="material-symbols-outlined text-3xl">settings_input_component</span>
+                                    <Settings2 size={32} />
                                 </div>
                                 <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("centralizedManagement")}</h3>
                                 <p className="dark:text-slate-400 text-slate-600 leading-relaxed text-sm">{t("centralizedDesc")}</p>
@@ -104,7 +107,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
 
                             <div className="group p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
                                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
-                                    <span className="material-symbols-outlined text-3xl">credit_card</span>
+                                    <CreditCard size={32} />
                                 </div>
                                 <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("unifiedBilling")}</h3>
                                 <p className="dark:text-slate-400 text-slate-600 leading-relaxed text-sm">{t("unifiedBillingDesc")}</p>
@@ -112,7 +115,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
 
                             <div className="group p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
                                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
-                                    <span className="material-symbols-outlined text-3xl">rocket_launch</span>
+                                    <Rocket size={32} />
                                 </div>
                                 <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("aiAutomation")}</h3>
                                 <p className="dark:text-slate-400 text-slate-600 leading-relaxed text-sm">{t("aiAutomationDesc")}</p>
