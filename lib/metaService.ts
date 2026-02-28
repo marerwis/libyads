@@ -142,6 +142,10 @@ export const metaService = {
             targetingPayload.geo_locations.countries = ["LY"];
         }
 
+        // Opt out of Meta Advantage Audience explicitly to prevent Invalid Parameter errors 
+        // when providing strict custom demographic targeting (Age/Gender bounds).
+        targetingPayload.targeting_automation = { advantage_audience: 0 };
+
         if (targetingOptions?.minAge) targetingPayload.age_min = targetingOptions.minAge;
         if (targetingOptions?.maxAge) targetingPayload.age_max = targetingOptions.maxAge;
         if (targetingOptions?.genders && targetingOptions.genders.length > 0) {
@@ -150,22 +154,29 @@ export const metaService = {
             // NOTE: We could inject budget tracking logging here if we needed to trace budget depletion across targets
         }
 
+        const adSetPayload: any = {
+            name: `AdSet for ${campaignId}`,
+            campaign_id: campaignId,
+            daily_budget: budgetInMinorUnits,
+            start_time: now.toISOString(),
+            end_time: endTime.toISOString(),
+            billing_event: 'IMPRESSIONS',
+            optimization_goal: optimizationGoal,
+            promoted_object: { page_id: pageId },
+            bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
+            targeting: targetingPayload,
+            status: 'PAUSED'
+        };
+
+        // ODAX Engagement campaigns require explicit destination_type
+        if (optimizationGoal === 'POST_ENGAGEMENT') {
+            adSetPayload.destination_type = 'ON_POST';
+        }
+
         try {
             const adSet = await (new AdAccount(`act_${config.adAccountId}`)).createAdSet(
                 [],
-                {
-                    name: `AdSet for ${campaignId}`,
-                    campaign_id: campaignId,
-                    daily_budget: budgetInMinorUnits,
-                    start_time: now.toISOString(),
-                    end_time: endTime.toISOString(),
-                    billing_event: 'IMPRESSIONS',
-                    optimization_goal: optimizationGoal,
-                    promoted_object: { page_id: pageId },
-                    bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
-                    targeting: targetingPayload,
-                    status: 'PAUSED'
-                }
+                adSetPayload
             );
             return adSet.id;
         } catch (error: any) {
