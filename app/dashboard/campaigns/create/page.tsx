@@ -466,7 +466,7 @@ export default function CreateCampaignWizard() {
                             <ChevronRight size={18} /> رجوع
                         </button>
 
-                        {currentStep < 6 ? (
+                        {currentStep < 5 ? (
                             <button
                                 onClick={handleNext}
                                 className="px-8 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 text-sm font-medium flex items-center gap-2 transition-all active:scale-95"
@@ -479,7 +479,7 @@ export default function CreateCampaignWizard() {
                                 disabled={submitting}
                                 className="px-8 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 text-sm font-bold flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
                             >
-                                {submitting ? "جاري الإطلاق..." : "إطلاق الحملة!"} <Rocket size={18} />
+                                {submitting ? "جاري الإطلاق..." : "الترويج الآن!"} <Rocket size={18} />
                             </button>
                         )}
                     </div>
