@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Inter } from "next/font/google";
+import { Facebook, LogOut, CheckCircle, Smartphone, Globe, Shield, Activity, LayoutDashboard } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -82,8 +83,8 @@ export default function LoginPage() {
 
             <div className="sm:mx-auto sm:w-full sm:max-w-md text-center group">
                 <Link href="/" className="inline-flex items-center gap-3 justify-center">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-                        <img src="/logo.jpg?v=2" alt="Libya Ads Logo" className="w-full h-full object-cover" />
+                    <div className="w-12 h-12 rounded-xl bg-[#1877F2] text-white flex items-center justify-center shrink-0 border border-white/10 shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                        <LayoutDashboard size={24} strokeWidth={2.5} />
                     </div>
                     <span className="font-bold text-3xl tracking-tight text-white">Libya <span className="text-[#1877F2]">Ads</span></span>
                 </Link>
