@@ -14,12 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Libya Ads - Advanced Ad Manager",
+  title: "Libya Ads",
   description: "Advanced Ad Creation and Management Platform",
   openGraph: {
     type: "website",
     url: "https://intag.vercel.app",
-    title: "Libya Ads - Advanced Ad Manager",
+    title: "Libya Ads",
     description: "Advanced Ad Creation and Management Platform",
     siteName: "Libya Ads",
   },
