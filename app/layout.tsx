@@ -29,6 +29,7 @@ export const metadata: Metadata = {
 };
 
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default function RootLayout({
   children,
@@ -36,14 +37,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <LanguageProvider>
-          {children}
-          <SpeedInsights />
-        </LanguageProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <LanguageProvider>
+            {children}
+            <SpeedInsights />
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
