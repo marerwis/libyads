@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { dictionaries, DictionaryKey, Locale } from "./dictionaries";
 
-export function getServerTranslations() {
-    const cookieStore = cookies();
+export async function getServerTranslations() {
+    const cookieStore = await cookies();
     const localeStr = cookieStore.get("NEXT_LOCALE")?.value as Locale | undefined;
 
     // Default to 'ar' if not set

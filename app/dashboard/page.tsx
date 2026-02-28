@@ -7,7 +7,7 @@ import { getServerTranslations } from "@/lib/getServerTranslations"
 
 export default async function Dashboard() {
     const session = await getServerSession()
-    const { t } = getServerTranslations();
+    const { t } = await getServerTranslations();
 
     if (!session?.user?.email) {
         redirect("/login")
