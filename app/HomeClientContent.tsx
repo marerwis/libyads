@@ -22,8 +22,8 @@ export default function HomeClientContent({ settings, page, session }: { setting
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1877F2] to-blue-600 text-white flex items-center justify-center shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
-                                <LayoutDashboard size={22} strokeWidth={2.5} />
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
+                                <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                             </div>
                             <span className="font-bold text-xl tracking-tight text-white">{settings?.siteName || 'Libya'} <span className="text-[#1877F2]">Ads</span></span>
                         </div>
