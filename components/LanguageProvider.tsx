@@ -168,13 +168,13 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     };
 
     // Prevent hydration mismatch by not rendering until mounted
-    if (!mounted) {
-        return <div style={{ visibility: 'hidden' }}>{children}</div>;
-    }
-
     return (
         <LanguageContext.Provider value={{ locale, setLocale, t }}>
-            {children}
+            {!mounted ? (
+                <div style={{ visibility: 'hidden' }}>{children}</div>
+            ) : (
+                children
+            )}
         </LanguageContext.Provider>
     );
 };
