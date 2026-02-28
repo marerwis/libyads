@@ -138,7 +138,7 @@ export const metaService = {
         }
 
         // Failsafe if absolutely no geo_locations were resolved
-        if (!targetingPayload.geo_locations.countries && !targetingPayload.geo_locations.regions) {
+        if (!targetingPayload.geo_locations.countries && !targetingPayload.geo_locations.regions && !targetingPayload.geo_locations.cities) {
             targetingPayload.geo_locations.countries = ["LY"];
         }
 
