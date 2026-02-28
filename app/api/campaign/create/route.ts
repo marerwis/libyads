@@ -96,7 +96,8 @@ export async function POST(req: Request) {
 
             // Create Ad Set
             console.log(`[API] Creating Meta AdSet for Campaign ${fbCampaignId}`);
-            const fbAdSetId = await metaService.createAdSet(fbCampaignId, budget, duration, pageId, targetingOptions);
+            const dailyBudgetForMeta = budget / duration;
+            const fbAdSetId = await metaService.createAdSet(fbCampaignId, dailyBudgetForMeta, duration, pageId, targetingOptions);
 
             // Create Ad
             let fbAdId;

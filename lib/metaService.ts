@@ -80,10 +80,55 @@ export const metaService = {
         // Add 1 hour buffer to avoid "Campaign Schedule Is Too Short" errors from Facebook
         const endTime = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000 + 3600000);
 
-        // Build targeting payload
+        // Process targeting: separate country codes from region names
+        const providedLocations = targetingOptions?.countries || ["LY"];
+        const countryCodes = providedLocations.filter(loc => loc.length === 2); // e.g. "LY"
+        const regionNames = providedLocations.filter(loc => loc.length > 2); // e.g. "BENGHAZI", "TRIPOLI"
+
         const targetingPayload: any = {
-            geo_locations: { countries: targetingOptions?.countries || ["US"] } // Default to US if none provided
+            geo_locations: {}
         };
+
+        if (countryCodes.length > 0) {
+            targetingPayload.geo_locations.countries = countryCodes;
+        }
+
+        if (regionNames.length > 0) {
+            console.log(`[API] Resolving Facebook Meta geolocation keys for: ${regionNames.join(', ')}`);
+            const regionKeys: { key: string }[] = [];
+            for (const name of regionNames) {
+                try {
+                    // Replace underscores with spaces (e.g. "JABAL_AKHDAR" -> "JABAL AKHDAR")
+                    const cleanName = name.replace(/_/g, ' ');
+                    const url = `https://graph.facebook.com/v19.0/search?type=adgeolocation&q=${encodeURIComponent(cleanName)}&location_types=['city','region']&access_token=${config.systemUserToken}`;
+
+                    const res = await fetch(url);
+                    const data = await res.json();
+
+                    if (data.data && data.data.length > 0) {
+                        // Attempt to strictly match places within Libya
+                        const lyMatches = data.data.filter((d: any) => d.country_code === 'LY');
+                        if (lyMatches.length > 0) {
+                            regionKeys.push({ key: lyMatches[0].key });
+                        } else {
+                            regionKeys.push({ key: data.data[0].key });
+                        }
+                    } else {
+                        console.warn(`[API] No Facebook geolocation found for "${cleanName}"`);
+                    }
+                } catch (e) {
+                    console.error(`[API] Failed to resolve location key for: ${name}`, e);
+                }
+            }
+            if (regionKeys.length > 0) {
+                targetingPayload.geo_locations.regions = regionKeys;
+            }
+        }
+
+        // Failsafe if absolutely no geo_locations were resolved
+        if (!targetingPayload.geo_locations.countries && !targetingPayload.geo_locations.regions) {
+            targetingPayload.geo_locations.countries = ["LY"];
+        }
 
         if (targetingOptions?.minAge) targetingPayload.age_min = targetingOptions.minAge;
         if (targetingOptions?.maxAge) targetingPayload.age_max = targetingOptions.maxAge;
