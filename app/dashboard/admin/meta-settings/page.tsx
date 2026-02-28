@@ -63,13 +63,13 @@ export default function AdminMetaSettings() {
         }
     };
 
-    if (loading) return <div className="text-white">Loading...</div>;
+    if (loading) return <div className="dark:text-white text-slate-900">Loading...</div>;
 
     return (
-        <div className="max-w-3xl">
+        <div className="max-w-3xl transition-colors duration-300">
             <header className="mb-8">
-                <h2 className="text-2xl font-semibold text-white">{t("adminMetaConfig")}</h2>
-                <p className="text-slate-400 text-sm mt-1">{t("configureSystemToken")}</p>
+                <h2 className="text-2xl font-semibold dark:text-white text-slate-900">{t("adminMetaConfig")}</h2>
+                <p className="dark:text-slate-400 text-slate-500 text-sm mt-1">{t("configureSystemToken")}</p>
             </header>
 
             {message && (
@@ -78,57 +78,57 @@ export default function AdminMetaSettings() {
                 </div>
             )}
 
-            <div className="bg-[#151921] rounded-xl border border-[#2A303C] p-6 shadow-sm">
+            <div className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 p-6 shadow-sm transition-colors">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div dir="ltr">
-                            <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("metaAppId")}</label>
+                            <label className={`block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("metaAppId")}</label>
                             <input
                                 type="text" name="appId" value={formData.appId} onChange={handleChange}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
+                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
                                 placeholder={t("enterAppId")} required
                             />
                         </div>
                         <div dir="ltr">
-                            <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("metaAppSecret")}</label>
+                            <label className={`block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("metaAppSecret")}</label>
                             <input
                                 type="password" name="appSecret" value={formData.appSecret} onChange={handleChange}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
+                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
                                 placeholder={t("enterAppSecret")} required
                             />
                         </div>
                     </div>
 
                     <div dir="ltr">
-                        <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("systemUserToken")}</label>
+                        <label className={`block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("systemUserToken")}</label>
                         <input
                             type="password" name="systemUserToken" value={formData.systemUserToken} onChange={handleChange}
-                            className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors flex-1"
+                            className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors flex-1"
                             placeholder="EAAC... token" required
                         />
-                        <p className={`text-xs text-slate-500 mt-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`} dir={locale === 'ar' ? 'rtl' : 'ltr'}>{t("systemTokenDesc")}</p>
+                        <p className={`text-xs dark:text-slate-500 text-slate-500 mt-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`} dir={locale === 'ar' ? 'rtl' : 'ltr'}>{t("systemTokenDesc")}</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div dir="ltr">
-                            <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("businessManagerId")}</label>
+                            <label className={`block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("businessManagerId")}</label>
                             <input
                                 type="text" name="businessId" value={formData.businessId} onChange={handleChange}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
+                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
                                 placeholder={t("enterBusinessId")} required
                             />
                         </div>
                         <div dir="ltr">
-                            <label className={`block text-sm font-medium text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("adAccountId")}</label>
+                            <label className={`block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("adAccountId")}</label>
                             <input
                                 type="text" name="adAccountId" value={formData.adAccountId} onChange={handleChange}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
+                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
                                 placeholder={t("adAccountExample")} required
                             />
                         </div>
                     </div>
 
-                    <div className={`pt-4 border-t border-[#2A303C] flex ${locale === 'ar' ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`pt-4 border-t dark:border-[#2A303C] border-slate-200 flex ${locale === 'ar' ? 'justify-start' : 'justify-end'}`}>
                         <button
                             type="submit"
                             disabled={saving}

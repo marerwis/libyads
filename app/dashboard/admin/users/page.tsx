@@ -132,43 +132,43 @@ export default function AdminUsersManagement() {
     if (loading) return <div className="text-white">Loading users...</div>;
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6 transition-colors duration-300">
             <header className="mb-8">
-                <h2 className="text-2xl font-semibold text-white">{t("usersManagement")}</h2>
-                <p className="text-slate-400 text-sm mt-1">{t("viewAllUsers")}</p>
+                <h2 className="text-2xl font-semibold dark:text-white text-slate-900">{t("usersManagement")}</h2>
+                <p className="dark:text-slate-400 text-slate-500 text-sm mt-1">{t("viewAllUsers")}</p>
             </header>
 
-            <div className="bg-[#151921] rounded-xl border border-[#2A303C] overflow-hidden">
+            <div className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 overflow-hidden shadow-sm transition-colors">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-slate-300">
-                        <thead className="bg-[#0B0E14] text-xs uppercase text-slate-400 border-b border-[#2A303C]">
+                    <table className="w-full text-left text-sm dark:text-slate-300 text-slate-700 mt-0">
+                        <thead className="dark:bg-[#0B0E14] bg-slate-50 text-xs uppercase dark:text-slate-400 text-slate-500 border-b dark:border-[#2A303C] border-slate-200">
                             <tr>
-                                <th className="px-6 py-4 font-medium">{t("nameEmail")}</th>
-                                <th className="px-6 py-4 font-medium">{t("walletBalance")}</th>
-                                <th className="px-6 py-4 font-medium text-center">{t("pages")}</th>
-                                <th className="px-6 py-4 font-medium text-center">{t("campaigns")}</th>
-                                <th className="px-6 py-4 font-medium">{t("joined")}</th>
-                                <th className="px-6 py-4 font-medium">{t("role")}</th>
-                                <th className={`px-6 py-4 font-medium ${locale === 'ar' ? 'text-left' : 'text-right'}`}>{t("actions")}</th>
+                                <th className="px-6 py-4 font-semibold">{t("nameEmail")}</th>
+                                <th className="px-6 py-4 font-semibold">{t("walletBalance")}</th>
+                                <th className="px-6 py-4 font-semibold text-center">{t("pages")}</th>
+                                <th className="px-6 py-4 font-semibold text-center">{t("campaigns")}</th>
+                                <th className="px-6 py-4 font-semibold">{t("joined")}</th>
+                                <th className="px-6 py-4 font-semibold">{t("role")}</th>
+                                <th className={`px-6 py-4 font-semibold ${locale === 'ar' ? 'text-left' : 'text-right'}`}>{t("actions")}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#2A303C]">
+                        <tbody className="divide-y dark:divide-[#2A303C] divide-slate-100">
                             {users.map(user => (
-                                <tr key={user.id} className="hover:bg-[#1A1F29] transition-colors">
+                                <tr key={user.id} className="dark:hover:bg-[#1A1F29] hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-white">{user.name || "N/A"}</div>
-                                        <div className="text-xs text-slate-500">{user.email}</div>
+                                        <div className="font-semibold dark:text-white text-slate-900">{user.name || "N/A"}</div>
+                                        <div className="text-xs dark:text-slate-500 text-slate-500">{user.email}</div>
                                     </td>
                                     <td className="px-6 py-4 text-left" dir="ltr">
                                         <span className="font-mono">${user.wallet?.balance?.toFixed(2) || "0.00"}</span>
                                     </td>
-                                    <td className="px-6 py-4 text-center">
+                                    <td className="px-6 py-4 text-center dark:text-slate-300 text-slate-700">
                                         {user._count.facebookPages}
                                     </td>
-                                    <td className="px-6 py-4 text-center">
+                                    <td className="px-6 py-4 text-center dark:text-slate-300 text-slate-700">
                                         {user._count.campaigns}
                                     </td>
-                                    <td className="px-6 py-4 text-slate-400" dir="ltr">
+                                    <td className="px-6 py-4 dark:text-slate-400 text-slate-500" dir="ltr">
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4">
@@ -177,12 +177,12 @@ export default function AdminUsersManagement() {
                                                 value={user.role}
                                                 onChange={(e) => handleRoleChange(user.id, user.name, e.target.value)}
                                                 disabled={updatingRole === user.id}
-                                                className={`appearance-none bg-[#0B0E14] border border-[#2A303C] group-hover:border-[#1877F2]/50 text-sm rounded-xl py-1.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm shadow-black/40 ${user.role === 'ADMIN' ? 'text-emerald-400 font-semibold' : 'text-slate-300'} ${locale === 'ar' ? 'pr-3 pl-8' : 'pl-3 pr-8'}`}
+                                                className={`appearance-none dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 group-hover:border-[#1877F2]/50 text-sm rounded-xl py-1.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#1877F2]/40 focus:border-[#1877F2] transition-all duration-300 cursor-pointer shadow-sm dark:shadow-black/40 shadow-slate-200 ${user.role === 'ADMIN' ? 'text-emerald-500 font-semibold' : 'dark:text-slate-300 text-slate-700'} ${locale === 'ar' ? 'pr-3 pl-8' : 'pl-3 pr-8'}`}
                                             >
-                                                <option value="USER" className="text-slate-300">USER</option>
-                                                <option value="ADMIN" className="text-emerald-400">ADMIN</option>
+                                                <option value="USER" className="dark:text-slate-300 text-slate-700">USER</option>
+                                                <option value="ADMIN" className="text-emerald-500">ADMIN</option>
                                             </select>
-                                            <div className={`pointer-events-none absolute inset-y-0 flex items-center px-2 text-slate-500 group-hover:text-blue-500 transition-colors duration-300 ${locale === 'ar' ? 'left-0' : 'right-0'}`}>
+                                            <div className={`pointer-events-none absolute inset-y-0 flex items-center px-2 dark:text-slate-500 text-slate-400 group-hover:text-blue-500 transition-colors duration-300 ${locale === 'ar' ? 'left-0' : 'right-0'}`}>
                                                 <ChevronDown size={14} />
                                             </div>
                                         </div>
@@ -228,36 +228,36 @@ export default function AdminUsersManagement() {
             {/* Wallet Modal */}
             {walletModal.isOpen && walletModal.user && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-[#151921] border border-[#2A303C] rounded-xl w-full max-w-sm shadow-xl flex flex-col">
-                        <div className="p-5 border-b border-[#2A303C] flex justify-between items-center">
-                            <h3 className="text-lg font-semibold text-white">
+                    <div className="dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 rounded-xl w-full max-w-sm shadow-xl flex flex-col">
+                        <div className="p-5 border-b dark:border-[#2A303C] border-slate-200 flex justify-between items-center">
+                            <h3 className="text-lg font-semibold dark:text-white text-slate-900">
                                 {walletModal.action === 'add' ? t("topUpWallet") : t("deductWalletBalance")}
                             </h3>
                             <button
                                 onClick={() => setWalletModal({ isOpen: false, user: null, amount: "50", loading: false, action: 'add' })}
-                                className="text-slate-400 hover:text-white transition-colors"
+                                className="dark:text-slate-400 text-slate-500 dark:hover:text-white hover:text-slate-900 transition-colors"
                             >
                                 <X size={20} />
                             </button>
                         </div>
                         <form onSubmit={handleWalletSubmit} className="p-5 space-y-4">
                             <div>
-                                <label className="text-sm text-slate-400 block mb-1">{t("targetUser")}</label>
-                                <div className="text-white font-medium bg-[#0B0E14] px-4 py-3 rounded-lg border border-[#2A303C] flex justify-between items-center" dir="ltr">
+                                <label className="text-sm dark:text-slate-400 text-slate-600 block mb-1">{t("targetUser")}</label>
+                                <div className="dark:text-white text-slate-900 font-medium dark:bg-[#0B0E14] bg-slate-50 px-4 py-3 rounded-lg border dark:border-[#2A303C] border-slate-200 flex justify-between items-center" dir="ltr">
                                     <span>{walletModal.user.name || walletModal.user.email}</span>
-                                    <span className="text-sm text-slate-500 font-mono">Bal: ${walletModal.user.wallet?.balance?.toFixed(2) || "0.00"}</span>
+                                    <span className="text-sm dark:text-slate-500 text-slate-500 font-mono">Bal: ${walletModal.user.wallet?.balance?.toFixed(2) || "0.00"}</span>
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm text-slate-400 block mb-1 text-left">{t("amountUSD")}</label>
+                                <label className="text-sm dark:text-slate-400 text-slate-600 block mb-1 text-left">{t("amountUSD")}</label>
                                 <div className="relative" dir="ltr">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400 font-medium">$</span>
                                     <input
                                         type="number"
                                         required min="0.01" step="0.01" max={walletModal.action === 'deduct' ? walletModal.user.wallet?.balance : undefined}
                                         value={walletModal.amount}
                                         onChange={e => setWalletModal(prev => ({ ...prev, amount: e.target.value }))}
-                                        className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-lg pl-8 pr-4 py-3 text-white text-lg font-mono focus:border-[#1877F2] outline-none"
+                                        className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg pl-8 pr-4 py-3 dark:text-white text-slate-900 text-lg font-mono focus:border-[#1877F2] outline-none"
                                         placeholder="50.00"
                                     />
                                 </div>

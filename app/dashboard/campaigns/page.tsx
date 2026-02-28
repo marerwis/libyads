@@ -54,11 +54,11 @@ export default function CampaignsHistoryPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto transition-colors duration-300">
             <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                    <h2 className="text-2xl font-semibold text-white">{t("campaignHistory")}</h2>
-                    <p className="text-slate-400 text-sm mt-1">{t("manageAndTrack")}</p>
+                    <h2 className="text-2xl font-semibold dark:text-white text-slate-900">{t("campaignHistory")}</h2>
+                    <p className="dark:text-slate-400 text-slate-500 text-sm mt-1">{t("manageAndTrack")}</p>
                 </div>
                 <div className="flex gap-4 w-full md:w-auto">
                     <div className="relative group w-full md:w-64">
@@ -68,7 +68,7 @@ export default function CampaignsHistoryPage() {
                         <input
                             type="text"
                             placeholder={t("searchCampaigns")}
-                            className="w-full bg-[#151921] border border-[#2A303C] text-sm text-white rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-blue-500 transition-colors"
+                            className="w-full dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 text-sm dark:text-white text-slate-900 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-blue-500 shadow-sm transition-colors"
                         />
                     </div>
                 </div>
@@ -80,41 +80,41 @@ export default function CampaignsHistoryPage() {
                 </div>
             )}
 
-            <div className="bg-[#151921] rounded-xl border border-[#2A303C] overflow-hidden shadow-sm">
+            <div className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 overflow-hidden shadow-sm transition-colors">
                 {loading ? (
-                    <div className="p-12 text-center text-slate-400">Loading campaigns data...</div>
+                    <div className="p-12 text-center dark:text-slate-400 text-slate-500">Loading campaigns data...</div>
                 ) : campaigns.length === 0 ? (
                     <div className="p-20 text-center flex flex-col items-center">
                         <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-6 shadow-inner">
                             <Megaphone size={36} strokeWidth={1.5} />
                         </div>
-                        <h3 className="text-xl font-medium text-white mb-2">{t("noCampaignsFound")}</h3>
-                        <p className="text-slate-400 text-sm max-w-sm mb-6">{t("launchFirstCampaign")}</p>
+                        <h3 className="text-xl font-medium dark:text-white text-slate-900 mb-2">{t("noCampaignsFound")}</h3>
+                        <p className="dark:text-slate-400 text-slate-500 text-sm max-w-sm mb-6">{t("launchFirstCampaign")}</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-slate-300">
-                            <thead className="text-xs text-slate-400 uppercase bg-[#0B0E14]/50 border-b border-[#2A303C]">
+                        <table className="w-full text-left text-sm dark:text-slate-300 text-slate-700">
+                            <thead className="text-xs dark:text-slate-400 text-slate-500 uppercase dark:bg-[#0B0E14]/50 bg-slate-50 border-b dark:border-[#2A303C] border-slate-200">
                                 <tr>
-                                    <th className="px-6 py-4 font-medium">{t("metaCampaignId")}</th>
-                                    <th className="px-6 py-4 font-medium">{t("targetPost")}</th>
-                                    <th className="px-6 py-4 font-medium">{t("budget")}</th>
-                                    <th className="px-6 py-4 font-medium">{t("status")}</th>
-                                    <th className="px-6 py-4 font-medium">{t("createdOn")}</th>
-                                    <th className="px-6 py-4 font-medium">{t("actions")}</th>
+                                    <th className="px-6 py-4 font-semibold">{t("metaCampaignId")}</th>
+                                    <th className="px-6 py-4 font-semibold">{t("targetPost")}</th>
+                                    <th className="px-6 py-4 font-semibold">{t("budget")}</th>
+                                    <th className="px-6 py-4 font-semibold">{t("status")}</th>
+                                    <th className="px-6 py-4 font-semibold">{t("createdOn")}</th>
+                                    <th className="px-6 py-4 font-semibold">{t("actions")}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#2A303C]">
+                            <tbody className="divide-y dark:divide-[#2A303C] divide-slate-100">
                                 {campaigns.map(campaign => (
-                                    <tr key={campaign.id} className="hover:bg-[#0B0E14]/30 transition-colors group">
+                                    <tr key={campaign.id} className="dark:hover:bg-[#0B0E14]/30 hover:bg-slate-50 transition-colors group">
                                         <td className="px-6 py-4 font-mono text-xs opacity-80" dir="ltr">{campaign.campaignId || 'Pending'}</td>
                                         <td className="px-6 py-4">
-                                            <div className="font-medium text-slate-200" dir="ltr">Post ID: {campaign.postId}</div>
-                                            <div className="text-xs text-slate-500 mt-1" dir="ltr">Page ID: {campaign.pageId}</div>
+                                            <div className="font-semibold dark:text-slate-200 text-slate-800" dir="ltr">Post ID: {campaign.postId}</div>
+                                            <div className="text-xs dark:text-slate-500 text-slate-500 mt-1" dir="ltr">Page ID: {campaign.pageId}</div>
                                         </td>
                                         <td className="px-6 py-4 leading-relaxed">
-                                            <div className="font-medium text-slate-200" dir="ltr">${campaign.budget.toFixed(2)} total</div>
-                                            <div className="text-xs text-slate-500 mt-1">{campaign.duration} {t("days")}</div>
+                                            <div className="font-semibold dark:text-slate-200 text-slate-800" dir="ltr">${campaign.budget.toFixed(2)} total</div>
+                                            <div className="text-xs dark:text-slate-500 text-slate-500 mt-1">{campaign.duration} {t("days")}</div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
@@ -122,15 +122,15 @@ export default function CampaignsHistoryPage() {
                                                     campaign.status === "FAILED" ? 'bg-red-500' :
                                                         'bg-slate-500'
                                                     }`} />
-                                                <span className={`font-medium ${campaign.status === "ACTIVE" ? 'text-emerald-400' :
-                                                    campaign.status === "FAILED" ? 'text-red-400' :
-                                                        'text-slate-400'
+                                                <span className={`font-semibold ${campaign.status === "ACTIVE" ? 'text-emerald-500 dark:text-emerald-400' :
+                                                    campaign.status === "FAILED" ? 'text-red-500 dark:text-red-400' :
+                                                        'text-slate-500 dark:text-slate-400'
                                                     }`}>
                                                     {campaign.status === "ACTIVE" ? t("active") : campaign.status === "FAILED" ? t("failed") : t("paused")}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-400" dir="ltr">
+                                        <td className="px-6 py-4 dark:text-slate-400 text-slate-500" dir="ltr">
                                             {new Date(campaign.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                         </td>
                                         <td className="px-6 py-4">
@@ -138,7 +138,7 @@ export default function CampaignsHistoryPage() {
                                                 <button
                                                     onClick={() => toggleCampaignStatus(campaign.id, campaign.status)}
                                                     disabled={campaign.status === "FAILED" || !campaign.campaignId}
-                                                    className="p-2 bg-slate-800/50 hover:bg-slate-700 hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed group-hover:opacity-100"
+                                                    className="p-2 dark:bg-slate-800/50 bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 dark:hover:text-white hover:text-slate-900 rounded-lg transition-colors border border-transparent dark:hover:border-slate-600 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed md:opacity-0 md:group-hover:opacity-100"
                                                     title={campaign.status === "ACTIVE" ? t("pauseCampaign") : t("resumeCampaign")}
                                                 >
                                                     {campaign.status === "ACTIVE" ? <Pause size={16} /> : <Play size={16} />}
@@ -148,7 +148,7 @@ export default function CampaignsHistoryPage() {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     title={t("viewPromotion")}
-                                                    className="p-2 bg-slate-800/50 hover:bg-slate-700 hover:text-white rounded-lg transition-colors border border-transparent hover:border-slate-600 group-hover:opacity-100 flex items-center justify-center">
+                                                    className="p-2 dark:bg-slate-800/50 bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 dark:hover:text-white hover:text-slate-900 rounded-lg transition-colors border border-transparent dark:hover:border-slate-600 hover:border-slate-300 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center">
                                                     <Eye size={16} />
                                                 </a>
                                             </div>

@@ -220,31 +220,31 @@ export default function CreateCampaignWizard() {
             case 1:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">{t("basicCampaignSetup")}</h3>
-                        <p className="text-sm text-slate-400 mb-6">{t("marketingObjective")}</p>
+                        <h3 className="text-xl font-bold dark:text-white text-slate-900 mb-2">{t("basicCampaignSetup")}</h3>
+                        <p className="text-sm dark:text-slate-400 text-slate-500 mb-6">{t("marketingObjective")}</p>
 
                         <div>
-                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("campaignName")}</label>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("campaignName")}</label>
                             <input
                                 type="text"
                                 value={formData.campaignName}
                                 onChange={(e) => setFormData({ ...formData, campaignName: e.target.value })}
-                                className={`w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500 transition-all ${locale === 'ar' ? 'text-right' : 'text-left'}`}
+                                className={`w-full dark:bg-[#0B0E14] bg-white border dark:border-[#2A303C] border-slate-200 rounded-xl py-3 px-4 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 shadow-sm transition-all ${locale === 'ar' ? 'text-right' : 'text-left'}`}
                                 dir="ltr"
                             />
                         </div>
 
                         <div>
-                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("campaignObjectiveTitle")}</label>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("campaignObjectiveTitle")}</label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {OBJECTIVES.map(obj => (
                                     <button
                                         key={obj.id}
                                         onClick={() => setFormData({ ...formData, objective: obj.id })}
-                                        className={`p-4 rounded-xl border transition-all flex items-center justify-between ${formData.objective === obj.id ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-600'} ${locale === 'ar' ? 'text-right' : 'text-left'}`}
+                                        className={`p-4 rounded-xl border transition-all flex items-center justify-between ${formData.objective === obj.id ? 'bg-indigo-500/10 dark:bg-indigo-500/20 border-indigo-500/50 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'dark:bg-[#0B0E14] bg-white dark:border-[#2A303C] border-slate-200 dark:text-slate-400 text-slate-600 hover:border-slate-300 dark:hover:border-slate-600 shadow-sm'} ${locale === 'ar' ? 'text-right' : 'text-left'}`}
                                     >
                                         <span className="font-medium text-sm">{t(obj.dictKey as any)}</span>
-                                        {formData.objective === obj.id && <CheckCircle2 size={18} className="text-indigo-400" />}
+                                        {formData.objective === obj.id && <CheckCircle2 size={18} className="text-indigo-500 dark:text-indigo-400" />}
                                     </button>
                                 ))}
                             </div>
@@ -254,28 +254,28 @@ export default function CreateCampaignWizard() {
             case 2:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">{t("pageAndPost")}</h3>
+                        <h3 className="text-xl font-bold dark:text-white text-slate-900 mb-2">{t("pageAndPost")}</h3>
 
                         <div>
-                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("facebookPage")}</label>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("facebookPage")}</label>
                             <select
                                 value={formData.pageId}
                                 onChange={(e) => setFormData({ ...formData, pageId: e.target.value })}
-                                className={`w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500 ${locale === 'ar' ? 'text-right' : 'text-left'}`}
+                                className={`w-full dark:bg-[#0B0E14] bg-white border dark:border-[#2A303C] border-slate-200 shadow-sm rounded-xl py-3 px-4 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 ${locale === 'ar' ? 'text-right' : 'text-left'}`}
                             >
                                 {pages.map(p => <option key={p.id} value={p.pageId}>{p.pageName}</option>)}
                             </select>
                         </div>
 
                         <div className="mt-4 animate-in fade-in">
-                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("selectPostToPromote")}</label>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("selectPostToPromote")}</label>
                             {loadingPosts ? (
-                                <div className={`text-slate-500 text-sm ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("fetching")}</div>
+                                <div className={`dark:text-slate-500 text-slate-500 text-sm ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("fetching")}</div>
                             ) : (
                                 <select
                                     value={formData.postId}
                                     onChange={(e) => setFormData({ ...formData, postId: e.target.value })}
-                                    className={`w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white focus:outline-none focus:border-indigo-500 ${locale === 'ar' ? 'text-right' : 'text-left'}`}
+                                    className={`w-full dark:bg-[#0B0E14] bg-white border dark:border-[#2A303C] border-slate-200 shadow-sm rounded-xl py-3 px-4 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 ${locale === 'ar' ? 'text-right' : 'text-left'}`}
                                     dir="ltr"
                                 >
                                     <option value="" disabled>{t("selectAPost")}</option>
@@ -295,10 +295,10 @@ export default function CreateCampaignWizard() {
             case 3:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">{t("audienceAndTargeting")}</h3>
+                        <h3 className="text-xl font-bold dark:text-white text-slate-900 mb-2">{t("audienceAndTargeting")}</h3>
 
                         <div>
-                            <label className={`block text-sm font-semibold text-slate-300 mb-3 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("targetCountries")}</label>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-3 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("targetCountries")}</label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {availableCountries.map(country => {
                                     const isLibyaAllSelected = formData.countries.includes("LY");
@@ -319,9 +319,9 @@ export default function CreateCampaignWizard() {
                                                     setFormData({ ...formData, countries: newCountries });
                                                 }
                                             }}
-                                            className={`text-xs font-medium px-3 py-2.5 rounded-lg border transition-all ${locale === 'ar' ? 'text-right' : 'text-left'} ${isSelected ? 'bg-pink-500/20 border-pink-500/50 text-pink-200'
-                                                : isDisabled ? 'bg-[#0B0E14]/50 border-[#2A303C]/30 text-slate-600 cursor-not-allowed opacity-50'
-                                                    : 'bg-[#0B0E14] border-[#2A303C] text-slate-400 hover:border-slate-500'}`}
+                                            className={`text-xs font-medium px-3 py-2.5 rounded-lg border transition-all shadow-sm ${locale === 'ar' ? 'text-right' : 'text-left'} ${isSelected ? 'bg-pink-50 dark:bg-pink-500/20 border-pink-500/50 text-pink-600 dark:text-pink-200'
+                                                : isDisabled ? 'dark:bg-[#0B0E14]/50 bg-slate-50 dark:border-[#2A303C]/30 border-slate-200 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50'
+                                                    : 'dark:bg-[#0B0E14] bg-white dark:border-[#2A303C] border-slate-200 dark:text-slate-400 text-slate-600 dark:hover:border-slate-500 hover:border-slate-300 hover:bg-slate-50'}`}
                                         >
                                             {t(country.dictKey as any)}
                                         </button>
@@ -332,19 +332,19 @@ export default function CreateCampaignWizard() {
 
                         <div className="grid grid-cols-2 gap-6 mt-6">
                             <div>
-                                <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("age")}</label>
+                                <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("age")}</label>
                                 <div className="flex gap-2" dir="ltr">
-                                    <input type="number" value={formData.minAge} onChange={(e) => setFormData({ ...formData, minAge: Number(e.target.value) })} className="w-1/2 bg-[#0B0E14] border border-[#2A303C] rounded-lg p-2 text-white text-center" min="13" max="65" />
+                                    <input type="number" value={formData.minAge} onChange={(e) => setFormData({ ...formData, minAge: Number(e.target.value) })} className="w-1/2 dark:bg-[#0B0E14] bg-white border dark:border-[#2A303C] border-slate-200 rounded-lg p-2 dark:text-white text-slate-900 shadow-sm text-center" min="13" max="65" />
                                     <span className="text-slate-500 self-center">-</span>
-                                    <input type="number" value={formData.maxAge} onChange={(e) => setFormData({ ...formData, maxAge: Number(e.target.value) })} className="w-1/2 bg-[#0B0E14] border border-[#2A303C] rounded-lg p-2 text-white text-center" min="13" max="65" />
+                                    <input type="number" value={formData.maxAge} onChange={(e) => setFormData({ ...formData, maxAge: Number(e.target.value) })} className="w-1/2 dark:bg-[#0B0E14] bg-white border dark:border-[#2A303C] border-slate-200 rounded-lg p-2 dark:text-white text-slate-900 shadow-sm text-center" min="13" max="65" />
                                 </div>
                             </div>
                             <div>
-                                <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("gender")}</label>
+                                <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("gender")}</label>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setFormData({ ...formData, genders: [] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.length === 0 ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>{t("all")}</button>
-                                    <button onClick={() => setFormData({ ...formData, genders: [1] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.includes(1) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>{t("male")}</button>
-                                    <button onClick={() => setFormData({ ...formData, genders: [2] })} className={`flex-1 py-2 text-sm rounded-lg border ${formData.genders.includes(2) ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'bg-[#0B0E14] border-[#2A303C] text-slate-400'}`}>{t("female")}</button>
+                                    <button onClick={() => setFormData({ ...formData, genders: [] })} className={`flex-1 py-2 text-sm rounded-lg border shadow-sm ${formData.genders.length === 0 ? 'bg-pink-50 dark:bg-pink-500/20 border-pink-500/50 text-pink-600 dark:text-pink-200' : 'dark:bg-[#0B0E14] bg-white dark:border-[#2A303C] border-slate-200 dark:text-slate-400 text-slate-600'}`}>{t("all")}</button>
+                                    <button onClick={() => setFormData({ ...formData, genders: [1] })} className={`flex-1 py-2 text-sm rounded-lg border shadow-sm ${formData.genders.includes(1) ? 'bg-pink-50 dark:bg-pink-500/20 border-pink-500/50 text-pink-600 dark:text-pink-200' : 'dark:bg-[#0B0E14] bg-white dark:border-[#2A303C] border-slate-200 dark:text-slate-400 text-slate-600'}`}>{t("male")}</button>
+                                    <button onClick={() => setFormData({ ...formData, genders: [2] })} className={`flex-1 py-2 text-sm rounded-lg border shadow-sm ${formData.genders.includes(2) ? 'bg-pink-50 dark:bg-pink-500/20 border-pink-500/50 text-pink-600 dark:text-pink-200' : 'dark:bg-[#0B0E14] bg-white dark:border-[#2A303C] border-slate-200 dark:text-slate-400 text-slate-600'}`}>{t("female")}</button>
                                 </div>
                             </div>
                         </div>
@@ -353,43 +353,43 @@ export default function CreateCampaignWizard() {
             case 4:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">{t("budgetAndSchedule")}</h3>
+                        <h3 className="text-xl font-bold dark:text-white text-slate-900 mb-2">{t("budgetAndSchedule")}</h3>
 
-                        <div className="bg-[#0B0E14] p-5 rounded-xl border border-[#2A303C] flex justify-between items-center mb-6" dir="ltr">
-                            <span className="text-emerald-400 font-bold text-xl">${balance.toFixed(2)}</span>
-                            <span className="text-slate-400">{t("availableWalletBalance")}</span>
+                        <div className="dark:bg-[#0B0E14] bg-white p-5 rounded-xl border dark:border-[#2A303C] border-slate-200 shadow-sm flex justify-between items-center mb-6" dir="ltr">
+                            <span className="text-emerald-500 dark:text-emerald-400 font-bold text-xl">${balance.toFixed(2)}</span>
+                            <span className="dark:text-slate-400 text-slate-500 font-medium">{t("availableWalletBalance")}</span>
                         </div>
 
                         <div>
-                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("totalBudgetUsd")}</label>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("totalBudgetUsd")}</label>
                             <input
                                 type="number"
                                 value={formData.budget}
                                 onChange={(e) => setFormData({ ...formData, budget: Number(e.target.value) })}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white text-lg font-bold"
+                                className="w-full dark:bg-[#0B0E14] bg-white border dark:border-[#2A303C] border-slate-200 shadow-sm rounded-xl py-3 px-4 dark:text-white text-slate-900 text-lg font-bold"
                                 dir="ltr"
                             />
                         </div>
 
                         <div>
-                            <label className={`block text-sm font-semibold text-slate-300 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("adDurationDays")}</label>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("adDurationDays")}</label>
                             <input
                                 type="number"
                                 value={formData.duration}
                                 onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
-                                className="w-full bg-[#0B0E14] border border-[#2A303C] rounded-xl py-3 px-4 text-white"
+                                className="w-full dark:bg-[#0B0E14] bg-white border dark:border-[#2A303C] border-slate-200 shadow-sm rounded-xl py-3 px-4 dark:text-white text-slate-900"
                                 dir="ltr"
                             />
                         </div>
 
-                        <div className="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl">
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-500/20 rounded-xl">
                             <div className="flex justify-between text-sm mb-1" dir="ltr">
-                                <span className="text-blue-300">${(formData.budget / formData.duration).toFixed(2)}</span>
-                                <span className="text-blue-200/50">{t("dailySpending")}</span>
+                                <span className="text-blue-600 dark:text-blue-300 font-medium">${(formData.budget / formData.duration).toFixed(2)}</span>
+                                <span className="text-blue-500 dark:text-blue-200/50">{t("dailySpending")}</span>
                             </div>
                             <div className="flex justify-between text-sm" dir="ltr">
-                                <span className={`${balance - formData.budget < 0 ? 'text-red-400' : 'text-blue-300'}`}>${(balance - formData.budget).toFixed(2)}</span>
-                                <span className="text-blue-200/50">{t("remainingBalance")}</span>
+                                <span className={`font-medium ${balance - formData.budget < 0 ? 'text-red-500 dark:text-red-400' : 'text-blue-600 dark:text-blue-300'}`}>${(balance - formData.budget).toFixed(2)}</span>
+                                <span className="text-blue-500 dark:text-blue-200/50">{t("remainingBalance")}</span>
                             </div>
                         </div>
                     </div>
@@ -397,24 +397,24 @@ export default function CreateCampaignWizard() {
             case 5:
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-xl font-bold text-white mb-2">{t("finalReview")}</h3>
+                        <h3 className="text-xl font-bold dark:text-white text-slate-900 mb-2">{t("finalReview")}</h3>
 
-                        <div className="bg-[#0B0E14] border border-[#2A303C] rounded-xl p-5 space-y-4 text-sm">
-                            <div className="flex justify-between border-b border-[#2A303C] pb-2">
-                                <span className="text-white font-medium" dir="ltr">{formData.campaignName}</span>
-                                <span className="text-slate-400">{t("campaignNameLabel")}</span>
+                        <div className="dark:bg-[#0B0E14] bg-white border dark:border-[#2A303C] border-slate-200 shadow-sm rounded-xl p-5 space-y-4 text-sm">
+                            <div className="flex justify-between border-b dark:border-[#2A303C] border-slate-100 pb-2">
+                                <span className="dark:text-white text-slate-900 font-semibold" dir="ltr">{formData.campaignName}</span>
+                                <span className="dark:text-slate-400 text-slate-500">{t("campaignNameLabel")}</span>
                             </div>
-                            <div className="flex justify-between border-b border-[#2A303C] pb-2">
-                                <span className="text-white font-medium">{t(OBJECTIVES.find(o => o.id === formData.objective)?.dictKey as any)}</span>
-                                <span className="text-slate-400">{t("selectedObjective")}</span>
+                            <div className="flex justify-between border-b dark:border-[#2A303C] border-slate-100 pb-2">
+                                <span className="dark:text-white text-slate-900 font-semibold">{t(OBJECTIVES.find(o => o.id === formData.objective)?.dictKey as any)}</span>
+                                <span className="dark:text-slate-400 text-slate-500">{t("selectedObjective")}</span>
                             </div>
                             <div className="flex justify-between pb-2">
-                                <span className="text-white font-medium" dir="ltr">${formData.budget} / {formData.duration} {t("days")}</span>
-                                <span className="text-slate-400">{t("budgetAndDuration")}</span>
+                                <span className="dark:text-white text-slate-900 font-semibold" dir="ltr">${formData.budget} / {formData.duration} {t("days")}</span>
+                                <span className="dark:text-slate-400 text-slate-500">{t("budgetAndDuration")}</span>
                             </div>
                         </div>
 
-                        <div className="p-4 bg-amber-900/10 border border-amber-500/20 rounded-xl text-amber-200/80 text-xs text-center leading-relaxed">
+                        <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-amber-700 dark:text-amber-200/80 text-xs text-center leading-relaxed font-medium">
                             {t("reviewWarning")}
                         </div>
                     </div>
@@ -427,8 +427,8 @@ export default function CreateCampaignWizard() {
     return (
         <div className="max-w-4xl mx-auto" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
             <header className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">{t("createNewAdCampaign")}</h2>
-                <div className="text-slate-400 text-sm">{t("wizardSubtitle")}</div>
+                <h2 className="text-2xl font-bold dark:text-white text-slate-900 mb-2">{t("createNewAdCampaign")}</h2>
+                <div className="dark:text-slate-400 text-slate-500 text-sm font-medium">{t("wizardSubtitle")}</div>
             </header>
 
             {message && (
@@ -437,19 +437,19 @@ export default function CreateCampaignWizard() {
                 </div>
             )}
 
-            <div className="bg-[#151921] rounded-2xl border border-[#2A303C] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[500px]">
+            <div className="dark:bg-[#151921] bg-white rounded-2xl border dark:border-[#2A303C] border-slate-200 shadow-xl overflow-hidden flex flex-col md:flex-row min-h-[500px]">
                 {/* Left Sidebar Steps Indicator */}
-                <div className={`w-full md:w-1/3 bg-[#0E1117] p-6 border-[#2A303C] ${locale === 'ar' ? 'border-l' : 'border-r'}`}>
+                <div className={`w-full md:w-1/3 dark:bg-[#0E1117] bg-slate-50 p-6 dark:border-[#2A303C] border-slate-200 ${locale === 'ar' ? 'border-l' : 'border-r'}`}>
                     <div className="space-y-6">
                         {STEPS.filter(s => !(s.id === 5 && formData.adCreationType === 'EXISTING_POST')).map((step, idx) => {
                             const isActive = currentStep === step.id;
                             const isPast = currentStep > step.id;
                             return (
                                 <div key={step.id} className="flex items-center gap-4">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${isActive ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 ring-2 ring-indigo-500/50 ring-offset-2 ring-offset-[#0E1117]' : isPast ? 'bg-emerald-500/20 text-emerald-400' : 'bg-[#2A303C] text-slate-500'}`}>
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${isActive ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-2 ring-indigo-500/50 ring-offset-2 dark:ring-offset-[#0E1117] ring-offset-slate-50' : isPast ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'dark:bg-[#2A303C] bg-white border border-slate-200 dark:border-transparent dark:text-slate-500 text-slate-400'}`}>
                                         {isPast ? <CheckCircle2 size={16} /> : idx + 1}
                                     </div>
-                                    <span className={`text-sm font-medium transition-colors ${isActive ? 'text-white' : isPast ? 'text-slate-300' : 'text-slate-600'}`}>
+                                    <span className={`text-sm font-medium transition-colors ${isActive ? 'dark:text-white text-slate-900' : isPast ? 'dark:text-slate-300 text-slate-700' : 'dark:text-slate-600 text-slate-400'}`}>
                                         {t(step.dictKey as any)}
                                     </span>
                                 </div>
@@ -459,16 +459,16 @@ export default function CreateCampaignWizard() {
                 </div>
 
                 {/* Right Content Area */}
-                <div className="w-full md:w-2/3 p-8 flex flex-col justify-between">
+                <div className="w-full md:w-2/3 p-8 flex flex-col justify-between dark:bg-[#151921] bg-white">
                     <div>
                         {renderStepContent()}
                     </div>
 
-                    <div className="flex justify-between mt-10 pt-6 border-t border-[#2A303C]">
+                    <div className="flex justify-between mt-10 pt-6 border-t dark:border-[#2A303C] border-slate-100">
                         <button
                             onClick={handleBack}
                             disabled={currentStep === 1 || submitting}
-                            className={`px-6 py-2.5 rounded-xl border border-[#2A303C] text-slate-300 hover:bg-[#2A303C] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 ${locale === 'ar' ? 'flex-row' : 'flex-row-reverse'}`}
+                            className={`px-6 py-2.5 rounded-xl border dark:border-[#2A303C] border-slate-200 dark:text-slate-300 text-slate-600 dark:hover:bg-[#2A303C] hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 ${locale === 'ar' ? 'flex-row' : 'flex-row-reverse'}`}
                         >
                             {t("back")} {locale === 'ar' ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
                         </button>
