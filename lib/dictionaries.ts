@@ -77,7 +77,7 @@ export const dictionaries = {
         logOut: "Log Out",
 
         // Language Switcher
-        switchLang: "عربي",
+        switchLang: "EN language",
 
         // ---------------------------------------------------------
         // New Translations for Dashboard Pages
@@ -411,7 +411,7 @@ export const dictionaries = {
         logOut: "تسجيل الخروج",
 
         // Language Switcher
-        switchLang: "English",
+        switchLang: "EN language",
 
         // ---------------------------------------------------------
         // New Translations for Dashboard Pages
