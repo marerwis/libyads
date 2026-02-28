@@ -57,7 +57,7 @@ export const metaService = {
                 {
                     name: name,
                     objective: objective,
-                    status: 'PAUSED',
+                    status: 'ACTIVE',
                     special_ad_categories: [],
                     is_adset_budget_sharing_enabled: false,
                 }
@@ -165,7 +165,7 @@ export const metaService = {
             promoted_object: { page_id: pageId },
             bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
             targeting: targetingPayload,
-            status: 'PAUSED'
+            status: 'ACTIVE'
         };
 
         // ODAX Engagement campaigns require explicit destination_type
@@ -217,7 +217,7 @@ export const metaService = {
                     name: `Ad for Post ${postId}`,
                     adset_id: adSetId,
                     creative: { creative_id: creative.id },
-                    status: 'PAUSED'
+                    status: 'ACTIVE'
                 }
             );
             return ad.id;
