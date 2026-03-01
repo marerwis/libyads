@@ -28,7 +28,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
                                 <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                             </div>
-                            <span className="font-bold text-xl tracking-tight text-white">{settings?.siteName || 'Libya Ads'}</span>
+                            <span className="font-bold text-xl tracking-tight text-white">Libya Ads</span>
                         </div>
 
                         <div className="hidden md:flex items-center space-x-8 bg-[#151921]/50 px-6 py-2 rounded-full border border-white/5 mx-4">
@@ -41,9 +41,16 @@ export default function HomeClientContent({ settings, page, session }: { setting
                             <ThemeSwitcher compact />
                             <LanguageSwitcher />
 
-                            <Link href="/login" className="px-5 py-2.5 bg-[#1877F2] hover:bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-lg shadow-[#1877F2]/25 transition-all active:scale-95 border border-[#1877F2]/50 inline-flex items-center gap-2">
-                                لوحة التحكم dashboard
-                            </Link>
+                            {session ? (
+                                <Link href="/dashboard" className="px-5 py-2.5 bg-[#1877F2] hover:bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-lg shadow-[#1877F2]/25 transition-all active:scale-95 border border-[#1877F2]/50 inline-flex items-center gap-2">
+                                    لوحة التحكم dashboard
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link href="/login" className="px-5 py-2.5 border border-white/20 hover:bg-white/5 text-slate-800 dark:text-slate-300 hover:text-white text-sm font-semibold rounded-lg transition-all active:scale-95 inline-block text-center">{t("login")}</Link>
+                                    <Link href="/login?tab=register" className="px-5 py-2.5 bg-[#1877F2] hover:bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-lg shadow-[#1877F2]/25 transition-all active:scale-95 border border-[#1877F2]/50 inline-block text-center">{t("register")}</Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -64,7 +71,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
 
                             <h1 className="text-6xl lg:text-8xl font-black tracking-tighter dark:text-white text-slate-900 leading-[1.1] font-sans" dir="ltr">
                                 Welcome to <br />
-                                Libya Ads <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1877F2] to-blue-400">Manager</span>
+                                Libya <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1877F2] to-blue-400">Ads</span>
                             </h1>
 
                             <div className="flex flex-wrap justify-center gap-4 pt-6">
@@ -93,7 +100,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#151921]/20 to-transparent pointer-events-none"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl md:text-5xl font-bold mb-4 dark:text-white text-slate-900">{t("whyChoose")} Libya Ads Manager</h2>
+                            <h2 className="text-3xl md:text-5xl font-bold mb-4 dark:text-white text-slate-900">{t("whyChoose")} Libya Ads</h2>
                         </div>
 
                         <div className="grid md:grid-cols-3 gap-6">
