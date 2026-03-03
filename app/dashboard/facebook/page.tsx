@@ -48,6 +48,37 @@ function FacebookPagesContent() {
         }
     }
 
+    const [requestingPages, setRequestingPages] = useState<Record<string, boolean>>({});
+    const [pageStatus, setPageStatus] = useState<Record<string, string>>({});
+
+    const handleRequestAccess = async (page: any) => {
+        setRequestingPages(prev => ({ ...prev, [page.id]: true }));
+        setMessage(null);
+        try {
+            const res = await fetch("/api/facebook/pages/request", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    pageId: page.id,
+                    pageName: page.name,
+                    pageAccessToken: page.access_token
+                })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                setMessage({ type: "success", text: `Request sent to ${page.name} successfully!` });
+                setPageStatus(prev => ({ ...prev, [page.id]: "PENDING" }));
+            } else {
+                setMessage({ type: "error", text: data.error || "Failed to send request" });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: "Internal Server Error" });
+        } finally {
+            setRequestingPages(prev => ({ ...prev, [page.id]: false }));
+        }
+    };
+
     const handleConnectFacebook = async () => {
         setConnecting(true);
         setMessage(null);
@@ -132,17 +163,31 @@ function FacebookPagesContent() {
                                 {pages.map(page => (
                                     <li key={page.id} className="p-6 flex items-center justify-between dark:hover:bg-[#0B0E14]/50 hover:bg-slate-50 transition-colors">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-inner">
-                                                <Flag size={20} strokeWidth={2.5} />
+                                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-inner overflow-hidden">
+                                                {page.picture?.data?.url ? (
+                                                    <img src={page.picture.data.url} alt={page.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Flag size={20} strokeWidth={2.5} />
+                                                )}
                                             </div>
                                             <div>
-                                                <h4 className="dark:text-white text-slate-900 font-medium">{page.pageName}</h4>
-                                                <p className="dark:text-slate-400 text-slate-500 text-xs mt-0.5">ID: {page.pageId}</p>
+                                                <h4 className="dark:text-white text-slate-900 font-medium">{page.name}</h4>
+                                                <p className="dark:text-slate-400 text-slate-500 text-xs mt-0.5">ID: {page.id}</p>
                                             </div>
                                         </div>
-                                        <span className="px-3 py-1 rounded-full dark:bg-emerald-900/30 bg-emerald-50 dark:text-emerald-400 text-emerald-600 text-xs font-medium border dark:border-emerald-900/50 border-emerald-200">
-                                            Connected
-                                        </span>
+                                        {pageStatus[page.id] === "PENDING" ? (
+                                            <span className="px-3 py-1.5 rounded-lg dark:bg-amber-900/30 bg-amber-50 dark:text-amber-400 text-amber-600 text-xs font-medium border dark:border-amber-900/50 border-amber-200">
+                                                Request Sent
+                                            </span>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleRequestAccess(page)}
+                                                disabled={requestingPages[page.id]}
+                                                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium transition-colors"
+                                            >
+                                                {requestingPages[page.id] ? "Sending..." : "Request Access"}
+                                            </button>
+                                        )}
                                     </li>
                                 ))}
                             </ul>
