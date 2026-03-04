@@ -64,7 +64,7 @@ export default function DashboardLayout({
         <div className="flex h-screen overflow-hidden dark:bg-[#0a0a0b] bg-slate-50 dark:text-slate-200 text-slate-800 font-sans antialiased selection:bg-[#1877F2]/30 transition-colors duration-300">
 
             {/* Mobile Top Bar */}
-            <div className="md:hidden flex items-center justify-between p-4 border-b dark:border-slate-800/60 border-slate-200 dark:bg-[#0a0a0b] bg-white z-40 fixed top-0 left-0 right-0 h-16 transition-colors duration-300">
+            <div className="md:hidden flex items-center justify-between px-4 pt-10 pb-4 border-b dark:border-slate-800/60 border-slate-200 dark:bg-[#0a0a0b] bg-white z-40 fixed top-0 left-0 right-0 transition-colors duration-300">
                 <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-sm border border-white/10">
                         <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
@@ -91,7 +91,7 @@ export default function DashboardLayout({
             <aside className={`fixed md:static inset-y-0 ${sidebarPosition} z-50 w-64 flex-shrink-0 flex flex-col justify-between dark:bg-[#0a0a0b] bg-white border-x dark:border-slate-800/60 border-slate-200 transition-all duration-300 ease-in-out transform ${sidebarTransform}`}>
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
                     {/* Logo Section */}
-                    <div className="h-16 md:h-20 flex items-center justify-between px-6 border-b dark:border-slate-800/60 border-slate-200 transition-colors duration-300">
+                    <div className="pt-8 pb-3 min-h-[5.5rem] md:pt-0 md:min-h-20 flex items-center justify-between px-6 border-b dark:border-slate-800/60 border-slate-200 transition-colors duration-300">
                         <Link href="/" className="flex items-center gap-3 group">
                             <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300 border border-white/10">
                                 <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
@@ -178,9 +178,9 @@ export default function DashboardLayout({
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto dark:bg-[#0a0a0b] bg-slate-50 relative pt-16 md:pt-0 w-full transition-colors duration-300">
-                <div className="absolute inset-0 bg-gradient-to-b dark:from-blue-900/5 from-blue-100/50 to-transparent pointer-events-none mt-16 md:mt-0 transition-colors duration-300" />
-                <div className="p-4 md:p-8 relative z-10 m-3 md:m-4 dark:bg-[#0e0e11] bg-white rounded-2xl border dark:border-slate-800/60 border-slate-200 shadow-xl min-h-[calc(100vh-5.5rem)] md:min-h-[calc(100vh-2rem)] overflow-x-hidden transition-colors duration-300">
+            <main className="flex-1 overflow-y-auto dark:bg-[#0a0a0b] bg-slate-50 relative pt-24 md:pt-0 w-full transition-colors duration-300">
+                <div className="absolute inset-0 bg-gradient-to-b dark:from-blue-900/5 from-blue-100/50 to-transparent pointer-events-none mt-24 md:mt-0 transition-colors duration-300" />
+                <div className="p-4 md:p-8 relative z-10 m-3 md:m-4 dark:bg-[#0e0e11] bg-white rounded-2xl border dark:border-slate-800/60 border-slate-200 shadow-xl min-h-[calc(100vh-6rem)] md:min-h-[calc(100vh-2rem)] overflow-x-hidden transition-colors duration-300">
                     {children}
                 </div>
             </main>
