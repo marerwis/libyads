@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Libya Ads',
   webDir: 'public',
   server: {
-    url: 'https://intag-six.vercel.app', // Update this if your Vercel URL is different
+    url: 'https://libyads.vercel.app', // Official project domain
     cleartext: true
   }
 };
