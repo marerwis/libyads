@@ -96,35 +96,35 @@ export default function HomeClientContent({ settings, page, session }: { setting
                 </section>
 
                 {/* Features */}
-                <section id="features" className="py-24 relative">
+                <section id="features" className="py-16 md:py-24 relative">
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#151921]/20 to-transparent pointer-events-none"></div>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                        <div className="text-center max-w-3xl mx-auto mb-16">
+                        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
                             <h2 className="text-3xl md:text-5xl font-bold mb-4 dark:text-white text-slate-900">{t("whyChoose")} Libya Ads</h2>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-6">
-                            <div className="group p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
-                                    <Settings2 size={32} />
+                        <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+                            <div className="group p-6 md:p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
+                                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
+                                    <Settings2 className="w-6 h-6 md:w-8 md:h-8" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("centralizedManagement")}</h3>
+                                <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("centralizedManagement")}</h3>
                                 <p className="dark:text-slate-400 text-slate-600 leading-relaxed text-sm">{t("centralizedDesc")}</p>
                             </div>
 
-                            <div className="group p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
-                                    <CreditCard size={32} />
+                            <div className="group p-6 md:p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
+                                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
+                                    <CreditCard className="w-6 h-6 md:w-8 md:h-8" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("unifiedBilling")}</h3>
+                                <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("unifiedBilling")}</h3>
                                 <p className="dark:text-slate-400 text-slate-600 leading-relaxed text-sm">{t("unifiedBillingDesc")}</p>
                             </div>
 
-                            <div className="group p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
-                                    <Rocket size={32} />
+                            <div className="group p-6 md:p-8 rounded-2xl dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 hover:shadow-[0_0_0_1px_rgba(24,119,242,0.3),_0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-300">
+                                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-[#1877F2]/20 to-transparent flex items-center justify-center text-[#1877F2] mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-300 border border-[#1877F2]/10">
+                                    <Rocket className="w-6 h-6 md:w-8 md:h-8" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("aiAutomation")}</h3>
+                                <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 dark:text-white text-slate-900 group-hover:text-[#1877F2] transition-colors">{t("aiAutomation")}</h3>
                                 <p className="dark:text-slate-400 text-slate-600 leading-relaxed text-sm">{t("aiAutomationDesc")}</p>
                             </div>
                         </div>

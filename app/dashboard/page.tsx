@@ -37,48 +37,46 @@ export default async function Dashboard() {
                 <p className="dark:text-slate-400 text-slate-500 text-sm mt-1">{t("welcomeBack")}, {user?.name || user?.email}</p>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" dir="ltr">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8" dir="ltr">
                 {/* Stats cards usually stay LTR to keep numbers reading naturally, but flex containers wrap well */}
-                <div className="dark:bg-[#151921] bg-white p-5 rounded-xl border dark:border-[#2A303C] border-slate-200 shadow-sm hover:border-[#1877F2]/50 dark:hover:border-[#1877F2]/50 transition-colors group cursor-pointer text-left">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500">
-                                <Coins size={22} strokeWidth={2.5} />
-                            </div>
-                            <span className="text-sm font-medium dark:text-slate-400 text-slate-500 dark:group-hover:text-slate-200 group-hover:text-slate-800 transition-colors">{t("walletBalance")}</span>
-                        </div>
+                <div className="dark:bg-[#151921] bg-white p-4 md:p-5 rounded-2xl border dark:border-[#2A303C] border-slate-200 shadow-sm hover:border-[#1877F2]/50 dark:hover:border-[#1877F2]/50 transition-colors group cursor-pointer text-left flex items-center justify-between">
+                    <div>
+                        <span className="text-xs md:text-sm font-medium dark:text-slate-400 text-slate-500 dark:group-hover:text-slate-300 transition-colors">{t("walletBalance")}</span>
+                        <div className="text-xl md:text-2xl font-bold dark:text-white text-slate-900 mt-0.5">${balance.toFixed(2)}</div>
                     </div>
-                    <div className="text-2xl font-bold dark:text-white text-slate-900">${balance.toFixed(2)}</div>
+                    <div className="p-2 md:p-2.5 rounded-xl bg-blue-500/10 text-blue-500 group-hover:scale-110 transition-transform duration-300">
+                        <Coins size={20} strokeWidth={2.5} className="md:w-[22px] md:h-[22px]" />
+                    </div>
                 </div>
 
-                <div className="dark:bg-[#151921] bg-white p-5 rounded-xl border dark:border-[#2A303C] border-slate-200 shadow-sm text-left">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500">
-                            <Layers size={22} strokeWidth={2.5} />
-                        </div>
-                        <span className="text-sm font-medium dark:text-slate-400 text-slate-500">{t("totalCampaigns")}</span>
+                <div className="dark:bg-[#151921] bg-white p-4 md:p-5 rounded-2xl border dark:border-[#2A303C] border-slate-200 shadow-sm hover:border-indigo-500/50 dark:hover:border-indigo-500/50 transition-colors group text-left flex items-center justify-between">
+                    <div>
+                        <span className="text-xs md:text-sm font-medium dark:text-slate-400 text-slate-500 dark:group-hover:text-slate-300 transition-colors">{t("totalCampaigns")}</span>
+                        <div className="text-xl md:text-2xl font-bold dark:text-white text-slate-900 mt-0.5">{totalCampaigns}</div>
                     </div>
-                    <div className="text-2xl font-bold dark:text-white text-slate-900">{totalCampaigns}</div>
+                    <div className="p-2 md:p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 group-hover:scale-110 transition-transform duration-300">
+                        <Layers size={20} strokeWidth={2.5} className="md:w-[22px] md:h-[22px]" />
+                    </div>
                 </div>
 
-                <div className="dark:bg-[#151921] bg-white p-5 rounded-xl border dark:border-[#2A303C] border-slate-200 shadow-sm text-left">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 rounded-xl bg-sky-500/10 text-sky-500">
-                            <Play size={22} strokeWidth={2.5} />
-                        </div>
-                        <span className="text-sm font-medium dark:text-slate-400 text-slate-500">{t("activeCampaigns")}</span>
+                <div className="dark:bg-[#151921] bg-white p-4 md:p-5 rounded-2xl border dark:border-[#2A303C] border-slate-200 shadow-sm hover:border-sky-500/50 dark:hover:border-sky-500/50 transition-colors group text-left flex items-center justify-between">
+                    <div>
+                        <span className="text-xs md:text-sm font-medium dark:text-slate-400 text-slate-500 dark:group-hover:text-slate-300 transition-colors">{t("activeCampaigns")}</span>
+                        <div className="text-xl md:text-2xl font-bold dark:text-white text-slate-900 mt-0.5">{activeCampaigns}</div>
                     </div>
-                    <div className="text-2xl font-bold dark:text-white text-slate-900">{activeCampaigns}</div>
+                    <div className="p-2 md:p-2.5 rounded-xl bg-sky-500/10 text-sky-500 group-hover:scale-110 transition-transform duration-300">
+                        <Play size={20} strokeWidth={2.5} className="md:w-[22px] md:h-[22px]" />
+                    </div>
                 </div>
 
-                <div className="dark:bg-[#151921] bg-white p-5 rounded-xl shadow-sm hidden lg:block lg:col-span-4 xl:col-span-1 border dark:border-emerald-900/30 border-emerald-500/30 text-left">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500">
-                            <CreditCard size={22} strokeWidth={2.5} />
-                        </div>
-                        <span className="text-sm font-medium dark:text-slate-400 text-slate-500">{t("totalSpent")}</span>
+                <div className="dark:bg-[#151921] bg-white p-4 md:p-5 rounded-2xl shadow-sm hidden lg:flex lg:col-span-4 xl:col-span-1 border dark:border-emerald-900/30 border-emerald-500/30 text-left items-center justify-between group hover:border-emerald-500/50 transition-colors">
+                    <div>
+                        <span className="text-xs md:text-sm font-medium dark:text-slate-400 text-slate-500 dark:group-hover:text-slate-300 transition-colors">{t("totalSpent")}</span>
+                        <div className="text-xl md:text-2xl font-bold dark:text-white text-slate-900 mt-0.5">${totalSpent.toFixed(2)}</div>
                     </div>
-                    <div className="text-2xl font-bold dark:text-white text-slate-900">${totalSpent.toFixed(2)}</div>
+                    <div className="p-2 md:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform duration-300">
+                        <CreditCard size={20} strokeWidth={2.5} className="md:w-[22px] md:h-[22px]" />
+                    </div>
                 </div>
             </div>
 
