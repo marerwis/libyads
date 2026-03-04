@@ -7,6 +7,8 @@ import Link from "next/link";
 import { Inter } from "next/font/google";
 import { Facebook, LogOut, CheckCircle, Smartphone, Globe, Shield, Activity } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -81,7 +83,13 @@ export default function LoginPage() {
     };
 
     return (
-        <div className={`min-h-screen bg-[#0B0E14] font-sans text-slate-300 antialiased selection:bg-[#1877F2]/30 selection:text-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-[radial-gradient(circle_at_50%_0%,rgba(24,119,242,0.08)_0%,transparent_60%)] ${inter.className}`}>
+        <div className={`min-h-screen relative bg-[#0B0E14] font-sans text-slate-300 antialiased selection:bg-[#1877F2]/30 selection:text-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-[radial-gradient(circle_at_50%_0%,rgba(24,119,242,0.08)_0%,transparent_60%)] ${inter.className}`}>
+
+            {/* Language and Theme Switchers */}
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2 z-50">
+                <ThemeSwitcher compact />
+                <LanguageSwitcher />
+            </div>
 
             <div className="sm:mx-auto sm:w-full sm:max-w-md text-center group">
                 <Link href="/" className="inline-flex items-center gap-3 justify-center">
