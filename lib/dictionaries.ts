@@ -79,6 +79,26 @@ export const dictionaries = {
         // Language Switcher
         switchLang: "EN language",
 
+        // Auth Pages
+        signInToAccount: "Sign in to your account",
+        createAccountTitle: "Create your account",
+        orUser: "Or",
+        startFreeTrial: "start your free trial today",
+        signInInstead: "sign in to your existing account",
+        continueWithGoogle: "Continue with Google",
+        orContinueWithEmail: "Or continue with",
+        fullNameLabel: "Full Name",
+        emailAddressLabel: "Email address",
+        passwordLabel: "Password",
+        forgotPassword: "Forgot your password?",
+        signInBtn: "Sign in",
+        createAccountBtn: "Create Account",
+        invalidCredentials: "Invalid email or password",
+        registrationFailed: "Registration failed",
+        genericAuthError: "An error occurred. Please try again.",
+        namePlaceholder: "John Doe",
+        emailPlaceholder: "name@company.com",
+
         // ---------------------------------------------------------
         // New Translations for Dashboard Pages
         // ---------------------------------------------------------
@@ -412,6 +432,26 @@ export const dictionaries = {
 
         // Language Switcher
         switchLang: "EN language",
+
+        // Auth Pages
+        signInToAccount: "تسجيل الدخول إلى حسابك",
+        createAccountTitle: "إنشاء حساب جديد",
+        orUser: "أو",
+        startFreeTrial: "ابدأ تجربتك المجانية اليوم",
+        signInInstead: "تسجيل الدخول لحسابك الحالي",
+        continueWithGoogle: "المتابعة باستخدام جوجل",
+        orContinueWithEmail: "أو المتابعة عبر البريد",
+        fullNameLabel: "الاسم الكامل",
+        emailAddressLabel: "البريد الإلكتروني",
+        passwordLabel: "كلمة المرور",
+        forgotPassword: "هل نسيت كلمة المرور؟",
+        signInBtn: "تسجيل الدخول",
+        createAccountBtn: "إنشاء الحساب",
+        invalidCredentials: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+        registrationFailed: "فشل والتسجيل",
+        genericAuthError: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+        namePlaceholder: "الاسم الكامل",
+        emailPlaceholder: "name@company.com",
 
         // ---------------------------------------------------------
         // New Translations for Dashboard Pages
