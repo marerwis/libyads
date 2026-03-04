@@ -64,19 +64,29 @@ export default function DashboardLayout({
         <div className="flex h-screen overflow-hidden dark:bg-[#0a0a0b] bg-slate-50 dark:text-slate-200 text-slate-800 font-sans antialiased selection:bg-[#1877F2]/30 transition-colors duration-300">
 
             {/* Mobile Top Bar */}
-            <div className="md:hidden flex items-center justify-between px-4 pt-10 pb-4 border-b dark:border-slate-800/60 border-slate-200 dark:bg-[#0a0a0b] bg-white z-40 fixed top-0 left-0 right-0 transition-colors duration-300">
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-sm border border-white/10">
+            <div className="md:hidden flex flex-col px-4 pt-[max(env(safe-area-inset-top),56px)] pb-3 border-b dark:border-slate-800/60 border-slate-200 dark:bg-[#0a0a0b] bg-white z-40 fixed top-0 left-0 right-0 transition-colors duration-300 shadow-sm">
+
+                {/* Row 1: Brand & Logo (Centered) */}
+                <div className="flex items-center justify-center gap-3 pb-3 border-b dark:border-slate-800/40 border-slate-200/50">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-lg shadow-blue-500/20 border border-white/10">
                         <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                     </div>
                     <h1 className="font-bold text-sm tracking-tight dark:text-slate-100 text-slate-900" dir="ltr">Libya Ads</h1>
                 </div>
-                <button
-                    onClick={() => setIsMobileMenuOpen(true)}
-                    className="p-2 dark:text-slate-400 text-slate-500 hover:text-[#1877F2] transition-colors"
-                >
-                    <Menu size={24} />
-                </button>
+
+                {/* Row 2: Icons & Menu */}
+                <div className="flex items-center justify-between pt-3">
+                    <div className="flex items-center gap-2">
+                        <ThemeSwitcher compact />
+                        <LanguageSwitcher />
+                    </div>
+                    <button
+                        onClick={() => setIsMobileMenuOpen(true)}
+                        className="p-2 -mr-2 dark:text-slate-400 text-slate-500 hover:text-[#1877F2] transition-colors bg-slate-100 dark:bg-slate-800/50 rounded-xl"
+                    >
+                        <Menu size={22} />
+                    </button>
+                </div>
             </div>
 
             {/* Mobile Overlay */}
@@ -171,16 +181,18 @@ export default function DashboardLayout({
 
                 {/* Footer / Profile */}
                 <div className="p-4 border-t dark:border-slate-800/60 border-slate-200 dark:bg-slate-900/20 bg-slate-50 flex flex-col gap-4 transition-colors duration-300">
-                    <ThemeSwitcher />
-                    <LanguageSwitcher />
+                    <div className="hidden md:flex md:flex-col md:gap-4">
+                        <ThemeSwitcher />
+                        <LanguageSwitcher />
+                    </div>
                     <LogoutButton />
                 </div>
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto dark:bg-[#0a0a0b] bg-slate-50 relative pt-24 md:pt-0 w-full transition-colors duration-300">
-                <div className="absolute inset-0 bg-gradient-to-b dark:from-blue-900/5 from-blue-100/50 to-transparent pointer-events-none mt-24 md:mt-0 transition-colors duration-300" />
-                <div className="p-4 md:p-8 relative z-10 m-3 md:m-4 dark:bg-[#0e0e11] bg-white rounded-2xl border dark:border-slate-800/60 border-slate-200 shadow-xl min-h-[calc(100vh-6rem)] md:min-h-[calc(100vh-2rem)] overflow-x-hidden transition-colors duration-300">
+            <main className="flex-1 overflow-y-auto dark:bg-[#0a0a0b] bg-slate-50 relative pt-36 md:pt-0 w-full transition-colors duration-300">
+                <div className="absolute inset-0 bg-gradient-to-b dark:from-blue-900/5 from-blue-100/50 to-transparent pointer-events-none mt-36 md:mt-0 transition-colors duration-300" />
+                <div className="p-4 md:p-8 relative z-10 m-3 md:m-4 dark:bg-[#0e0e11] bg-white rounded-2xl border dark:border-slate-800/60 border-slate-200 shadow-xl min-h-[calc(100vh-8rem)] md:min-h-[calc(100vh-2rem)] overflow-x-hidden transition-colors duration-300">
                     {children}
                 </div>
             </main>
