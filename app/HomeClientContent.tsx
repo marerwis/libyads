@@ -1,13 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
     BarChart3,
     ArrowRight,
     LayoutDashboard,
     Settings2,
     CreditCard,
-    Rocket
+    Rocket,
+    Menu,
+    X
 } from "lucide-react";
 import Link from "next/link";
 import { PortableText } from "@portabletext/react";
@@ -17,13 +19,15 @@ import ThemeSwitcher from "@/components/ThemeSwitcher";
 
 export default function HomeClientContent({ settings, page, session }: { settings: any, page: any, session: any }) {
     const { t } = useLanguage();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
         <>
             {/* Navigation */}
             <nav className="fixed top-0 w-full z-50 bg-[#0B0E14]/85 backdrop-blur-md border-b border-white/5 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-20">
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex justify-between items-center h-20">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
                                 <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
@@ -31,7 +35,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                             <span className="font-bold text-xl tracking-tight text-white">Libya Ads</span>
                         </div>
 
-                        <div className="hidden md:flex items-center space-x-8 bg-[#151921]/50 px-6 py-2 rounded-full border border-white/5 mx-4">
+                        <div className="flex items-center space-x-8 bg-[#151921]/50 px-6 py-2 rounded-full border border-white/5 mx-4">
                             <Link href="#features" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">{t("features")}</Link>
                             <Link href="#how-it-works" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">{t("howItWorks")}</Link>
                             <Link href="#pricing" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">{t("pricing")}</Link>
@@ -53,8 +57,59 @@ export default function HomeClientContent({ settings, page, session }: { setting
                             )}
                         </div>
                     </div>
+
+                    {/* Mobile Navigation Bar */}
+                    <div className="md:hidden flex flex-col pt-3 pb-3">
+                        {/* Row 1: Brand & Logo (Centered) */}
+                        <div className="flex items-center justify-center gap-3 pb-3 border-b border-white/10">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
+                                <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
+                            </div>
+                            <span className="font-bold text-sm tracking-tight text-white">Libya Ads</span>
+                        </div>
+
+                        {/* Row 2: Icons & Menu button */}
+                        <div className="flex items-center justify-between pt-3">
+                            <div className="flex items-center gap-2">
+                                <ThemeSwitcher compact />
+                                <LanguageSwitcher />
+                            </div>
+
+                            <button
+                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                className="p-2 -mr-2 text-slate-400 hover:text-[#1877F2] transition-colors bg-white/5 rounded-xl"
+                            >
+                                {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
+                {/* Mobile Dropdown Menu Overview */}
+                {isMobileMenuOpen && (
+                    <div className="md:hidden absolute top-full left-0 w-full bg-[#0B0E14] border-b border-white/10 shadow-xl py-4 px-4 flex flex-col gap-4">
+                        <div className="flex flex-col gap-3 pb-4 border-b border-white/5">
+                            <Link onClick={() => setIsMobileMenuOpen(false)} href="#features" className="text-base font-medium text-slate-300 hover:text-white transition-colors px-2">{t("features")}</Link>
+                            <Link onClick={() => setIsMobileMenuOpen(false)} href="#how-it-works" className="text-base font-medium text-slate-300 hover:text-white transition-colors px-2">{t("howItWorks")}</Link>
+                            <Link onClick={() => setIsMobileMenuOpen(false)} href="#pricing" className="text-base font-medium text-slate-300 hover:text-white transition-colors px-2">{t("pricing")}</Link>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            {session ? (
+                                <Link onClick={() => setIsMobileMenuOpen(false)} href="/dashboard" className="px-5 py-3 text-center bg-[#1877F2] hover:bg-blue-600 text-white text-base font-semibold rounded-lg shadow-lg shadow-[#1877F2]/25 transition-all border border-[#1877F2]/50">
+                                    لوحة التحكم dashboard
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/login" className="px-5 py-3 text-center border border-white/20 hover:bg-white/5 text-slate-300 hover:text-white text-base font-semibold rounded-lg transition-all">{t("login")}</Link>
+                                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/login?tab=register" className="px-5 py-3 text-center bg-[#1877F2] hover:bg-blue-600 text-white text-base font-semibold rounded-lg shadow-lg shadow-[#1877F2]/25 transition-all border border-[#1877F2]/50">{t("register")}</Link>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
             </nav>
+
 
             <main>
                 {/* Hero Section */}
