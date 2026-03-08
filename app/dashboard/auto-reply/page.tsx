@@ -45,7 +45,7 @@ export default function SetupAutoReply() {
                 if (Array.isArray(pagesData)) {
                     setPages(pagesData);
                     if (pagesData.length > 0) {
-                        setFormData(prev => ({ ...prev, pageId: pagesData[0].pageId }));
+                        setFormData(prev => ({ ...prev, pageId: pagesData[0].id }));
                     }
                 }
             } catch (error) {
@@ -169,7 +169,7 @@ export default function SetupAutoReply() {
                                 className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
                             >
                                 {pages.length === 0 && <option value="" disabled>{t("noPagesLinked" as any)}</option>}
-                                {pages.map(p => <option key={p.id} value={p.pageId}>{p.pageName}</option>)}
+                                {pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
 
