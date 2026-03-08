@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
-import { MessageSquareShare, Trash2, Power, PowerOff, Settings, AlertCircle, Calendar } from "lucide-react";
+import { MessageSquareShare, Trash2, Power, PowerOff, Settings, AlertCircle, Calendar, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ar, enUS } from 'date-fns/locale';
@@ -145,7 +145,12 @@ export default function ManageAutoReplies() {
                                     <div className="font-semibold text-sm text-slate-800 dark:text-slate-200" dir="ltr">{rule.pageId}</div>
                                 </div>
                                 <div>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 block mb-1">{t("targetPost" as any)}</span>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xs text-slate-500 dark:text-slate-400">{t("targetPost" as any)}</span>
+                                        <a href={`https://facebook.com/${rule.pageId}/posts/${rule.postId}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors" title="View on Facebook">
+                                            <ExternalLink size={14} />
+                                        </a>
+                                    </div>
                                     <div className="font-mono text-xs p-1.5 bg-slate-50 dark:bg-[#0B0E14] border border-slate-100 dark:border-[#2A303C] rounded break-all text-slate-600 dark:text-slate-300" dir="ltr">{rule.postId}</div>
                                 </div>
                                 <div>
@@ -170,13 +175,22 @@ export default function ManageAutoReplies() {
 
                             <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-[#2A303C] mt-auto">
                                 <button
-                                    onClick={() => toggleRuleStatus(rule.id, rule.isActive)}
-                                    disabled={actionLoading === rule.id}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors border ${rule.isActive
-                                        ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 dark:hover:bg-amber-500/20'
-                                        : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:bg-emerald-500/20'}`}
+                                    onClick={() => toggleRuleStatus(rule.id, true)}
+                                    disabled={actionLoading === rule.id || !rule.isActive}
+                                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors border ${rule.isActive
+                                        ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 dark:hover:bg-amber-500/20 cursor-pointer'
+                                        : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-800/30 dark:border-slate-800 dark:text-slate-600 cursor-not-allowed'}`}
                                 >
-                                    {rule.isActive ? <><PowerOff size={16} /> {t("pauseRule" as any)}</> : <><Power size={16} /> {t("resumeRule" as any)}</>}
+                                    <PowerOff size={16} /> {t("pauseRule" as any)}
+                                </button>
+                                <button
+                                    onClick={() => toggleRuleStatus(rule.id, false)}
+                                    disabled={actionLoading === rule.id || rule.isActive}
+                                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors border ${!rule.isActive
+                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:bg-emerald-500/20 cursor-pointer'
+                                        : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-800/30 dark:border-slate-800 dark:text-slate-600 cursor-not-allowed'}`}
+                                >
+                                    <Power size={16} /> {t("resumeRule" as any)}
                                 </button>
                                 <button
                                     onClick={() => deleteRule(rule.id)}
