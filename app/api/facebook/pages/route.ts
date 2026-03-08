@@ -3,32 +3,40 @@ import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const account = await prisma.account.findFirst({
-            where: {
-                userId: session.user.id,
-                provider: "facebook"
-            }
+        const user = await prisma.user.findUnique({
+            where: { email: session.user.email }
         });
 
-        if (!account || !account.access_token) {
-            return NextResponse.json({ error: "No Facebook account linked" }, { status: 400 });
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const fbResponse = await fetch(`https://graph.facebook.com/v19.0/me/accounts?access_token=${account.access_token}`);
-        const fbData = await fbResponse.json();
+        const localPages = await prisma.facebookPage.findMany({
+            where: { userId: user.id }
+        });
 
-        if (fbData.error) {
-            return NextResponse.json({ error: fbData.error.message }, { status: 400 });
+        if (localPages.length === 0) {
+            return NextResponse.json([]);
         }
 
-        return NextResponse.json(fbData.data);
+        const mappedPages = localPages.map(p => ({
+            id: p.pageId,
+            name: p.pageName,
+            access_token: p.pageAccessToken,
+            pageId: p.pageId,
+            pageName: p.pageName
+        }));
+
+        return NextResponse.json(mappedPages);
     } catch (error) {
         console.error("Failed to fetch Facebook pages:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
