@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircleReply, Users, Save, AlertCircle, DollarSign } from "lucide-react";
+import { MessageCircleReply, Users, Save, AlertCircle, DollarSign, Settings } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import Link from "next/link";
 
 export default function SetupAutoReply() {
     const router = useRouter();
@@ -129,19 +130,29 @@ export default function SetupAutoReply() {
 
     return (
         <div className="max-w-4xl mx-auto transition-colors duration-300 min-h-[500px]" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-            <header className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-indigo-100 dark:bg-indigo-500/20 rounded-lg">
-                        <MessageCircleReply className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            <header className="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div>
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-500/20 rounded-lg">
+                            <MessageCircleReply className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <h2 className="text-2xl md:text-3xl font-bold dark:text-white text-slate-900 tracking-tight">{t("setupAutoReply" as any)}</h2>
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-bold dark:text-white text-slate-900 tracking-tight">{t("setupAutoReply" as any)}</h2>
-                </div>
-                <p className="dark:text-slate-400 text-slate-500 text-sm md:text-base">{t("setupAutoReplyDesc" as any)}</p>
+                    <p className="dark:text-slate-400 text-slate-500 text-sm md:text-base">{t("setupAutoReplyDesc" as any)}</p>
 
-                <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-full text-indigo-700 dark:text-indigo-300 text-sm font-medium">
-                    <DollarSign size={16} />
-                    {t("costPerReply" as any)} ${sysConfig.autoReplyPrice}
+                    <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-full text-indigo-700 dark:text-indigo-300 text-sm font-medium">
+                        <DollarSign size={16} />
+                        {t("costPerReply" as any)} ${sysConfig.autoReplyPrice}
+                    </div>
                 </div>
+
+                <Link
+                    href="/dashboard/auto-reply/manage"
+                    className="px-6 py-2.5 bg-white dark:bg-[#151921] border border-slate-200 dark:border-[#2A303C] hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300 font-medium rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 shrink-0"
+                >
+                    <Settings size={18} />
+                    {locale === 'ar' ? 'إدارة الردود الحالية' : 'Manage Existing Rules'}
+                </Link>
             </header>
 
             {message && (
