@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: "Advanced Ad Creation and Management Platform",
   openGraph: {
     type: "website",
-    url: "https://intag.vercel.app",
+    url: "https://www.libyads.com",
     title: "Libya Ads",
     description: "Advanced Ad Creation and Management Platform",
     siteName: "Libya Ads",

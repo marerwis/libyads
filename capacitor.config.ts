@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Libya Ads',
   webDir: 'public',
   server: {
-    url: 'https://libyads.vercel.app', // Official project domain
+    url: 'https://www.libyads.com', // Official project domain
     cleartext: true,
     allowNavigation: [
       "accounts.google.com",
