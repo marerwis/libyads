@@ -3,8 +3,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
         if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,7 +23,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
         // Verify ownership before updating
         const rule = await prisma.autoReplyRule.findUnique({
-            where: { id: params.id }
+            where: { id }
         });
 
         if (!rule || rule.userId !== user.id) {
@@ -30,7 +31,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         }
 
         const updatedRule = await prisma.autoReplyRule.update({
-            where: { id: params.id },
+            where: { id },
             data: { isActive: Boolean(isActive) }
         });
 
@@ -42,8 +43,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
         if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -59,7 +61,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
         // Verify ownership before deleting
         const rule = await prisma.autoReplyRule.findUnique({
-            where: { id: params.id }
+            where: { id }
         });
 
         if (!rule || rule.userId !== user.id) {
@@ -67,7 +69,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
         }
 
         await prisma.autoReplyRule.delete({
-            where: { id: params.id }
+            where: { id }
         });
 
         return NextResponse.json({ message: "Rule deleted successfully" });

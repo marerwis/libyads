@@ -128,8 +128,8 @@ export default function ManageAutoReplies() {
 
                             <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <div className={`text-xs font-semibold px-2 py-1 rounded inline-flex items-center gap-1 ${rule.isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${rule.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                                    <div className={`text-xs font-semibold px-2 py-1 rounded inline-flex items-center gap-1 ${rule.isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${rule.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
                                         {rule.isActive ? t("active" as any) : t("paused" as any)}
                                     </div>
                                 </div>
