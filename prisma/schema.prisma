@@ -35,6 +35,7 @@ model User {
   metaSettings        MetaSetting?
   accounts            Account[]
   sessions            Session[]
+  autoReplyRules      AutoReplyRule[]
 }
 
 // -------------------------------------------------------------
@@ -173,4 +174,36 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// -------------------------------------------------------------
+// AUTO-REPLY MODULE
+// -------------------------------------------------------------
+
+model AutoReplyRule {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageId           String   // Facebook Page ID
+  postId           String   // Facebook Post ID
+  replyText        String   // The content of the reply
+  includeName      Boolean  @default(true) // Whether to prepend the user's name
+  keywords         String?  // Optional: comma separated keywords to trigger the reply
+  isActive         Boolean  @default(true)
+  repliesSentCount Int      @default(0) // Analytics: How many times it replied
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// -------------------------------------------------------------
+// SYSTEM SETTINGS (ADMIN)
+// -------------------------------------------------------------
+
+model SystemSetting {
+  id                  String   @id @default(cuid())
+  autoReplyPrice      Float    @default(0.00) // Price per reply
+  autoReplyEnabled    Boolean  @default(true) // Global toggle
+  
+  updatedAt           DateTime @updatedAt
 }

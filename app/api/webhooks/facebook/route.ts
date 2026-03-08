@@ -1,0 +1,156 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+// Use a secure token that should be matched in Facebook App Settings
+const VERIFY_TOKEN = process.env.FACEBOOK_WEBHOOK_VERIFY_TOKEN || "libyads_webhook_verify_secure_123";
+
+export async function GET(req: Request) {
+    const url = new URL(req.url);
+    const mode = url.searchParams.get("hub.mode");
+    const token = url.searchParams.get("hub.verify_token");
+    const challenge = url.searchParams.get("hub.challenge");
+
+    // Check if a request is from Facebook
+    if (mode && token) {
+        if (mode === "subscribe" && token === VERIFY_TOKEN) {
+            console.log("WEBHOOK_VERIFIED");
+            return new NextResponse(challenge, { status: 200 });
+        } else {
+            return new NextResponse("Forbidden", { status: 403 });
+        }
+    }
+
+    // For direct browser access or health check
+    return new NextResponse("Webhook is running. Please configure in Facebook App Settings.", { status: 200 });
+}
+
+export async function POST(req: Request) {
+    try {
+        const body = await req.json();
+
+        // Check if this is an event from a page subscription
+        if (body.object === "page") {
+            // Iterate over each entry (there may be multiple if batched)
+            for (const entry of body.entry) {
+                const pageId = entry.id;
+
+                // Iterate over each messaging/changes event
+                for (const change of entry.changes || []) {
+                    if (change.field === "feed") {
+                        const value = change.value;
+
+                        // We only care about new comments
+                        if (value.item === "comment" && value.verb === "add") {
+                            const postId = value.post_id;
+                            const commentId = value.comment_id;
+                            const message = value.message?.toLowerCase() || "";
+
+                            // Prevent crashing if 'from' is missing
+                            if (!value.from) continue;
+
+                            const senderId = value.from.id;
+                            const senderName = value.from.name;
+
+                            // Prevent infinite loops (don't reply to our own replies)
+                            if (senderId === pageId) continue;
+
+                            // Extract just the raw post ID (it usually comes as pageId_postId)
+                            const extractedPostId = postId.includes('_') ? postId.split('_')[1] : postId;
+
+                            // Find a matching active AutoReplyRule
+                            const rule = await prisma.autoReplyRule.findFirst({
+                                where: {
+                                    pageId: pageId,
+                                    postId: extractedPostId,
+                                    isActive: true
+                                }
+                            });
+
+                            if (!rule) continue; // No rule configured for this post
+
+                            // Check keywords if applicable
+                            if (rule.keywords) {
+                                const keywordList = rule.keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
+                                if (keywordList.length > 0) {
+                                    const hasMatch = keywordList.some(kw => message.includes(kw));
+                                    if (!hasMatch) continue; // Didn't match any keyword
+                                }
+                            }
+
+                            // Fetch system config to check if globally enabled and get the price
+                            const sysConfig = await prisma.systemSetting.findFirst();
+                            if (!sysConfig?.autoReplyEnabled) continue; // Feature globally disabled
+                            const replyPrice = sysConfig.autoReplyPrice || 0;
+
+                            // Fetch user's wallet to check balance
+                            const userWallet = await prisma.wallet.findUnique({
+                                where: { userId: rule.userId }
+                            });
+
+                            if (!userWallet || userWallet.balance < replyPrice) {
+                                console.log(`Insufficient balance for user ${rule.userId} to auto-reply.`);
+                                continue; // Too poor to reply
+                            }
+
+                            // Fetch page access token to make the API call
+                            const page = await prisma.facebookPage.findFirst({
+                                where: { pageId: pageId, userId: rule.userId }
+                            });
+
+                            if (!page || !page.pageAccessToken) {
+                                console.log(`Missing page access token for page ${pageId}`);
+                                continue;
+                            }
+
+                            // Construct reply message
+                            const replyMessage = rule.includeName
+                                ? `${senderName}، ${rule.replyText}`
+                                : rule.replyText;
+
+                            // Send Reply via Facebook Graph API
+                            const fbResponse = await fetch(`https://graph.facebook.com/v19.0/${commentId}/comments`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    message: replyMessage,
+                                    access_token: page.pageAccessToken
+                                })
+                            });
+
+                            const fbResult = await fbResponse.json();
+
+                            if (fbResponse.ok && fbResult.id) {
+                                // Deduct balance if the reply was successful
+                                if (replyPrice > 0) {
+                                    await prisma.$transaction([
+                                        prisma.wallet.update({
+                                            where: { id: userWallet.id },
+                                            data: { balance: { decrement: replyPrice } }
+                                        }),
+                                        prisma.walletTransaction.create({
+                                            data: {
+                                                amount: -replyPrice,
+                                                type: "DEDUCTION",
+                                                description: `Auto-reply to comment on post ${extractedPostId}`,
+                                                userId: rule.userId
+                                            }
+                                        })
+                                    ]);
+                                }
+                                console.log(`Successfully auto-replied to comment ${commentId}`);
+                            } else {
+                                console.error(`Failed to auto-reply to Facebook:`, fbResult);
+                            }
+                        }
+                    }
+                }
+            }
+            return new NextResponse("EVENT_RECEIVED", { status: 200 });
+        } else {
+            return new NextResponse("Not Found", { status: 404 });
+        }
+    } catch (error) {
+        console.error("Webhook processing error:", error);
+        return new NextResponse("Internal Server Error", { status: 500 });
+    }
+}

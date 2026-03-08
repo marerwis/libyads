@@ -16,7 +16,9 @@ import {
     MonitorCog,
     ActivitySquare,
     Menu,
-    X
+    X,
+    MessageCircleReply,
+    MessageSquareShare
 } from "lucide-react";
 
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -41,6 +43,7 @@ export default function DashboardLayout({
 
     const navItems = [
         { name: t("dashboard"), href: "/dashboard", icon: LayoutDashboard },
+        { name: t("autoReply"), href: "/dashboard/auto-reply", icon: MessageCircleReply },
         { name: t("wallet"), href: "/dashboard/wallet", icon: Wallet },
         { name: t("facebookPages"), href: "/dashboard/facebook", icon: Flag },
         { name: t("campaignHistory"), href: "/dashboard/campaigns", icon: Megaphone },
@@ -49,6 +52,7 @@ export default function DashboardLayout({
 
     const adminItems = [
         { name: t("settings"), href: "/dashboard/settings", icon: Settings },
+        { name: t("autoReplySettings"), href: "/dashboard/admin/auto-reply-settings", icon: MessageSquareShare },
         { name: t("paymentMethods"), href: "/dashboard/admin/payment-methods", icon: CreditCard },
         { name: t("usersManagement"), href: "/dashboard/admin/users", icon: Users },
         { name: t("metaConfig"), href: "/dashboard/admin/meta-settings", icon: MonitorCog },
