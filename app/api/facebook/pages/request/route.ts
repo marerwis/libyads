@@ -80,7 +80,25 @@ export async function POST(req: Request) {
         "Facebook API Error during client_pages request:",
         fbData.error,
       );
-      // Revert status to REJECTED or FAILED
+
+      const errorMessage = fbData.error.message || "";
+
+      // If the page is already connected to the Business Manager, treat it as a success
+      if (errorMessage.includes("Asset already belongs to this Business Manager")) {
+        const activePage = await prisma.facebookPage.update({
+          where: { pageId },
+          data: { status: "ACTIVE" },
+        });
+
+        return NextResponse.json({
+          success: true,
+          message: "Page is already connected to the Business Manager.",
+          page: activePage,
+          fbResponse: fbData,
+        });
+      }
+
+      // Revert status to REJECTED or FAILED for other errors
       await prisma.facebookPage.update({
         where: { pageId },
         data: { status: "REJECTED" },
@@ -88,7 +106,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            fbData.error.message || "Failed to send request via Facebook API.",
+            errorMessage || "Failed to send request via Facebook API.",
         },
         { status: 400 },
       );
