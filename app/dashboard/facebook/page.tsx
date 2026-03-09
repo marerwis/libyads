@@ -227,19 +227,6 @@ function FacebookPagesContent() {
                                                     {requestingPages[page.id] ? "..." : "Disconnect"}
                                                 </button>
                                             </div>
-                                        ) : pageStatus[page.id] === "PENDING" ? (
-                                            <div className="flex items-center gap-2">
-                                                <span className="px-3 py-1.5 rounded-lg dark:bg-amber-900/30 bg-amber-50 dark:text-amber-400 text-amber-600 text-xs font-medium border dark:border-amber-900/50 border-amber-200">
-                                                    Request Sent
-                                                </span>
-                                                <button
-                                                    onClick={() => handleDisconnectAccess(page)}
-                                                    disabled={requestingPages[page.id]}
-                                                    className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium transition-colors"
-                                                >
-                                                    {requestingPages[page.id] ? "..." : "Cancel"}
-                                                </button>
-                                            </div>
                                         ) : (
                                             <button
                                                 onClick={() => handleRequestAccess(page)}
