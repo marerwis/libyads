@@ -102,9 +102,9 @@ export async function POST(req: Request) {
                                 continue;
                             }
 
-                            // Construct reply message
+                            // Construct reply message using Facebook Mention syntax @[{PSID}]
                             const replyMessage = rule.includeName
-                                ? `${senderName}، ${rule.replyText}`
+                                ? `@[${senderId}] ${rule.replyText}`
                                 : rule.replyText;
 
                             // Send Reply via Facebook Graph API
