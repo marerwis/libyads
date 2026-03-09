@@ -133,12 +133,6 @@ function ActivatePagesContent() {
                                     <div>
                                         <h4 className="text-base font-semibold dark:text-white text-slate-900 flex items-center gap-2">
                                             {page.pageName}
-                                            {page.status === 'ACTIVE' && (
-                                                <span className="flex h-2 w-2 relative" title="Business Manager Connected">
-                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                                </span>
-                                            )}
                                         </h4>
                                         <p className="dark:text-slate-500 text-slate-500 text-xs mt-1 font-mono">{page.pageId}</p>
                                     </div>

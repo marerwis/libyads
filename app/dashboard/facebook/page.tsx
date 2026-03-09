@@ -13,7 +13,7 @@ function FacebookPagesContent() {
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
 
     const searchParams = useSearchParams();
-    const { t } = useLanguage();
+    const { t, locale } = useLanguage();
 
     useEffect(() => {
         // Handle URL parameters from the OAuth callback
@@ -142,8 +142,8 @@ function FacebookPagesContent() {
         <div className="max-w-4xl mx-auto space-y-6">
             <header className="mb-8 flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-semibold dark:text-white text-slate-900">{t("facebookPages")}</h2>
-                    <p className="dark:text-slate-400 text-slate-500 text-sm mt-1">{t("manageAndTrack")}</p>
+                    <h2 className="text-2xl font-semibold dark:text-white text-slate-900">{locale === 'ar' ? 'صفحات الإعلانات' : 'Ad Pages'}</h2>
+                    <p className="dark:text-slate-400 text-slate-500 text-sm mt-1">{locale === 'ar' ? 'قم بربط صفحاتك بحساب الأعمال الخاص بك لإدارة الإعلانات.' : 'Link your pages to Business Manager to run ads.'}</p>
                 </div>
             </header>
 
