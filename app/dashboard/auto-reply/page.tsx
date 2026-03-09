@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircleReply, Users, Save, AlertCircle, DollarSign, Settings } from "lucide-react";
+import { MessageCircleReply, Users, Save, AlertCircle, DollarSign, Settings, ToggleRight } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import Link from "next/link";
 
@@ -195,13 +195,22 @@ export default function SetupAutoReply() {
                     </div>
                 </div>
 
-                <Link
-                    href="/dashboard/auto-reply/manage"
-                    className="px-6 py-2.5 bg-white dark:bg-[#151921] border border-slate-200 dark:border-[#2A303C] hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300 font-medium rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 shrink-0"
-                >
-                    <Settings size={18} />
-                    {locale === 'ar' ? 'إدارة الردود الحالية' : 'Manage Existing Rules'}
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <Link
+                        href="/dashboard/auto-reply/pages"
+                        className="px-6 py-2.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-medium rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 shrink-0"
+                    >
+                        <ToggleRight size={18} />
+                        {locale === 'ar' ? 'تفعيل الصفحات' : 'Activate Pages'}
+                    </Link>
+                    <Link
+                        href="/dashboard/auto-reply/manage"
+                        className="px-6 py-2.5 bg-white dark:bg-[#151921] border border-slate-200 dark:border-[#2A303C] hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300 font-medium rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 shrink-0"
+                    >
+                        <Settings size={18} />
+                        {locale === 'ar' ? 'إدارة الردود الحالية' : 'Manage Existing Rules'}
+                    </Link>
+                </div>
             </header>
 
             {message && (
