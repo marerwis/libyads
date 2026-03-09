@@ -79,6 +79,27 @@ function FacebookPagesContent() {
         }
     };
 
+    const handleDisconnectAll = async () => {
+        if (!confirm(locale === 'ar' ? 'هل أنت متأكد أنك تريد فك ربط جميع الصفحات؟' : 'Are you sure you want to disconnect all pages?')) return;
+        setConnecting(true);
+        setMessage(null);
+        try {
+            const res = await fetch("/api/facebook/disconnect-all", { method: "POST" });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setMessage({ type: "success", text: locale === 'ar' ? 'تم فك الربط بنجاح.' : 'Disconnected successfully.' });
+                setPages([]);
+                setPageStatus({});
+            } else {
+                setMessage({ type: "error", text: data.error || (locale === 'ar' ? 'فشل في إلغاء الربط' : 'Failed to disconnect') });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: locale === 'ar' ? 'خطأ في الاتصال' : 'Internal Server Error' });
+        } finally {
+            setConnecting(false);
+        }
+    };
+
     return (
         <div className="max-w-4xl mx-auto space-y-6">
             <header className="mb-8 flex justify-between items-center">
@@ -105,20 +126,36 @@ function FacebookPagesContent() {
                         <p className="text-sm dark:text-slate-400 text-slate-600 mb-6">
                             Securely link your Facebook account to manage pages and run ad campaigns automatically.
                         </p>
-                        <button
-                            onClick={handleConnectFacebook}
-                            disabled={connecting}
-                            className="w-full px-4 py-3 bg-[#1877F2] hover:bg-blue-600 disabled:opacity-50 text-white font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
-                        >
-                            {connecting ? (
-                                "Redirecting..."
-                            ) : (
-                                <>
-                                    <LogIn size={18} />
-                                    Connect Facebook
-                                </>
-                            )}
-                        </button>
+                        {pages.length > 0 ? (
+                            <button
+                                onClick={handleDisconnectAll}
+                                disabled={connecting}
+                                className="w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2"
+                            >
+                                {connecting ? (
+                                    locale === 'ar' ? "جاري الإلغاء..." : "Disconnecting..."
+                                ) : (
+                                    <>
+                                        {locale === 'ar' ? 'فك ارتباط الحساب' : 'Disconnect Facebook'}
+                                    </>
+                                )}
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleConnectFacebook}
+                                disabled={connecting}
+                                className="w-full px-4 py-3 bg-[#1877F2] hover:bg-blue-600 disabled:opacity-50 text-white font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                            >
+                                {connecting ? (
+                                    "Redirecting..."
+                                ) : (
+                                    <>
+                                        <LogIn size={18} />
+                                        Connect Facebook
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
 
