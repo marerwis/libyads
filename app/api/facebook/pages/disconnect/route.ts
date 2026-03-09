@@ -68,9 +68,13 @@ export async function POST(req: Request) {
             }
         }
 
-        // Delete the page from our database
-        await prisma.facebookPage.delete({
+        // Update the page in our database to reset its status
+        await prisma.facebookPage.update({
             where: { id: pageRecord.id },
+            data: {
+                status: "",
+                isAutoReplyActive: false,
+            } as any
         });
 
         // Option: You might also want to delete related auto-reply rules,
