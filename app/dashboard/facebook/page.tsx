@@ -57,66 +57,7 @@ function FacebookPagesContent() {
         }
     }
 
-    const [requestingPages, setRequestingPages] = useState<Record<string, boolean>>({});
     const [pageStatus, setPageStatus] = useState<Record<string, string>>({});
-
-    const handleRequestAccess = async (page: any) => {
-        setRequestingPages(prev => ({ ...prev, [page.id]: true }));
-        setMessage(null);
-        try {
-            const res = await fetch("/api/facebook/pages/request", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    pageId: page.id,
-                    pageName: page.name,
-                    pageAccessToken: page.access_token
-                })
-            });
-            const data = await res.json();
-
-            if (res.ok && data.success) {
-                setMessage({ type: "success", text: data.message || `Request sent to ${page.name} successfully!` });
-                setPageStatus(prev => ({ ...prev, [page.id]: data.page?.status || "PENDING" }));
-            } else {
-                setMessage({ type: "error", text: data.error || "Failed to send request" });
-            }
-        } catch (error) {
-            setMessage({ type: "error", text: "Internal Server Error" });
-        } finally {
-            setRequestingPages(prev => ({ ...prev, [page.id]: false }));
-        }
-    };
-
-    const handleDisconnectAccess = async (page: any) => {
-        if (!confirm(`Are you sure you want to disconnect ${page.name}? This will remove it from your account.`)) return;
-
-        setRequestingPages(prev => ({ ...prev, [page.id]: true }));
-        setMessage(null);
-        try {
-            const res = await fetch("/api/facebook/pages/disconnect", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ pageId: page.id })
-            });
-            const data = await res.json();
-
-            if (res.ok && data.success) {
-                setMessage({ type: "success", text: `${page.name} disconnected successfully.` });
-                setPageStatus(prev => {
-                    const newStatus = { ...prev };
-                    delete newStatus[page.id];
-                    return newStatus;
-                });
-            } else {
-                setMessage({ type: "error", text: data.error || "Failed to disconnect page" });
-            }
-        } catch (error) {
-            setMessage({ type: "error", text: "Internal Server Error" });
-        } finally {
-            setRequestingPages(prev => ({ ...prev, [page.id]: false }));
-        }
-    };
 
     const handleConnectFacebook = async () => {
         setConnecting(true);
@@ -214,28 +155,13 @@ function FacebookPagesContent() {
                                                 <p className="dark:text-slate-400 text-slate-500 text-xs mt-0.5">ID: {page.id}</p>
                                             </div>
                                         </div>
-                                        {pageStatus[page.id] === "ACTIVE" ? (
-                                            <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2">
+                                            {pageStatus[page.id] === "ACTIVE" && (
                                                 <span className="px-3 py-1.5 rounded-lg dark:bg-emerald-900/30 bg-emerald-50 dark:text-emerald-400 text-emerald-600 text-xs font-medium border dark:border-emerald-900/50 border-emerald-200">
                                                     Connected
                                                 </span>
-                                                <button
-                                                    onClick={() => handleDisconnectAccess(page)}
-                                                    disabled={requestingPages[page.id]}
-                                                    className="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 disabled:opacity-50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 rounded-lg text-xs font-medium transition-colors"
-                                                >
-                                                    {requestingPages[page.id] ? "..." : "Disconnect"}
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleRequestAccess(page)}
-                                                disabled={requestingPages[page.id]}
-                                                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium transition-colors"
-                                            >
-                                                {requestingPages[page.id] ? "Sending..." : pageStatus[page.id] === "REJECTED" ? "Try Again" : "Request Access"}
-                                            </button>
-                                        )}
+                                            )}
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
