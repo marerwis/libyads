@@ -142,6 +142,21 @@ export async function POST(req: Request) {
                                     }
                                 }
 
+                                // Automatically Like the comment
+                                const likeResponse = await fetch(`https://graph.facebook.com/v19.0/${commentId}/likes`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        access_token: page.pageAccessToken
+                                    })
+                                });
+
+                                if (likeResponse.ok) {
+                                    console.log(`Successfully liked comment ${commentId}`);
+                                } else {
+                                    console.error(`Failed to like comment ${commentId}:`, await likeResponse.json());
+                                }
+
                                 // Deduct balance if the reply was successful
                                 if (replyPrice > 0) {
                                     await prisma.$transaction([
