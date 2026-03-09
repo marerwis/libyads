@@ -57,7 +57,7 @@ export async function GET(req: Request) {
 
         // 2. Fetch the User's Pages using the User Access Token
         let accounts: any[] = [];
-        let pagesUrl = `https://graph.facebook.com/v19.0/me/accounts?limit=100&access_token=${userAccessToken}`;
+        let pagesUrl = `https://graph.facebook.com/v19.0/me/accounts?limit=500&access_token=${userAccessToken}`;
 
         while (pagesUrl) {
             const pagesRes = await fetch(pagesUrl);
