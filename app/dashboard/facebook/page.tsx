@@ -88,6 +88,36 @@ function FacebookPagesContent() {
         }
     };
 
+    const handleDisconnectAccess = async (page: any) => {
+        if (!confirm(`Are you sure you want to disconnect ${page.name}? This will remove it from your account.`)) return;
+
+        setRequestingPages(prev => ({ ...prev, [page.id]: true }));
+        setMessage(null);
+        try {
+            const res = await fetch("/api/facebook/pages/disconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pageId: page.id })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                setMessage({ type: "success", text: `${page.name} disconnected successfully.` });
+                setPageStatus(prev => {
+                    const newStatus = { ...prev };
+                    delete newStatus[page.id];
+                    return newStatus;
+                });
+            } else {
+                setMessage({ type: "error", text: data.error || "Failed to disconnect page" });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: "Internal Server Error" });
+        } finally {
+            setRequestingPages(prev => ({ ...prev, [page.id]: false }));
+        }
+    };
+
     const handleConnectFacebook = async () => {
         setConnecting(true);
         setMessage(null);
@@ -185,9 +215,18 @@ function FacebookPagesContent() {
                                             </div>
                                         </div>
                                         {pageStatus[page.id] === "ACTIVE" ? (
-                                            <span className="px-3 py-1.5 rounded-lg dark:bg-emerald-900/30 bg-emerald-50 dark:text-emerald-400 text-emerald-600 text-xs font-medium border dark:border-emerald-900/50 border-emerald-200">
-                                                Connected
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="px-3 py-1.5 rounded-lg dark:bg-emerald-900/30 bg-emerald-50 dark:text-emerald-400 text-emerald-600 text-xs font-medium border dark:border-emerald-900/50 border-emerald-200">
+                                                    Connected
+                                                </span>
+                                                <button
+                                                    onClick={() => handleDisconnectAccess(page)}
+                                                    disabled={requestingPages[page.id]}
+                                                    className="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 disabled:opacity-50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 rounded-lg text-xs font-medium transition-colors"
+                                                >
+                                                    {requestingPages[page.id] ? "..." : "Disconnect"}
+                                                </button>
+                                            </div>
                                         ) : pageStatus[page.id] === "PENDING" ? (
                                             <span className="px-3 py-1.5 rounded-lg dark:bg-amber-900/30 bg-amber-50 dark:text-amber-400 text-amber-600 text-xs font-medium border dark:border-amber-900/50 border-amber-200">
                                                 Request Sent
