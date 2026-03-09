@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { Facebook, LogIn, Flag } from "lucide-react";
+import { Facebook, LogIn, Flag, RefreshCw } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 
 function FacebookPagesContent() {
     const [pages, setPages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [connecting, setConnecting] = useState(false);
+    const [syncing, setSyncing] = useState(false);
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
 
     const searchParams = useSearchParams();
@@ -58,6 +59,26 @@ function FacebookPagesContent() {
     }
 
     const [pageStatus, setPageStatus] = useState<Record<string, string>>({});
+
+    const handleSyncPages = async () => {
+        setSyncing(true);
+        setMessage(null);
+        try {
+            const res = await fetch("/api/facebook/pages/sync", { method: "POST" });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                setMessage({ type: "success", text: locale === 'ar' ? 'تم مزامنة الصفحات بنجاح!' : 'Pages synchronized successfully!' });
+                fetchPages(); // Refetch pages to update UI
+            } else {
+                setMessage({ type: "error", text: data.error || (locale === 'ar' ? 'فشلت المزامنة' : 'Failed to sync') });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: locale === 'ar' ? 'خطأ في الاتصال' : 'Internal Server Error' });
+        } finally {
+            setSyncing(false);
+        }
+    };
 
     const handleConnectFacebook = async () => {
         setConnecting(true);
@@ -127,19 +148,38 @@ function FacebookPagesContent() {
                             Securely link your Facebook account to manage pages and run ad campaigns automatically.
                         </p>
                         {pages.length > 0 ? (
-                            <button
-                                onClick={handleDisconnectAll}
-                                disabled={connecting}
-                                className="w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2"
-                            >
-                                {connecting ? (
-                                    locale === 'ar' ? "جاري الإلغاء..." : "Disconnecting..."
-                                ) : (
-                                    <>
-                                        {locale === 'ar' ? 'فك ارتباط الحساب' : 'Disconnect Facebook'}
-                                    </>
-                                )}
-                            </button>
+                            <div className="w-full flex flex-col gap-3">
+                                <button
+                                    onClick={handleSyncPages}
+                                    disabled={connecting || syncing}
+                                    className="w-full px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 disabled:opacity-50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50 font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2"
+                                >
+                                    {syncing ? (
+                                        <>
+                                            <RefreshCw size={18} className="animate-spin" />
+                                            {locale === 'ar' ? "جاري المزامنة..." : "Syncing..."}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <RefreshCw size={18} />
+                                            {locale === 'ar' ? 'تحديث الصفحات' : 'Refresh Pages'}
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={handleDisconnectAll}
+                                    disabled={connecting || syncing}
+                                    className="w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2"
+                                >
+                                    {connecting ? (
+                                        locale === 'ar' ? "جاري الإلغاء..." : "Disconnecting..."
+                                    ) : (
+                                        <>
+                                            {locale === 'ar' ? 'فك ارتباط الحساب' : 'Disconnect'}
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         ) : (
                             <button
                                 onClick={handleConnectFacebook}

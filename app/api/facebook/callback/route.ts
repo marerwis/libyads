@@ -55,7 +55,13 @@ export async function GET(req: Request) {
 
         const userAccessToken = tokenData.access_token;
 
-        // 2. Fetch the User's Pages using the User Access Token
+        // 2. Save the User Access Token for later page syncing
+        await prisma.metaSetting.update({
+            where: { id: metaSetting.id },
+            data: { userAccessToken: userAccessToken }
+        });
+
+        // 3. Fetch the User's Pages using the User Access Token
         let accounts: any[] = [];
         let pagesUrl = `https://graph.facebook.com/v19.0/me/accounts?limit=500&access_token=${userAccessToken}`;
 

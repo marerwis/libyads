@@ -105,6 +105,7 @@ model MetaSetting {
   appId                 String?
   appSecret             String?
   systemUserToken       String?
+  userAccessToken       String? // Stored User Access Token for page syncing
   businessId            String?
   adAccountId           String?
   
