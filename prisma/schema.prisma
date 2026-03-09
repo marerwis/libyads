@@ -188,6 +188,7 @@ model AutoReplyRule {
   pageId           String   // Facebook Page ID
   postId           String   // Facebook Post ID
   replyText        String   // The content of the reply
+  privateMessage   String?  // Optional private message to send
   includeName      Boolean  @default(true) // Whether to prepend the user's name
   keywords         String?  // Optional: comma separated keywords to trigger the reply
   isActive         Boolean  @default(true)

@@ -120,6 +120,26 @@ export async function POST(req: Request) {
                             const fbResult = await fbResponse.json();
 
                             if (fbResponse.ok && fbResult.id) {
+                                // Send Private Message if configured
+                                if (rule.privateMessage) {
+                                    const pmMessageResponse = await fetch(`https://graph.facebook.com/v19.0/${pageId}/messages`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            recipient: { comment_id: commentId },
+                                            message: { text: rule.privateMessage },
+                                            access_token: page.pageAccessToken
+                                        })
+                                    });
+
+                                    const pmResult = await pmMessageResponse.json();
+                                    if (pmMessageResponse.ok) {
+                                        console.log(`Successfully sent Private Message for comment ${commentId}`);
+                                    } else {
+                                        console.error(`Failed to send Private Message:`, pmResult);
+                                    }
+                                }
+
                                 // Deduct balance if the reply was successful
                                 if (replyPrice > 0) {
                                     await prisma.$transaction([

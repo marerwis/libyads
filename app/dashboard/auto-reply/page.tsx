@@ -28,6 +28,7 @@ export default function SetupAutoReply() {
         pageId: "",
         postId: "",
         replyText: "",
+        privateMessage: "",
         includeName: true,
         keywords: ""
     });
@@ -307,8 +308,32 @@ export default function SetupAutoReply() {
                             {/* Preview */}
                             {formData.replyText && (
                                 <div className="mt-3 p-3 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-500/20 rounded-lg text-sm dark:text-indigo-200 text-indigo-800">
-                                    <span className="font-semibold opacity-70 block mb-1">{locale === 'ar' ? "مثال للرد:" : "Preview:"}</span>
+                                    <span className="font-semibold opacity-70 block mb-1">{locale === 'ar' ? "مثال للرد العام:" : "Public Reply Preview:"}</span>
                                     {formData.includeName ? (locale === 'ar' ? "مرحباً محمد، " : "Hi John, ") : ""}{formData.replyText}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Private Message */}
+                        <div>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-1 flex justify-between ${locale === 'ar' ? 'text-right flex-row-reverse' : 'text-left'}`}>
+                                <span>{locale === 'ar' ? "الرسالة الخاصة (اختياري)" : "Private Message (Optional)"}</span>
+                            </label>
+                            <p className={`text-xs dark:text-slate-500 text-slate-400 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
+                                {locale === 'ar' ? "سيتم إرسال هذه الرسالة إلى صندوق ورود المعلق (Direct Message) بالإضافة إلى الرد العام." : "This message will be sent to the commenter's inbox (DM) in addition to the public reply."}
+                            </p>
+                            <textarea
+                                value={formData.privateMessage}
+                                onChange={(e) => setFormData({ ...formData, privateMessage: e.target.value })}
+                                rows={4}
+                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none"
+                                placeholder={locale === 'ar' ? "مرحباً! لقد قمنا بإرسال تفاصيل طلبك... (اختياري)" : "Hi! We have sent you the details... (Optional)"}
+                            />
+                            {/* Preview */}
+                            {formData.privateMessage && (
+                                <div className="mt-3 p-3 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-500/20 rounded-lg text-sm dark:text-emerald-200 text-emerald-800">
+                                    <span className="font-semibold opacity-70 block mb-1">{locale === 'ar' ? "مثال للرسالة الخاصة:" : "Private Message Preview:"}</span>
+                                    {formData.privateMessage}
                                 </div>
                             )}
                         </div>

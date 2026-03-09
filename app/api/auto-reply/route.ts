@@ -47,7 +47,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const { pageId, postId, replyText, includeName, keywords } = await req.json();
+        const { pageId, postId, replyText, privateMessage, includeName, keywords } = await req.json();
 
         if (!pageId || !postId || !replyText) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -71,6 +71,7 @@ export async function POST(req: Request) {
                 pageId,
                 postId,
                 replyText,
+                privateMessage: privateMessage || null,
                 includeName,
                 keywords: keywords ? String(keywords).toLowerCase() : null,
                 isActive: true
