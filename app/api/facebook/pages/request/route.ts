@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     // Send Request to Facebook Graph API
     const formData = new URLSearchParams();
     formData.append("page_id", pageId);
-    formData.append("permitted_tasks", "['CREATE_ADS', 'MANAGE', 'ANALYZE']");
+    formData.append("permitted_tasks", "['ADVERTISE', 'MANAGE', 'ANALYZE']");
     formData.append("access_token", systemUserToken);
 
     const fbResponse = await fetch(
