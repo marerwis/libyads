@@ -40,6 +40,15 @@ function FacebookPagesContent() {
             const data = await res.json();
             if (Array.isArray(data)) {
                 setPages(data);
+
+                // Initialize page status from DB
+                const initialStatus: Record<string, string> = {};
+                data.forEach(p => {
+                    if (p.status) {
+                        initialStatus[p.id] = p.status;
+                    }
+                });
+                setPageStatus(initialStatus);
             }
         } catch (error) {
             console.error(error);
@@ -67,8 +76,8 @@ function FacebookPagesContent() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                setMessage({ type: "success", text: `Request sent to ${page.name} successfully!` });
-                setPageStatus(prev => ({ ...prev, [page.id]: "PENDING" }));
+                setMessage({ type: "success", text: data.message || `Request sent to ${page.name} successfully!` });
+                setPageStatus(prev => ({ ...prev, [page.id]: data.page?.status || "PENDING" }));
             } else {
                 setMessage({ type: "error", text: data.error || "Failed to send request" });
             }
@@ -175,7 +184,11 @@ function FacebookPagesContent() {
                                                 <p className="dark:text-slate-400 text-slate-500 text-xs mt-0.5">ID: {page.id}</p>
                                             </div>
                                         </div>
-                                        {pageStatus[page.id] === "PENDING" ? (
+                                        {pageStatus[page.id] === "ACTIVE" ? (
+                                            <span className="px-3 py-1.5 rounded-lg dark:bg-emerald-900/30 bg-emerald-50 dark:text-emerald-400 text-emerald-600 text-xs font-medium border dark:border-emerald-900/50 border-emerald-200">
+                                                Connected
+                                            </span>
+                                        ) : pageStatus[page.id] === "PENDING" ? (
                                             <span className="px-3 py-1.5 rounded-lg dark:bg-amber-900/30 bg-amber-50 dark:text-amber-400 text-amber-600 text-xs font-medium border dark:border-amber-900/50 border-amber-200">
                                                 Request Sent
                                             </span>
@@ -185,7 +198,7 @@ function FacebookPagesContent() {
                                                 disabled={requestingPages[page.id]}
                                                 className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium transition-colors"
                                             >
-                                                {requestingPages[page.id] ? "Sending..." : "Request Access"}
+                                                {requestingPages[page.id] ? "Sending..." : pageStatus[page.id] === "REJECTED" ? "Try Again" : "Request Access"}
                                             </button>
                                         )}
                                     </li>

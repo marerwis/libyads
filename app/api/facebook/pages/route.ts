@@ -33,7 +33,9 @@ export async function GET() {
             name: p.pageName,
             access_token: p.pageAccessToken,
             pageId: p.pageId,
-            pageName: p.pageName
+            pageName: p.pageName,
+            status: p.status,
+            isAutoReplyActive: p.isAutoReplyActive
         }));
 
         return NextResponse.json(mappedPages);
