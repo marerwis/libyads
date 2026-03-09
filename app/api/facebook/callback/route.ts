@@ -56,16 +56,25 @@ export async function GET(req: Request) {
         const userAccessToken = tokenData.access_token;
 
         // 2. Fetch the User's Pages using the User Access Token
-        const pagesUrl = `https://graph.facebook.com/v19.0/me/accounts?access_token=${userAccessToken}`;
-        const pagesRes = await fetch(pagesUrl);
-        const pagesData = await pagesRes.json();
+        let accounts: any[] = [];
+        let pagesUrl = `https://graph.facebook.com/v19.0/me/accounts?limit=100&access_token=${userAccessToken}`;
 
-        if (pagesData.error) {
-            console.error("Error fetching pages:", pagesData.error);
-            return NextResponse.redirect(new URL("/dashboard/facebook?error=fetch_pages_failed", req.url));
+        while (pagesUrl) {
+            const pagesRes = await fetch(pagesUrl);
+            const pagesData = await pagesRes.json();
+
+            if (pagesData.error) {
+                console.error("Error fetching pages:", pagesData.error);
+                return NextResponse.redirect(new URL("/dashboard/facebook?error=fetch_pages_failed", req.url));
+            }
+
+            if (pagesData.data) {
+                accounts = accounts.concat(pagesData.data);
+            }
+
+            // Check for next page
+            pagesUrl = pagesData.paging?.next || null;
         }
-
-        const accounts = pagesData.data || [];
 
         // 3. Save all fetched pages to the database
         // Using upsert logic: if pageId belongs to the user update the token and name, else create it.
