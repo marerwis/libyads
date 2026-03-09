@@ -10,15 +10,17 @@ import { ar, enUS } from 'date-fns/locale';
 export default function ManageAutoReplies() {
     const { t, locale } = useLanguage();
     const [rules, setRules] = useState<any[]>([]);
+    const [pages, setPages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [sysConfig, setSysConfig] = useState({ autoReplyEnabled: true });
 
     const fetchRules = async () => {
         try {
-            const [rulesRes, configRes] = await Promise.all([
+            const [rulesRes, configRes, pagesRes] = await Promise.all([
                 fetch('/api/auto-reply'),
-                fetch('/api/auto-reply/config')
+                fetch('/api/auto-reply/config'),
+                fetch('/api/facebook/pages')
             ]);
             if (rulesRes.ok) {
                 const data = await rulesRes.json();
@@ -27,6 +29,12 @@ export default function ManageAutoReplies() {
             if (configRes.ok) {
                 const conf = await configRes.json();
                 setSysConfig(conf);
+            }
+            if (pagesRes.ok) {
+                const pagesData = await pagesRes.json();
+                if (Array.isArray(pagesData)) {
+                    setPages(pagesData);
+                }
             }
         } catch (error) {
             console.error("Failed to fetch rules", error);
@@ -122,96 +130,123 @@ export default function ManageAutoReplies() {
                     </Link>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {rules.map(rule => (
-                        <div key={rule.id} className="dark:bg-[#151921] bg-white rounded-2xl border dark:border-[#2A303C] border-slate-200 shadow-sm p-6 relative flex flex-col group transition-all hover:shadow-md hover:border-indigo-500/30">
-
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <div className={`text-xs font-semibold px-2 py-1 rounded inline-flex items-center gap-1 ${rule.isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'}`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${rule.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-                                        {rule.isActive ? t("active" as any) : t("paused" as any)}
-                                    </div>
-                                </div>
-                                <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                                    <Calendar size={12} />
-                                    {format(new Date(rule.createdAt), 'MMM d, yyyy', { locale: locale === 'ar' ? ar : enUS })}
+                <div className="space-y-12">
+                    {Object.entries(
+                        rules.reduce((acc, rule) => {
+                            const page = pages.find(p => p.id === rule.pageId || p.pageId === rule.pageId);
+                            const pageName = page ? page.name : (locale === 'ar' ? 'صفحة غير معروفة' : 'Unknown Page');
+                            if (!acc[pageName]) acc[pageName] = [];
+                            acc[pageName].push(rule);
+                            return acc;
+                        }, {} as Record<string, typeof rules>)
+                    ).map(([pageName, pageRules]) => (
+                        <div key={pageName} className="space-y-6">
+                            <h3 className="text-xl font-bold dark:text-white text-slate-800 flex items-center gap-3 border-b border-slate-200 dark:border-[#2A303C] pb-3">
+                                <span className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
                                 </span>
-                            </div>
+                                {pageName}
+                                <span className="bg-slate-100 dark:bg-[#151921] text-slate-600 dark:text-slate-400 text-sm py-0.5 px-3 rounded-full border border-slate-200 dark:border-[#2A303C]">
+                                    {(pageRules as any[]).length} {locale === 'ar' ? 'ردود' : 'Rules'}
+                                </span>
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {(pageRules as any[]).map((rule: any) => (
+                                    <div key={rule.id} className="dark:bg-[#151921] bg-white rounded-2xl border dark:border-[#2A303C] border-slate-200 shadow-sm p-6 relative flex flex-col group transition-all hover:shadow-md hover:border-indigo-500/30">
 
-                            <div className="space-y-3 flex-grow mb-6">
-                                <div>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 block mb-1">{t("targetPage" as any)}</span>
-                                    <div className="font-semibold text-sm text-slate-800 dark:text-slate-200" dir="ltr">{rule.pageId}</div>
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-xs text-slate-500 dark:text-slate-400">{t("targetPost" as any)}</span>
-                                        <a href={`https://facebook.com/${rule.pageId}/posts/${rule.postId}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors" title="View on Facebook">
-                                            <ExternalLink size={14} />
-                                        </a>
-                                    </div>
-                                    <div className="font-mono text-xs p-1.5 bg-slate-50 dark:bg-[#0B0E14] border border-slate-100 dark:border-[#2A303C] rounded break-all text-slate-600 dark:text-slate-300" dir="ltr">{rule.postId}</div>
-                                </div>
-                                <div>
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 block mb-1">{t("replyMessage" as any)}</span>
-                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-3">
-                                        {rule.includeName ? (locale === 'ar' ? "[الاسم] " : "[Name] ") : ""}{rule.replyText}
-                                    </p>
-                                </div>
-                                {rule.keywords && (
-                                    <div>
-                                        <span className="text-xs text-slate-500 dark:text-slate-400 block mb-1">{t("triggerKeywords" as any)}</span>
-                                        <div className="flex flex-wrap gap-1">
-                                            {rule.keywords.split(',').map((kw: string, i: number) => (
-                                                <span key={i} className="text-xs px-2 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 rounded border border-indigo-100 dark:border-indigo-500/20">
-                                                    {kw.trim()}
-                                                </span>
-                                            ))}
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <div className={`text-xs font-semibold px-2 py-1 rounded inline-flex items-center gap-1 ${rule.isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${rule.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                                                    {rule.isActive ? t("active" as any) : t("paused" as any)}
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                                                <Calendar size={12} />
+                                                {format(new Date(rule.createdAt), 'MMM d, yyyy', { locale: locale === 'ar' ? ar : enUS })}
+                                            </span>
                                         </div>
+
+                                        <div className="space-y-3 flex-grow mb-6">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-xs text-slate-500 dark:text-slate-400">{t("targetPost" as any)}</span>
+                                                    <a href={`https://facebook.com/${rule.pageId}/posts/${rule.postId}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 transition-colors" title="View on Facebook">
+                                                        <ExternalLink size={14} />
+                                                    </a>
+                                                </div>
+                                                <div className="font-mono text-xs p-1.5 bg-slate-50 dark:bg-[#0B0E14] border border-slate-100 dark:border-[#2A303C] rounded break-all text-slate-600 dark:text-slate-300" dir="ltr">{rule.postId}</div>
+                                            </div>
+                                            <div>
+                                                <span className="text-xs text-slate-500 dark:text-slate-400 block mb-1">{t("replyMessage" as any)}</span>
+                                                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-3">
+                                                    {rule.includeName ? (locale === 'ar' ? "[الاسم] " : "[Name] ") : ""}{rule.replyText}
+                                                </p>
+                                            </div>
+                                            {rule.privateMessage && (
+                                                <div>
+                                                    <span className="text-xs text-slate-500 dark:text-slate-400 block mb-1">{locale === 'ar' ? 'الرسالة الخاصة' : 'Private Message'}</span>
+                                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-2 italic">
+                                                        {rule.privateMessage}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {rule.keywords && (
+                                                <div>
+                                                    <span className="text-xs text-slate-500 dark:text-slate-400 block mb-1">{t("triggerKeywords" as any)}</span>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {rule.keywords.split(',').map((kw: string, i: number) => (
+                                                            <span key={i} className="text-xs px-2 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 rounded border border-indigo-100 dark:border-indigo-500/20">
+                                                                {kw.trim()}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-[#2A303C] mt-auto">
+                                            <button
+                                                onClick={() => toggleRuleStatus(rule.id, true)}
+                                                disabled={actionLoading === rule.id || !rule.isActive}
+                                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors border ${rule.isActive
+                                                    ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 dark:hover:bg-amber-500/20 cursor-pointer'
+                                                    : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-800/30 dark:border-slate-800 dark:text-slate-600 cursor-not-allowed'}`}
+                                            >
+                                                <PowerOff size={16} /> {t("pauseRule" as any)}
+                                            </button>
+                                            <button
+                                                onClick={() => toggleRuleStatus(rule.id, false)}
+                                                disabled={actionLoading === rule.id || rule.isActive}
+                                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors border ${!rule.isActive
+                                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:bg-emerald-500/20 cursor-pointer'
+                                                    : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-800/30 dark:border-slate-800 dark:text-slate-600 cursor-not-allowed'}`}
+                                            >
+                                                <Power size={16} /> {t("resumeRule" as any)}
+                                            </button>
+                                            <button
+                                                onClick={() => deleteRule(rule.id)}
+                                                disabled={actionLoading === rule.id}
+                                                className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-colors"
+                                                title={t("delete" as any)}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+
+                                        {/* Loading Overlay */}
+                                        {actionLoading === rule.id && (
+                                            <div className="absolute inset-0 bg-white/50 dark:bg-[#151921]/50 backdrop-blur-[1px] rounded-2xl flex items-center justify-center z-10">
+                                                <svg className="animate-spin h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            </div>
+                                        )}
+
                                     </div>
-                                )}
+                                ))}
                             </div>
-
-                            <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-[#2A303C] mt-auto">
-                                <button
-                                    onClick={() => toggleRuleStatus(rule.id, true)}
-                                    disabled={actionLoading === rule.id || !rule.isActive}
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors border ${rule.isActive
-                                        ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 dark:hover:bg-amber-500/20 cursor-pointer'
-                                        : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-800/30 dark:border-slate-800 dark:text-slate-600 cursor-not-allowed'}`}
-                                >
-                                    <PowerOff size={16} /> {t("pauseRule" as any)}
-                                </button>
-                                <button
-                                    onClick={() => toggleRuleStatus(rule.id, false)}
-                                    disabled={actionLoading === rule.id || rule.isActive}
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors border ${!rule.isActive
-                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:bg-emerald-500/20 cursor-pointer'
-                                        : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-800/30 dark:border-slate-800 dark:text-slate-600 cursor-not-allowed'}`}
-                                >
-                                    <Power size={16} /> {t("resumeRule" as any)}
-                                </button>
-                                <button
-                                    onClick={() => deleteRule(rule.id)}
-                                    disabled={actionLoading === rule.id}
-                                    className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-colors"
-                                    title={t("delete" as any)}
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                            </div>
-
-                            {/* Loading Overlay for the specific card */}
-                            {actionLoading === rule.id && (
-                                <div className="absolute inset-0 bg-white/50 dark:bg-[#151921]/50 backdrop-blur-[1px] rounded-2xl flex items-center justify-center z-10">
-                                    <svg className="animate-spin h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
-                            )}
-
                         </div>
                     ))}
                 </div>
