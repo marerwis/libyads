@@ -18,7 +18,9 @@ import {
     Menu,
     X,
     MessageCircleReply,
-    MessageSquareShare
+    MessageSquareShare,
+    ToggleRight, // Added ToggleRight
+    List // Added List for autoReplyLinks
 } from "lucide-react";
 
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -40,6 +42,13 @@ export default function DashboardLayout({
     }, [pathname]);
 
     const isActive = (path: string) => pathname === path;
+
+    // Auto-Reply Links Submenu
+    const autoReplyLinks = [
+        { name: locale === 'ar' ? 'تفعيل الصفحات' : 'Activate Pages', href: '/dashboard/auto-reply/pages', icon: ToggleRight },
+        { name: locale === 'ar' ? 'إعداد رد جديد' : 'Setup Rule', href: '/dashboard/auto-reply', icon: PlusCircle },
+        { name: locale === 'ar' ? 'إدارة الردود' : 'Manage Rules', href: '/dashboard/auto-reply/manage', icon: List }
+    ];
 
     const navItems = [
         { name: t("dashboard"), href: "/dashboard", icon: LayoutDashboard },

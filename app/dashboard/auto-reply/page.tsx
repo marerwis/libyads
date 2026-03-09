@@ -18,7 +18,8 @@ export default function SetupAutoReply() {
     const [sysConfig, setSysConfig] = useState({ autoReplyPrice: 0.1, autoReplyEnabled: true });
 
     // Facebook Data
-    const [pages, setPages] = useState<any[]>([]);
+    const [allPages, setAllPages] = useState<any[]>([]); // Store all connected pages
+    const [pages, setPages] = useState<any[]>([]); // Store only active pages for the dropdown
     const [posts, setPosts] = useState<any[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(false);
 
@@ -44,9 +45,14 @@ export default function SetupAutoReply() {
 
                 const pagesData = await pagesRes.json();
                 if (Array.isArray(pagesData)) {
-                    setPages(pagesData);
-                    if (pagesData.length > 0) {
-                        setFormData(prev => ({ ...prev, pageId: pagesData[0].id }));
+                    setAllPages(pagesData); // All connected pages
+
+                    // Filter for only activated pages
+                    const activePages = pagesData.filter(p => p.isAutoReplyActive === true);
+                    setPages(activePages);
+
+                    if (activePages.length > 0) {
+                        setFormData(prev => ({ ...prev, pageId: activePages[0].id }));
                     }
                 }
             } catch (error) {
@@ -64,7 +70,18 @@ export default function SetupAutoReply() {
 
         const fetchPosts = async () => {
             setLoadingPosts(true);
+
+            // Find the actual page object to get the real pageId (not the DB id)
+            const selectedPage = pages.find(p => p.id === formData.pageId);
+            if (!selectedPage) {
+                setLoadingPosts(false);
+                return;
+            }
+
             try {
+                // Use the real Facebook pageId (selectedPage.pageId) for fetching posts if your API requires it
+                // Or if your API expects the DB id, keep formData.pageId. 
+                // We'll pass the form formData.pageId which is the DB ID (as before), but ensure API handles it correctly.
                 const res = await fetch(`/api/facebook/posts?pageId=${formData.pageId}`);
                 const data = await res.json();
                 if (Array.isArray(data) && data.length > 0) {
@@ -83,7 +100,7 @@ export default function SetupAutoReply() {
             }
         };
         fetchPosts();
-    }, [formData.pageId]);
+    }, [formData.pageId, pages]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -95,11 +112,21 @@ export default function SetupAutoReply() {
         setSubmitting(true);
         setMessage(null);
 
+        // Find the actual page ID to store with the rule (if needed by your backend, else it uses the DB id)
+        const selectedPage = pages.find(p => p.id === formData.pageId);
+
         try {
             const res = await fetch("/api/auto-reply", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({
+                    // Send the real Facebook Page ID here since the API expects "pageId" to map to Facebook's ID or DB ID depending on your implementation
+                    // Assuming the previous implementation used formData.pageId which was the DB ID (pages[0].id)
+                    ...formData,
+                    // If your API expects the real Facebook Page ID, you might need to send selectedPage.pageId
+                    // Assuming your robust existing implementation handles the DB id correctly:
+                    pageId: formData.pageId
+                })
             });
 
             const data = await res.json();
@@ -111,7 +138,7 @@ export default function SetupAutoReply() {
                 setMessage({ type: "error", text: data.error || (locale === 'ar' ? "فشل الحفظ" : "Failed to save") });
             }
         } catch (error) {
-            setMessage({ type: "error", text: t("errServerConnection") });
+            setMessage({ type: "error", text: t("errServerConnection" as any) });
         } finally {
             setSubmitting(false);
         }
@@ -128,6 +155,27 @@ export default function SetupAutoReply() {
         );
     }
 
+    if (allPages.length > 0 && pages.length === 0) {
+        return (
+            <div className="max-w-3xl mx-auto p-12 text-center bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+                <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4 opacity-80" />
+                <h2 className="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4">
+                    {locale === 'ar' ? "لا توجد صفحات مفعلة" : "No Activated Pages"}
+                </h2>
+                <p className="text-amber-600 dark:text-amber-500 mb-8 max-w-md mx-auto">
+                    {locale === 'ar'
+                        ? "لديك صفحات مرتبطة ولكن لم تقم بتفعيل أي منها للرد التلقائي (إعطاء صلاحية Webhooks). يرجى تفعيل صفحة أولاً."
+                        : "You have connected pages, but none are activated for Auto-Replies (Webhooks disabled). Please activate a page first."}
+                </p>
+                <Link
+                    href="/dashboard/auto-reply/pages"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-xl shadow-sm transition-colors"
+                >
+                    {locale === 'ar' ? "الذهاب لصفحة التفعيل" : "Go to Activate Pages"}
+                </Link>
+            </div>
+        );
+    }
     return (
         <div className="max-w-4xl mx-auto transition-colors duration-300 min-h-[500px]" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
             <header className="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-4">

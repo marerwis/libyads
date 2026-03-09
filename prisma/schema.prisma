@@ -91,6 +91,7 @@ model FacebookPage {
   pageName        String
   pageAccessToken String
   status          String   @default("PENDING") // PENDING, ACTIVE, REJECTED
+  isAutoReplyActive Boolean  @default(false)
   
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
