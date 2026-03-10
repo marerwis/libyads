@@ -9,8 +9,11 @@ export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.email) {
+            console.log("Sync Error: No session or email found");
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+
+        console.log("Sync: Starting for user", session.user.email);
 
         const user = await prisma.user.findUnique({
             where: { email: session.user.email },
@@ -18,14 +21,18 @@ export async function POST(req: Request) {
         });
 
         if (!user) {
+            console.log("Sync Error: User not found in DB");
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const userAccessToken = user.metaSettings?.userAccessToken;
 
         if (!userAccessToken) {
+            console.log("Sync Error: No userAccessToken found in metaSettings");
             return NextResponse.json({ error: "No Facebook connection found. Please connect your Facebook account." }, { status: 400 });
         }
+
+        console.log("Sync: userAccessToken found, starting to fetch pages");
 
         // Fetch user pages
         let accounts: any[] = [];
@@ -48,6 +55,7 @@ export async function POST(req: Request) {
         }
 
         if (accounts.length > 0) {
+            console.log(`Sync: Updating/Creating ${accounts.length} pages in DB`);
             await prisma.$transaction(
                 accounts.map((page: any) =>
                     prisma.facebookPage.upsert({
@@ -66,12 +74,19 @@ export async function POST(req: Request) {
                     })
                 )
             );
+            console.log("Sync: Transaction complete");
+        } else {
+            console.log("Sync: No accounts found from Facebook API");
         }
 
         return NextResponse.json({ success: true, count: accounts.length });
 
     } catch (error) {
         console.error("Failed to sync Facebook pages:", error);
+        if (error instanceof Error) {
+            console.error("Error message:", error.message);
+            console.error("Error stack:", error.stack);
+        }
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
