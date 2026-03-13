@@ -30,7 +30,8 @@ export default function SetupAutoReply() {
         replyText: "",
         privateMessage: "",
         includeName: true,
-        keywords: ""
+        keywords: "",
+        activeDays: 30
     });
 
     useEffect(() => {
@@ -359,6 +360,25 @@ export default function SetupAutoReply() {
                                 onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
                                 className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
                                 placeholder={locale === 'ar' ? "سعر, بكام, تفاصيل" : "price, details, how much"}
+                            />
+                        </div>
+
+                        {/* Active Days */}
+                        <div>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-1 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
+                                {locale === 'ar' ? "أيام التفعيل" : "Active Days"}
+                            </label>
+                            <p className={`text-xs dark:text-slate-500 text-slate-400 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
+                                {locale === 'ar' ? "عدد الأيام التي سيظل فيها الرد التلقائي يعمل على هذا المنشور. افتراضياً 30 يوم، يمكنك تغييرها." : "Number of days the auto-reply will remain active for this post. Default is 30 days, you can change it."}
+                            </p>
+                            <input
+                                type="number"
+                                min="1"
+                                value={formData.activeDays}
+                                onChange={(e) => setFormData({ ...formData, activeDays: parseInt(e.target.value) || 1 })}
+                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                                placeholder="30"
+                                dir="ltr"
                             />
                         </div>
                     </div>

@@ -193,6 +193,7 @@ model AutoReplyRule {
   includeName      Boolean  @default(true) // Whether to prepend the user's name
   keywords         String?  // Optional: comma separated keywords to trigger the reply
   isActive         Boolean  @default(true)
+  activeDays       Int      @default(30) // How many days the rule is active
   repliesSentCount Int      @default(0) // Analytics: How many times it replied
   
   createdAt        DateTime @default(now())

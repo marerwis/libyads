@@ -68,6 +68,14 @@ export async function POST(req: Request) {
 
                             if (!rule) continue; // No rule configured for this post
 
+                            // Check if the rule has expired based on activeDays
+                            const expirationDate = new Date(rule.createdAt);
+                            expirationDate.setDate(expirationDate.getDate() + rule.activeDays);
+                            if (new Date() > expirationDate) {
+                                console.log(`Rule for post ${extractedPostId} has expired. Expiration date: ${expirationDate}`);
+                                continue;
+                            }
+
                             // Check keywords if applicable
                             if (rule.keywords) {
                                 const keywordList = rule.keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
