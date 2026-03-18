@@ -19,6 +19,7 @@ export async function GET(req: Request) {
             setting = await prisma.systemSetting.create({
                 data: {
                     autoReplyPrice: 0.1,
+                    pageAutoReplyPrice: 0.5,
                     autoReplyEnabled: true
                 }
             });
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
                 where: { id: setting.id },
                 data: {
                     autoReplyPrice: parseFloat(data.autoReplyPrice) || 0,
+                    pageAutoReplyPrice: parseFloat(data.pageAutoReplyPrice) || 0,
                     autoReplyEnabled: Boolean(data.autoReplyEnabled)
                 }
             });
@@ -55,6 +57,7 @@ export async function POST(req: Request) {
             setting = await prisma.systemSetting.create({
                 data: {
                     autoReplyPrice: parseFloat(data.autoReplyPrice) || 0,
+                    pageAutoReplyPrice: parseFloat(data.pageAutoReplyPrice) || 0,
                     autoReplyEnabled: Boolean(data.autoReplyEnabled)
                 }
             });

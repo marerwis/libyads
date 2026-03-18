@@ -36,6 +36,7 @@ model User {
   accounts            Account[]
   sessions            Session[]
   autoReplyRules      AutoReplyRule[]
+  pageAutoReplyRules  PageAutoReplyRule[]
 }
 
 // -------------------------------------------------------------
@@ -200,13 +201,30 @@ model AutoReplyRule {
   updatedAt        DateTime @updatedAt
 }
 
+model PageAutoReplyRule {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageId           String   // Facebook Page ID
+  replyTexts       String[] // Array of different replies to pick randomly
+  privateMessage   String?  // Optional private message to send
+  includeName      Boolean  @default(true) // Whether to prepend the user's name
+  activeDays       Int      @default(30) // How many days the rule protects new posts
+  isActive         Boolean  @default(true)
+  repliesSentCount Int      @default(0) // Analytics: How many times it replied
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
 // -------------------------------------------------------------
 // SYSTEM SETTINGS (ADMIN)
 // -------------------------------------------------------------
 
 model SystemSetting {
   id                  String   @id @default(cuid())
-  autoReplyPrice      Float    @default(0.00) // Price per reply
+  autoReplyPrice      Float    @default(0.00) // Price per reply (post-level)
+  pageAutoReplyPrice  Float    @default(0.00) // Price per reply (page-level)
   autoReplyEnabled    Boolean  @default(true) // Global toggle
   
   updatedAt           DateTime @updatedAt

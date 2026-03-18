@@ -9,6 +9,7 @@ export default function AdminAutoReplySettings() {
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
     const [formData, setFormData] = useState({
         autoReplyPrice: "0.1",
+        pageAutoReplyPrice: "0.5",
         autoReplyEnabled: true
     });
 
@@ -21,6 +22,7 @@ export default function AdminAutoReplySettings() {
                 if (data && !data.error) {
                     setFormData({
                         autoReplyPrice: data.autoReplyPrice?.toString() || "0.1",
+                        pageAutoReplyPrice: data.pageAutoReplyPrice?.toString() || "0.5",
                         autoReplyEnabled: data.autoReplyEnabled !== false
                     });
                 }
@@ -96,6 +98,37 @@ export default function AdminAutoReplySettings() {
                                         type="number"
                                         name="autoReplyPrice"
                                         value={formData.autoReplyPrice}
+                                        onChange={handleChange}
+                                        step="0.01"
+                                        min="0"
+                                        className="w-full pl-8 dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-300 rounded-lg px-4 py-3 font-medium dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] shadow-sm transition-colors"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Page-Level Price Setting */}
+                    <div className="bg-slate-50 dark:bg-[#0B0E14] border border-slate-200 dark:border-[#2A303C] rounded-xl p-5 md:p-6 transition-colors">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="flex-1">
+                                <label className={`block text-base font-semibold dark:text-slate-200 text-slate-800 mb-1 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
+                                    {locale === 'ar' ? 'سعر الرد الشامل للصفحات' : 'Page-Level Auto-Reply Price'}
+                                </label>
+                                <p className={`text-sm dark:text-slate-400 text-slate-500 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
+                                    {locale === 'ar' ? 'التكلفة بالدولار لكل رد تلقائي على مستوى الصفحة بالكامل يتم إرساله.' : 'Cost in USD for each page-level auto-reply sent.'}
+                                </p>
+                            </div>
+                            <div className="w-full md:w-48" dir="ltr">
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span className="text-slate-500 sm:text-sm">$</span>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        name="pageAutoReplyPrice"
+                                        value={formData.pageAutoReplyPrice}
                                         onChange={handleChange}
                                         step="0.01"
                                         min="0"

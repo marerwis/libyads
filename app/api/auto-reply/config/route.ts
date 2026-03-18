@@ -16,6 +16,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json({
             autoReplyPrice: setting?.autoReplyPrice ?? 0.1,
+            pageAutoReplyPrice: setting?.pageAutoReplyPrice ?? 0.5,
             autoReplyEnabled: setting?.autoReplyEnabled ?? true
         });
 

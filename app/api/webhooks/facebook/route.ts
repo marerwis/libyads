@@ -57,8 +57,8 @@ export async function POST(req: Request) {
                             // Extract just the raw post ID (it usually comes as pageId_postId)
                             const extractedPostId = postId.includes('_') ? postId.split('_')[1] : postId;
 
-                            // Find a matching active AutoReplyRule
-                            const rule = await prisma.autoReplyRule.findFirst({
+                            // Find a matching active AutoReplyRule (Post-Level)
+                            let rule: any = await prisma.autoReplyRule.findFirst({
                                 where: {
                                     pageId: pageId,
                                     postId: extractedPostId,
@@ -66,21 +66,34 @@ export async function POST(req: Request) {
                                 }
                             });
 
-                            if (!rule) continue; // No rule configured for this post
+                            let isPageRule = false;
+
+                            if (!rule) {
+                                // If no post-level rule, check for a Page-Level rule
+                                rule = await prisma.pageAutoReplyRule.findFirst({
+                                    where: {
+                                        pageId: pageId,
+                                        isActive: true
+                                    }
+                                });
+
+                                if (!rule) continue; // No rule configured for this post or page
+                                isPageRule = true;
+                            }
 
                             // Check if the rule has expired based on activeDays
                             const expirationDate = new Date(rule.createdAt);
                             expirationDate.setDate(expirationDate.getDate() + rule.activeDays);
                             if (new Date() > expirationDate) {
-                                console.log(`Rule for post ${extractedPostId} has expired. Expiration date: ${expirationDate}`);
+                                console.log(`Rule for ${isPageRule ? 'page' : 'post'} ${isPageRule ? pageId : extractedPostId} has expired. Expiration date: ${expirationDate}`);
                                 continue;
                             }
 
-                            // Check keywords if applicable
-                            if (rule.keywords) {
-                                const keywordList = rule.keywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
+                            // Check keywords if applicable (only for Post-Level rules currently)
+                            if (!isPageRule && rule.keywords) {
+                                const keywordList = rule.keywords.split(',').map((k: string) => k.trim().toLowerCase()).filter((k: string) => k);
                                 if (keywordList.length > 0) {
-                                    const hasMatch = keywordList.some(kw => message.includes(kw));
+                                    const hasMatch = keywordList.some((kw: string) => message.includes(kw));
                                     if (!hasMatch) continue; // Didn't match any keyword
                                 }
                             }
@@ -88,7 +101,7 @@ export async function POST(req: Request) {
                             // Fetch system config to check if globally enabled and get the price
                             const sysConfig = await prisma.systemSetting.findFirst();
                             if (!sysConfig?.autoReplyEnabled) continue; // Feature globally disabled
-                            const replyPrice = sysConfig.autoReplyPrice || 0;
+                            const replyPrice = isPageRule ? (sysConfig.pageAutoReplyPrice || 0) : (sysConfig.autoReplyPrice || 0);
 
                             // Fetch user's wallet to check balance
                             const userWallet = await prisma.wallet.findUnique({
@@ -111,11 +124,20 @@ export async function POST(req: Request) {
                             }
 
                             // Construct reply message
+                            // If it's a page rule, randomly select one of the reply variants
+                            let selectedReplyText = "";
+                            if (isPageRule && rule.replyTexts && rule.replyTexts.length > 0) {
+                                const randomIndex = Math.floor(Math.random() * rule.replyTexts.length);
+                                selectedReplyText = rule.replyTexts[randomIndex];
+                            } else {
+                                selectedReplyText = rule.replyText;
+                            }
+
                             // Note: Facebook Graph API currently restricts explicit @mentions for pages replying to users
                             // so we fall back to just using their name text.
                             const replyMessage = rule.includeName
-                                ? `${senderName}، ${rule.replyText}`
-                                : rule.replyText;
+                                ? `${senderName}، ${selectedReplyText}`
+                                : selectedReplyText;
 
                             // Send Reply via Facebook Graph API
                             const fbResponse = await fetch(`https://graph.facebook.com/v19.0/${commentId}/comments`, {
@@ -176,7 +198,7 @@ export async function POST(req: Request) {
                                             data: {
                                                 amount: -replyPrice,
                                                 type: "DEDUCTION",
-                                                description: `Auto-reply to comment on post ${extractedPostId}`,
+                                                description: `Auto-reply (${isPageRule ? 'Page-Level' : 'Post-Level'}) to comment on post ${extractedPostId}`,
                                                 userId: rule.userId
                                             }
                                         })
