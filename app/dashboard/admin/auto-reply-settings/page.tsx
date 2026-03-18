@@ -114,10 +114,10 @@ export default function AdminAutoReplySettings() {
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="flex-1">
                                 <label className={`block text-base font-semibold dark:text-slate-200 text-slate-800 mb-1 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
-                                    {locale === 'ar' ? 'سعر الرد الشامل للصفحات' : 'Page-Level Auto-Reply Price'}
+                                    {locale === 'ar' ? 'سعر الاشتراك الشامل (لكل 30 يوم)' : 'Page-Level Auto-Reply Price (per 30 days)'}
                                 </label>
                                 <p className={`text-sm dark:text-slate-400 text-slate-500 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
-                                    {locale === 'ar' ? 'التكلفة بالدولار لكل رد تلقائي على مستوى الصفحة بالكامل يتم إرساله.' : 'Cost in USD for each page-level auto-reply sent.'}
+                                    {locale === 'ar' ? 'التكلفة بالدولار لتشغيل الرد الشامل على الصفحة لمدة 30 يوماً. تُدفع مقدماً.' : 'Cost in USD for 30 days of global page auto-reply coverage. Paid upfront.'}
                                 </p>
                             </div>
                             <div className="w-full md:w-48" dir="ltr">
