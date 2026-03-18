@@ -73,11 +73,18 @@ export default function ManagePageAutoReplies() {
             const res = await fetch(`/api/page-auto-reply/${id}`, {
                 method: "DELETE"
             });
+            
+            const data = await res.json();
+            
             if (res.ok) {
                 setRules(prev => prev.filter(r => r.id !== id));
+            } else {
+                console.error("Failed to delete rule:", data);
+                alert(data.error || "Failed to delete rule");
             }
         } catch (error) {
-            console.error(error);
+            console.error("Error deleting rule:", error);
+            alert("An error occurred while deleting the rule.");
         } finally {
             setActionLoading(null);
         }
