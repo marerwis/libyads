@@ -13,6 +13,7 @@ export default function ManagePageAutoReplies() {
     const [pages, setPages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [sysConfig, setSysConfig] = useState({ autoReplyEnabled: true });
 
     const fetchRules = async () => {
@@ -66,8 +67,6 @@ export default function ManagePageAutoReplies() {
     };
 
     const deleteRule = async (id: string) => {
-        if (!confirm(locale === 'ar' ? "هل أنت متأكد من حذف هذه القاعدة؟" : "Are you sure you want to delete this rule?")) return;
-
         setActionLoading(id);
         try {
             console.log("Attempting to delete rule:", id);
@@ -203,33 +202,47 @@ export default function ManagePageAutoReplies() {
                                     )}
                                 </div>
 
-                                <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-[#2A303C] mt-auto">
+                                <div className="flex items-center gap-2 pt-4 border-t border-slate-100 dark:border-[#2A303C] mt-auto relative z-20">
                                     <button
-                                        onClick={() => toggleRuleStatus(rule.id, true)}
+                                        type="button"
+                                        onClick={(e) => { e.preventDefault(); toggleRuleStatus(rule.id, true); }}
                                         disabled={actionLoading === rule.id || !rule.isActive}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium transition-colors border ${rule.isActive
                                             ? 'bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 dark:hover:bg-amber-500/20 cursor-pointer'
                                             : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-800/30 dark:border-slate-800 dark:text-slate-600 cursor-not-allowed'}`}
                                     >
-                                        <PowerOff size={16} /> {t("pauseRule" as any)}
+                                        <PowerOff size={16} className="pointer-events-none" /> {t("pauseRule" as any)}
                                     </button>
                                     <button
-                                        onClick={() => toggleRuleStatus(rule.id, false)}
+                                        type="button"
+                                        onClick={(e) => { e.preventDefault(); toggleRuleStatus(rule.id, false); }}
                                         disabled={actionLoading === rule.id || rule.isActive}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium transition-colors border ${!rule.isActive
                                             ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:bg-emerald-500/20 cursor-pointer'
                                             : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-800/30 dark:border-slate-800 dark:text-slate-600 cursor-not-allowed'}`}
                                     >
-                                        <Power size={16} /> {t("resumeRule" as any)}
+                                        <Power size={16} className="pointer-events-none" /> {t("resumeRule" as any)}
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteRule(rule.id); }}
+                                        onClick={(e) => { 
+                                            e.preventDefault(); 
+                                            if (confirmDeleteId === rule.id) {
+                                                deleteRule(rule.id);
+                                            } else {
+                                                setConfirmDeleteId(rule.id);
+                                                setTimeout(() => setConfirmDeleteId(null), 3000);
+                                            }
+                                        }}
                                         disabled={actionLoading === rule.id}
-                                        className="p-2.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-colors z-20 relative cursor-pointer"
+                                        className="p-2.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-colors cursor-pointer min-w-[40px] flex items-center justify-center"
                                         title={locale === 'ar' ? 'حذف' : 'Delete'}
                                     >
-                                        <Trash2 size={20} className="pointer-events-none" />
+                                        {confirmDeleteId === rule.id ? (
+                                            <span className="text-xs font-bold animate-pulse">{locale === 'ar' ? 'تأكيد؟' : 'Sure?'}</span>
+                                        ) : (
+                                            <Trash2 size={20} className="pointer-events-none" />
+                                        )}
                                     </button>
                                 </div>
 
