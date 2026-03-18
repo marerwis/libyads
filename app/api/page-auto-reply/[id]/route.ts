@@ -3,8 +3,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
         if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,7 +23,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
         // Verify ownership
         const rule = await prisma.pageAutoReplyRule.findUnique({
-            where: { id: params.id }
+            where: { id }
         });
 
         if (!rule || rule.userId !== user.id) {
@@ -30,7 +31,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         }
 
         const updatedRule = await prisma.pageAutoReplyRule.update({
-            where: { id: params.id },
+            where: { id },
             data: { isActive: isActive }
         });
 
@@ -41,8 +42,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
         if (!session?.user?.email) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -58,7 +60,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
         // Verify ownership
         const rule = await prisma.pageAutoReplyRule.findUnique({
-            where: { id: params.id }
+            where: { id }
         });
 
         if (!rule || rule.userId !== user.id) {
@@ -66,7 +68,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
         }
 
         await prisma.pageAutoReplyRule.delete({
-            where: { id: params.id }
+            where: { id }
         });
 
         return NextResponse.json({ success: true });
