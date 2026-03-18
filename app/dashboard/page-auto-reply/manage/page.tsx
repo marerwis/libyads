@@ -70,17 +70,25 @@ export default function ManagePageAutoReplies() {
 
         setActionLoading(id);
         try {
+            console.log("Attempting to delete rule:", id);
             const res = await fetch(`/api/page-auto-reply/${id}`, {
                 method: "DELETE"
             });
             
-            const data = await res.json();
+            console.log("Delete response status:", res.status, res.statusText);
             
             if (res.ok) {
                 setRules(prev => prev.filter(r => r.id !== id));
+                console.log("Rule deleted successfully from UI state.");
             } else {
-                console.error("Failed to delete rule:", data);
-                alert(data.error || "Failed to delete rule");
+                const text = await res.text();
+                console.error("Failed to delete rule. Raw response:", text);
+                try {
+                    const data = JSON.parse(text);
+                    alert(data.error || "Failed to delete rule");
+                } catch(e) {
+                    alert(`Failed to delete rule (Status: ${res.status})`);
+                }
             }
         } catch (error) {
             console.error("Error deleting rule:", error);
