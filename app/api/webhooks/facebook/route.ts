@@ -101,14 +101,16 @@ export async function POST(req: Request) {
                             // Fetch system config to check if globally enabled and get the price
                             const sysConfig = await prisma.systemSetting.findFirst();
                             if (!sysConfig?.autoReplyEnabled) continue; // Feature globally disabled
-                            const replyPrice = isPageRule ? (sysConfig.pageAutoReplyPrice || 0) : (sysConfig.autoReplyPrice || 0);
+                            
+                            // Page-level rules are paid upfront, so per-reply cost is 0.
+                            const replyPrice = isPageRule ? 0 : (sysConfig.autoReplyPrice || 0);
 
                             // Fetch user's wallet to check balance
                             const userWallet = await prisma.wallet.findUnique({
                                 where: { userId: rule.userId }
                             });
 
-                            if (!userWallet || userWallet.balance < replyPrice) {
+                            if (replyPrice > 0 && (!userWallet || userWallet.balance < replyPrice)) {
                                 console.log(`Insufficient balance for user ${rule.userId} to auto-reply.`);
                                 continue; // Too poor to reply
                             }
@@ -188,7 +190,7 @@ export async function POST(req: Request) {
                                 }
 
                                 // Deduct balance if the reply was successful
-                                if (replyPrice > 0) {
+                                if (replyPrice > 0 && userWallet) {
                                     await prisma.$transaction([
                                         prisma.wallet.update({
                                             where: { id: userWallet.id },

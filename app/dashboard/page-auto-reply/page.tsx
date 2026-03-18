@@ -161,9 +161,14 @@ export default function SetupPageAutoReply() {
                         : 'Set up global auto-replies for all new posts. Replies change randomly to prevent spam flags.'}
                     </p>
 
-                    <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-full text-indigo-700 dark:text-indigo-300 text-sm font-medium">
-                        <DollarSign size={16} />
-                        {t("costPerReply" as any)} ${sysConfig.pageAutoReplyPrice}
+                    <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-full text-indigo-700 dark:text-indigo-300 text-sm font-medium">
+                            <DollarSign size={16} />
+                            {locale === 'ar' ? `التكلفة: $${sysConfig.pageAutoReplyPrice} لكل 30 يوم` : `Cost: $${sysConfig.pageAutoReplyPrice} per 30 days`}
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full text-emerald-700 dark:text-emerald-300 text-sm font-bold shadow-sm">
+                            {locale === 'ar' ? `إجمالي الدفع المسبق: $${((formData.activeDays / 30) * sysConfig.pageAutoReplyPrice).toFixed(2)}` : `Total Upfront Cost: $${((formData.activeDays / 30) * sysConfig.pageAutoReplyPrice).toFixed(2)}`}
+                        </div>
                     </div>
                 </div>
 
