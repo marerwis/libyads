@@ -13,6 +13,7 @@ export default function SetupPageAutoReply() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
+    const [extensionPrompt, setExtensionPrompt] = useState<{ rule: any } | null>(null);
 
     // Global Config
     const [sysConfig, setSysConfig] = useState({ pageAutoReplyPrice: 0.5, autoReplyEnabled: true });
@@ -100,8 +101,44 @@ export default function SetupPageAutoReply() {
             if (res.ok) {
                 setMessage({ type: "success", text: locale === 'ar' ? "تم حفظ قاعدة الصفحة بنجاح!" : "Page rule saved successfully!" });
                 setTimeout(() => router.push('/dashboard/page-auto-reply/manage'), 1500);
+            } else if (res.status === 409 && data.error === "RULE_EXISTS") {
+                setExtensionPrompt({ rule: data.rule });
             } else {
                 setMessage({ type: "error", text: data.error || (locale === 'ar' ? "فشل الحفظ" : "Failed to save") });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: t("errServerConnection" as any) });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleExtendRule = async () => {
+        setSubmitting(true);
+        setMessage(null);
+        setExtensionPrompt(null);
+        
+        try {
+            const res = await fetch("/api/page-auto-reply", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    pageId: formData.pageId,
+                    replyTexts: formData.replyTexts.filter(t => t.trim() !== ""),
+                    privateMessage: formData.privateMessage,
+                    includeName: formData.includeName,
+                    activeDays: formData.activeDays,
+                    extend: true
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setMessage({ type: "success", text: locale === 'ar' ? "تم تمديد قاعدة الصفحة بنجاح!" : "Page rule extended successfully!" });
+                setTimeout(() => router.push('/dashboard/page-auto-reply/manage'), 1500);
+            } else {
+                setMessage({ type: "error", text: data.error || (locale === 'ar' ? "فشل التمديد" : "Failed to extend") });
             }
         } catch (error) {
             setMessage({ type: "error", text: t("errServerConnection" as any) });
@@ -334,6 +371,43 @@ export default function SetupPageAutoReply() {
                     </button>
                 </div>
             </form>
+
+            {/* Extension Confirmation Modal */}
+            {extensionPrompt && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#151921] rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-[#2A303C] overflow-hidden" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+                        <div className="p-6">
+                            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4 mx-auto">
+                                <AlertCircle size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-center text-slate-900 dark:text-white mb-2">
+                                {locale === 'ar' ? 'توجد قاعدة مفعلة مسبقاً!' : 'Active Rule Already Exists!'}
+                            </h3>
+                            <p className="text-center text-slate-600 dark:text-slate-400 mb-6 text-sm">
+                                {locale === 'ar' 
+                                    ? `هذه الصفحة تحتوي مسبقاً على رد شامل مفعل. هل ترغب في تمديد فترة الصلاحية الحالية بـ ${formData.activeDays} يوم إضافي وتحديث نصوص الردود لتطابق المدخلات الجديدة (سيتم خصم التكلفة)؟`
+                                    : `This page already has an active global reply. Do you want to extend the current validity by ${formData.activeDays} days and update the reply texts to match the new inputs (Cost will be deducted)?`}
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setExtensionPrompt(null)}
+                                    type="button"
+                                    className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors"
+                                >
+                                    {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                                <button
+                                    onClick={handleExtendRule}
+                                    type="button"
+                                    className="flex-1 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-medium shadow-lg shadow-amber-600/20 transition-all active:scale-95 flex items-center justify-center"
+                                >
+                                    {locale === 'ar' ? 'نعم، قم بالتمديد' : 'Yes, Extend Rule'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -26,6 +26,7 @@ import {
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/components/LanguageProvider";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
+import IdleTimeout from "@/components/IdleTimeout";
 
 export default function DashboardLayout({
     children,
@@ -76,7 +77,7 @@ export default function DashboardLayout({
 
     return (
         <div className="flex h-screen overflow-hidden dark:bg-[#0a0a0b] bg-slate-50 dark:text-slate-200 text-slate-800 font-sans antialiased selection:bg-[#1877F2]/30 transition-colors duration-300">
-
+            <IdleTimeout timeoutMinutes={30} />
             {/* Mobile Top Bar */}
             <div className="md:hidden flex flex-col px-4 pt-[max(env(safe-area-inset-top),56px)] pb-3 border-b dark:border-slate-800/60 border-slate-200 dark:bg-[#0a0a0b] bg-white z-40 fixed top-0 left-0 right-0 transition-colors duration-300 shadow-sm">
 

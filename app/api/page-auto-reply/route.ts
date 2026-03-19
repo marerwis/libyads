@@ -47,22 +47,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const { pageId, replyTexts, privateMessage, includeName, activeDays } = await req.json();
+        const { pageId, replyTexts, privateMessage, includeName, activeDays, extend } = await req.json();
 
         if (!pageId || !replyTexts || !Array.isArray(replyTexts) || replyTexts.length === 0) {
             return NextResponse.json({ error: "Missing required fields or empty replies" }, { status: 400 });
-        }
-
-        // Validate if rule already exists for this page
-        const existingRule = await prisma.pageAutoReplyRule.findFirst({
-            where: {
-                userId: user.id,
-                pageId: pageId
-            }
-        });
-
-        if (existingRule) {
-            return NextResponse.json({ error: "An auto-reply rule already exists for this page. Please edit or delete it." }, { status: 400 });
         }
 
         // Filter out empty replies
@@ -73,6 +61,22 @@ export async function POST(req: Request) {
         }
 
         const parsedActiveDays = activeDays ? parseInt(activeDays, 10) : 30;
+
+        // Validate if rule already exists for this page
+        const existingRule = await prisma.pageAutoReplyRule.findFirst({
+            where: {
+                userId: user.id,
+                pageId: pageId
+            }
+        });
+
+        if (existingRule && !extend) {
+            return NextResponse.json({ 
+                error: "RULE_EXISTS", 
+                message: "An auto-reply rule already exists for this page.",
+                rule: existingRule
+            }, { status: 409 });
+        }
 
         // --- Upfront Subscription Billing Logic ---
         const sysConfig = await prisma.systemSetting.findFirst();
@@ -96,19 +100,36 @@ export async function POST(req: Request) {
             }
         }
 
-        // Perform creation and deduction in a transaction
-        const newRule = await prisma.$transaction(async (tx) => {
-            const rule = await tx.pageAutoReplyRule.create({
-                data: {
-                    userId: user.id,
-                    pageId,
-                    replyTexts: validReplies,
-                    privateMessage: privateMessage || null,
-                    includeName,
-                    isActive: true,
-                    activeDays: parsedActiveDays
-                }
-            });
+        // Perform creation/update and deduction in a transaction
+        const resultRule = await prisma.$transaction(async (tx) => {
+            let rule;
+            
+            if (existingRule && extend) {
+                // Extend existing rule
+                rule = await tx.pageAutoReplyRule.update({
+                    where: { id: existingRule.id },
+                    data: {
+                        replyTexts: validReplies,
+                        privateMessage: privateMessage || null,
+                        includeName,
+                        isActive: true, // Auto-resume if paused
+                        activeDays: { increment: parsedActiveDays }
+                    }
+                });
+            } else {
+                // Create new rule
+                rule = await tx.pageAutoReplyRule.create({
+                    data: {
+                        userId: user.id,
+                        pageId,
+                        replyTexts: validReplies,
+                        privateMessage: privateMessage || null,
+                        includeName,
+                        isActive: true,
+                        activeDays: parsedActiveDays
+                    }
+                });
+            }
 
             if (totalCost > 0 && userWallet) {
                 await tx.wallet.update({
@@ -121,7 +142,7 @@ export async function POST(req: Request) {
                         userId: user.id,
                         amount: -totalCost,
                         type: "DEDUCTION",
-                        description: `Upfront payment for Page-Level Auto-Reply (${parsedActiveDays} days) for page ${pageId}`
+                        description: `Upfront payment for Page-Level Auto-Reply ${existingRule && extend ? 'Extension' : 'Setup'} (${parsedActiveDays} days) for page ${pageId}`
                     }
                 });
             }
@@ -129,7 +150,7 @@ export async function POST(req: Request) {
             return rule;
         });
 
-        return NextResponse.json(newRule);
+        return NextResponse.json(resultRule);
     } catch (error) {
         console.error("Failed to create page auto-reply rule:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
