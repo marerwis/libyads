@@ -62,7 +62,11 @@ export async function POST(req: Request) {
         });
 
         if (existingRule) {
-            return NextResponse.json({ error: "An auto-reply rule already exists for this post. Please edit or delete it." }, { status: 400 });
+            return NextResponse.json({ 
+                error: "RULE_EXISTS", 
+                message: "An auto-reply rule already exists for this post.",
+                rule: existingRule
+            }, { status: 409 });
         }
 
         const newRule = await prisma.autoReplyRule.create({

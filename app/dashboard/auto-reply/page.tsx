@@ -13,6 +13,7 @@ export default function SetupAutoReply() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
+    const [duplicateWarning, setDuplicateWarning] = useState(false);
 
     // Global Config
     const [sysConfig, setSysConfig] = useState({ autoReplyPrice: 0.1, autoReplyEnabled: true });
@@ -136,6 +137,8 @@ export default function SetupAutoReply() {
             if (res.ok) {
                 setMessage({ type: "success", text: locale === 'ar' ? "تم حفظ القاعدة بنجاح!" : "Rule saved successfully!" });
                 setTimeout(() => router.push('/dashboard/auto-reply/manage'), 1500);
+            } else if (res.status === 409 && data.error === "RULE_EXISTS") {
+                setDuplicateWarning(true);
             } else {
                 setMessage({ type: "error", text: data.error || (locale === 'ar' ? "فشل الحفظ" : "Failed to save") });
             }
@@ -402,6 +405,42 @@ export default function SetupAutoReply() {
                     </button>
                 </div>
             </form>
+
+            {/* Duplicate Rule Warning Modal */}
+            {duplicateWarning && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#151921] rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-[#2A303C] overflow-hidden" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+                        <div className="p-6">
+                            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center mb-4 mx-auto">
+                                <AlertCircle size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-center text-slate-900 dark:text-white mb-2">
+                                {locale === 'ar' ? 'المنشور مفعل مسبقاً!' : 'Post Already Activated!'}
+                            </h3>
+                            <p className="text-center text-slate-600 dark:text-slate-400 mb-6 text-sm leading-relaxed">
+                                {locale === 'ar' 
+                                    ? 'يبدو أنك قمت بتفعيل الرد التلقائي لهذا المنشور مسبقاً. لا يُسمح بإنشاء قاعدة مكررة لنفس المنشور، يرجى التوجه لصفحة "إدارة الردود الحالية" إذا أردت إيقافه أو حذفه.'
+                                    : 'It looks like you have already activated an auto-reply for this post. Duplicate rules are not allowed. Please manage the existing rule from "Manage Existing Rules" if you want to modify it.'}
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDuplicateWarning(false)}
+                                    type="button"
+                                    className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors"
+                                >
+                                    {locale === 'ar' ? 'حسناً، فهمت' : 'Understood'}
+                                </button>
+                                <Link
+                                    href="/dashboard/auto-reply/manage"
+                                    className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium shadow-lg shadow-red-600/20 transition-all active:scale-95 flex items-center justify-center"
+                                >
+                                    {locale === 'ar' ? 'إدارة الردود' : 'Manage Rules'}
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
