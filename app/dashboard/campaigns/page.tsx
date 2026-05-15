@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { Megaphone, Play, Pause, Eye, Search } from "lucide-react";
+import { Megaphone, Play, Pause, Eye, Search, Trash2 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 
 export default function CampaignsHistoryPage() {
@@ -50,6 +50,33 @@ export default function CampaignsHistoryPage() {
         } catch (error) {
             setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: currentStatus } : c));
             setMessage({ type: "error", text: "Network error while updating status." });
+        }
+    };
+
+    const deleteCampaign = async (id: string) => {
+        if (!confirm(t("confirmDeleteCampaign" as any) || "Are you sure you want to delete this campaign?")) return;
+
+        try {
+            setMessage(null);
+            
+            const oldCampaigns = [...campaigns];
+            setCampaigns(prev => prev.filter(c => c.id !== id));
+
+            const res = await fetch(`/api/campaign/${id}`, {
+                method: "DELETE"
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                setCampaigns(oldCampaigns);
+                setMessage({ type: "error", text: errorData.error || "Failed to delete campaign." });
+            } else {
+                setMessage({ type: "success", text: "Campaign deleted successfully." });
+            }
+        } catch (error) {
+            console.error(error);
+            setMessage({ type: "error", text: "Network error while deleting campaign." });
+            fetchCampaigns();
         }
     };
 
@@ -147,10 +174,17 @@ export default function CampaignsHistoryPage() {
                                                     href={`https://facebook.com/${campaign.pageId}/posts/${campaign.postId?.includes('_') ? campaign.postId.split('_')[1] : campaign.postId}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    title={t("viewPromotion")}
+                                                    title={t("viewPromotion" as any)}
                                                     className="p-2 dark:bg-slate-800/50 bg-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 dark:hover:text-white hover:text-slate-900 rounded-lg transition-colors border border-transparent dark:hover:border-slate-600 hover:border-slate-300 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center">
                                                     <Eye size={16} />
                                                 </a>
+                                                <button
+                                                    onClick={() => deleteCampaign(campaign.id)}
+                                                    className="p-2 dark:bg-slate-800/50 bg-slate-100 hover:bg-red-100 dark:hover:bg-red-900/30 dark:hover:text-red-400 hover:text-red-600 text-slate-500 rounded-lg transition-colors border border-transparent dark:hover:border-red-900/50 hover:border-red-200 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center"
+                                                    title={t("delete" as any)}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
