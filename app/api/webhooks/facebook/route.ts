@@ -58,10 +58,15 @@ export async function POST(req: Request) {
                             const extractedPostId = postId.includes('_') ? postId.split('_')[1] : postId;
 
                             // Find a matching active AutoReplyRule (Post-Level)
+                            // We use OR because the DB might store just POSTID or PAGEID_POSTID
                             let rule: any = await prisma.autoReplyRule.findFirst({
                                 where: {
                                     pageId: pageId,
-                                    postId: extractedPostId,
+                                    OR: [
+                                        { postId: extractedPostId },
+                                        { postId: postId },
+                                        { postId: `${pageId}_${extractedPostId}` }
+                                    ],
                                     isActive: true
                                 }
                             });
@@ -186,7 +191,13 @@ export async function POST(req: Request) {
                                 if (likeResponse.ok) {
                                     console.log(`Successfully liked comment ${commentId}`);
                                 } else {
-                                    console.error(`Failed to like comment ${commentId}:`, await likeResponse.json());
+                                    let errInfo = "";
+                                    try {
+                                        errInfo = await likeResponse.text();
+                                    } catch (e) {
+                                        errInfo = "Unknown error, could not read response text.";
+                                    }
+                                    console.error(`Failed to like comment ${commentId}:`, errInfo);
                                 }
 
                                 // Deduct balance if the reply was successful
