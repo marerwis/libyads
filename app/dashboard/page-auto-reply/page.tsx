@@ -264,15 +264,25 @@ export default function SetupPageAutoReply() {
                             <p className={`text-xs dark:text-slate-500 text-slate-400 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
                                 {locale === 'ar' ? "عدد الأيام التي سيظل فيها الرد يعمل على أي منشور جديد في هذه الصفحة." : "Number of days the auto-reply will remain active for new posts."}
                             </p>
-                            <input
-                                type="number"
-                                min="1"
-                                value={formData.activeDays}
-                                onChange={(e) => setFormData({ ...formData, activeDays: parseInt(e.target.value) || 1 })}
-                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                                placeholder="30"
-                                dir="ltr"
-                            />
+                            <div className="flex items-center p-1 bg-slate-50 dark:bg-[#0B0E14] border border-slate-200 dark:border-[#2A303C] rounded-xl overflow-hidden font-sans w-full sm:w-max shadow-inner" dir="ltr">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setFormData({ ...formData, activeDays: Math.max(1, formData.activeDays - 1) })} 
+                                    className="w-12 h-11 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors bg-white dark:bg-[#151921] shadow-sm border border-slate-200 dark:border-[#2A303C] active:scale-95"
+                                >
+                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
+                                </button>
+                                <div className="flex-1 w-24 text-center font-bold text-xl dark:text-white text-slate-900 leading-none select-none tracking-wider">
+                                    {formData.activeDays}
+                                </div>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setFormData({ ...formData, activeDays: formData.activeDays + 1 })} 
+                                    className="w-12 h-11 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors bg-white dark:bg-[#151921] shadow-sm border border-slate-200 dark:border-[#2A303C] active:scale-95"
+                                >
+                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
