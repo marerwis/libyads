@@ -6,6 +6,7 @@ import { MessageSquareShare, Trash2, Power, PowerOff, Settings, AlertCircle, Cal
 import Link from "next/link";
 import { format } from "date-fns";
 import { ar, enUS } from 'date-fns/locale';
+import { TimerOff } from "lucide-react";
 
 export default function ManagePageAutoReplies() {
     const { t, locale } = useLanguage();
@@ -155,12 +156,23 @@ export default function ManagePageAutoReplies() {
                         const page = pages.find(p => p.id === rule.pageId || p.pageId === rule.pageId);
                         const pageName = page ? page.name : (locale === 'ar' ? 'صفحة غير معروفة' : 'Unknown Page');
 
+                        const expirationDate = new Date(rule.createdAt);
+                        expirationDate.setDate(expirationDate.getDate() + rule.activeDays);
+                        const isExpired = new Date() > expirationDate;
+
                         return (
-                            <div key={rule.id} className="dark:bg-[#151921] bg-white rounded-2xl border dark:border-[#2A303C] border-slate-200 shadow-sm p-6 relative flex flex-col group transition-all hover:shadow-md hover:border-indigo-500/30">
+                            <div key={rule.id} className={`dark:bg-[#151921] bg-white rounded-2xl border ${isExpired ? 'dark:border-red-500/50 border-red-300 shadow-md ring-1 ring-red-500/20' : 'dark:border-[#2A303C] border-slate-200'} shadow-sm p-6 relative flex flex-col group transition-all hover:shadow-md hover:border-indigo-500/30 overflow-hidden`}>
+                                
+                                {isExpired && (
+                                    <div className="absolute top-0 inset-x-0 bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 py-1.5 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider relative z-10 mb-4 border-b border-red-200 dark:border-red-500/30">
+                                        <TimerOff size={14} /> 
+                                        {locale === 'ar' ? 'انتهى الوقت (منتهي الصلاحية)' : 'Time Expired'}
+                                    </div>
+                                )}
 
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex flex-col gap-2">
-                                        <h3 className="font-bold text-lg dark:text-white text-slate-800 flex items-center gap-2">
+                                        <h3 className={`font-bold text-lg flex items-center gap-2 ${isExpired ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-white'}`}>
                                             {pageName}
                                         </h3>
                                         <div className={`text-xs font-semibold px-2 py-1 rounded inline-flex items-center gap-1 w-max ${rule.isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'}`}>
