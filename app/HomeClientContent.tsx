@@ -30,7 +30,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                     <div className="hidden md:flex justify-between items-center h-20">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
-                                <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
+                                <img src="/brand-logo.png" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                             </div>
                             <span className="font-bold text-xl tracking-tight text-white">Libya Ads</span>
                         </div>
@@ -63,7 +63,7 @@ export default function HomeClientContent({ settings, page, session }: { setting
                         {/* Row 1: Brand & Logo (Centered) */}
                         <div className="flex items-center justify-center gap-3 pb-3 border-b border-white/10">
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-lg shadow-blue-500/20">
-                                <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
+                                <img src="/brand-logo.png" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                             </div>
                             <span className="font-bold text-sm tracking-tight text-white">Libya Ads</span>
                         </div>

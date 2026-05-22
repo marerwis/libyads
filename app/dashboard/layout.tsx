@@ -119,7 +119,7 @@ export default function DashboardLayout({
                     <div className="pt-8 pb-3 min-h-[5.5rem] md:pt-0 md:min-h-20 flex items-center justify-between px-6 border-b dark:border-slate-800/60 border-slate-200 transition-colors duration-300">
                         <Link href="/" className="flex items-center gap-3 group">
                             <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300 border border-white/10">
-                                <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
+                                <img src="/brand-logo.png" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                             </div>
                             <div>
                                 <h1 className="font-bold text-sm tracking-tight dark:text-slate-100 text-slate-800 group-hover:text-[#1877F2] transition-colors" dir="ltr">Libya Ads</h1>
