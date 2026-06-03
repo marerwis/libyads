@@ -147,7 +147,7 @@ export async function POST(req: Request) {
                                 : selectedReplyText;
 
                             // Send Reply via Facebook Graph API
-                            const fbResponse = await fetch(`https://graph.facebook.com/v19.0/${commentId}/comments`, {
+                            const fbResponse = await fetch(`https://graph.facebook.com/v21.0/${commentId}/comments`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -161,7 +161,7 @@ export async function POST(req: Request) {
                             if (fbResponse.ok && fbResult.id) {
                                 // Send Private Message if configured
                                 if (rule.privateMessage) {
-                                    const pmMessageResponse = await fetch(`https://graph.facebook.com/v19.0/${pageId}/messages`, {
+                                    const pmMessageResponse = await fetch(`https://graph.facebook.com/v21.0/${pageId}/messages`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({
@@ -180,7 +180,7 @@ export async function POST(req: Request) {
                                 }
 
                                 // Automatically Like the comment
-                                const likeResponse = await fetch(`https://graph.facebook.com/v19.0/${commentId}/likes`, {
+                                const likeResponse = await fetch(`https://graph.facebook.com/v21.0/${commentId}/likes`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
