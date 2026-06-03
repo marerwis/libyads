@@ -137,7 +137,14 @@ export async function POST(req: Request) {
                                 const randomIndex = Math.floor(Math.random() * rule.replyTexts.length);
                                 selectedReplyText = rule.replyTexts[randomIndex];
                             } else {
-                                selectedReplyText = rule.replyText;
+                                // For post-level rules, pick randomly from available texts (replyText, replyText2, replyText3)
+                                const availableTexts = [rule.replyText, rule.replyText2, rule.replyText3].filter(t => t && t.trim() !== "");
+                                if (availableTexts.length > 0) {
+                                    const randomIndex = Math.floor(Math.random() * availableTexts.length);
+                                    selectedReplyText = availableTexts[randomIndex];
+                                } else {
+                                    selectedReplyText = rule.replyText || ""; // Fallback
+                                }
                             }
 
                             // Note: Facebook Graph API currently restricts explicit @mentions for pages replying to users

@@ -29,6 +29,8 @@ export default function SetupAutoReply() {
         pageId: "",
         postId: "",
         replyText: "",
+        replyText2: "",
+        replyText3: "",
         privateMessage: "",
         includeName: true,
         keywords: "",
@@ -305,18 +307,49 @@ export default function SetupAutoReply() {
                             </label>
                         </div>
 
-                        {/* Reply Text */}
+                        {/* Reply Text 1 */}
                         <div>
                             <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
-                                {t("replyMessage" as any)} <span className="text-red-500">*</span>
+                                {locale === 'ar' ? "رسالة الرد 1 (إجبارية)" : "Reply Message 1 (Required)"} <span className="text-red-500">*</span>
                             </label>
                             <textarea
                                 value={formData.replyText}
                                 onChange={(e) => setFormData({ ...formData, replyText: e.target.value })}
-                                rows={4}
+                                rows={3}
                                 className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none"
                                 placeholder={t("replyMessagePlaceholder" as any)}
                                 required
+                            />
+                        </div>
+
+                        {/* Reply Text 2 */}
+                        <div>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
+                                {locale === 'ar' ? "رسالة الرد 2 (اختيارية)" : "Reply Message 2 (Optional)"}
+                            </label>
+                            <p className="text-xs dark:text-slate-500 text-slate-400 mb-2">
+                                {locale === 'ar' ? "في حال إضافة أكثر من رسالة، سيتم اختيار واحدة عشوائياً للرد على المعلق لتجنب الحظر من فيسبوك." : "If multiple replies are added, one will be chosen randomly to avoid Facebook spam filters."}
+                            </p>
+                            <textarea
+                                value={formData.replyText2}
+                                onChange={(e) => setFormData({ ...formData, replyText2: e.target.value })}
+                                rows={2}
+                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none"
+                                placeholder={locale === 'ar' ? "الرسالة البديلة الأولى..." : "First alternative reply..."}
+                            />
+                        </div>
+
+                        {/* Reply Text 3 */}
+                        <div>
+                            <label className={`block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
+                                {locale === 'ar' ? "رسالة الرد 3 (اختيارية)" : "Reply Message 3 (Optional)"}
+                            </label>
+                            <textarea
+                                value={formData.replyText3}
+                                onChange={(e) => setFormData({ ...formData, replyText3: e.target.value })}
+                                rows={2}
+                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none"
+                                placeholder={locale === 'ar' ? "الرسالة البديلة الثانية..." : "Second alternative reply..."}
                             />
                             {/* Preview */}
                             {formData.replyText && (
