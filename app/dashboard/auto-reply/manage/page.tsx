@@ -322,7 +322,8 @@ export default function ManageAutoReplies() {
                             })}
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
