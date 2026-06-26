@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
-import { MessageSquareShare, Trash2, Power, PowerOff, Settings, AlertCircle, Calendar, ExternalLink, ShieldCheck } from "lucide-react";
+import { MessageSquareShare, Trash2, Power, PowerOff, Settings, AlertCircle, Calendar, ExternalLink, ShieldCheck, TimerOff, Edit3, X, Save, Plus } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ar, enUS } from 'date-fns/locale';
-import { TimerOff } from "lucide-react";
 
 export default function ManagePageAutoReplies() {
     const { t, locale } = useLanguage();
@@ -16,6 +15,11 @@ export default function ManagePageAutoReplies() {
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [sysConfig, setSysConfig] = useState({ autoReplyEnabled: true });
+
+    // Edit Modal State
+    const [editingRule, setEditingRule] = useState<any>(null);
+    const [editForm, setEditForm] = useState<any>({});
+    const [isSaving, setIsSaving] = useState(false);
 
     const fetchRules = async () => {
         try {
@@ -95,6 +99,29 @@ export default function ManagePageAutoReplies() {
             alert("An error occurred while deleting the rule.");
         } finally {
             setActionLoading(null);
+        }
+    };
+
+    const saveEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        try {
+            const res = await fetch(`/api/page-auto-reply/${editingRule.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(editForm)
+            });
+            if (res.ok) {
+                const updatedRule = await res.json();
+                setRules(prev => prev.map(r => r.id === updatedRule.id ? updatedRule : r));
+                setEditingRule(null);
+            } else {
+                alert("Failed to update rule.");
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -239,6 +266,22 @@ export default function ManagePageAutoReplies() {
                                         type="button"
                                         onClick={(e) => { 
                                             e.preventDefault(); 
+                                            setEditingRule(rule);
+                                            setEditForm({
+                                                ...rule,
+                                                replyTexts: [...(rule.replyTexts || [])]
+                                            });
+                                        }}
+                                        disabled={actionLoading === rule.id}
+                                        className="p-2.5 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 border border-transparent hover:border-blue-200 dark:hover:border-blue-500/20 transition-colors cursor-pointer min-w-[40px] flex items-center justify-center"
+                                        title={locale === 'ar' ? 'تعديل' : 'Edit'}
+                                    >
+                                        <Edit3 size={20} className="pointer-events-none" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { 
+                                            e.preventDefault(); 
                                             if (confirmDeleteId === rule.id) {
                                                 deleteRule(rule.id);
                                             } else {
@@ -271,6 +314,85 @@ export default function ManagePageAutoReplies() {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {editingRule && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto pt-20 pb-20">
+                    <div className="bg-white dark:bg-[#151921] rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200 dark:border-[#2A303C] overflow-hidden relative" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+                        <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-[#2A303C]">
+                            <h3 className="text-xl font-bold dark:text-white text-slate-900 flex items-center gap-2">
+                                <Edit3 className="w-5 h-5 text-indigo-500" />
+                                {locale === 'ar' ? 'تعديل قاعدة الصفحة' : 'Edit Page Rule'}
+                            </h3>
+                            <button onClick={() => setEditingRule(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={saveEdit} className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                            <div className="grid grid-cols-1 gap-5">
+                                <div>
+                                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2">{locale === 'ar' ? 'رسائل الرد (عشوائي)' : 'Reply Messages (Random)'} <span className="text-red-500">*</span></label>
+                                    <div className="space-y-3">
+                                        {(editForm.replyTexts || []).map((text: string, index: number) => (
+                                            <div key={index} className="flex gap-2">
+                                                <textarea
+                                                    value={text}
+                                                    onChange={(e) => {
+                                                        const newTexts = [...editForm.replyTexts];
+                                                        newTexts[index] = e.target.value;
+                                                        setEditForm({ ...editForm, replyTexts: newTexts });
+                                                    }}
+                                                    rows={2}
+                                                    className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-2 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 transition-colors resize-none"
+                                                    required
+                                                />
+                                                {editForm.replyTexts.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newTexts = editForm.replyTexts.filter((_: any, i: number) => i !== index);
+                                                            setEditForm({ ...editForm, replyTexts: newTexts });
+                                                        }}
+                                                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
+                                                    >
+                                                        <Trash2 size={20} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditForm({ ...editForm, replyTexts: [...(editForm.replyTexts || []), ""] })}
+                                            className="text-sm flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-medium"
+                                        >
+                                            <Plus size={16} /> {locale === 'ar' ? 'إضافة رد آخر' : 'Add another reply'}
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2">{locale === 'ar' ? 'الرسالة الخاصة (اختياري)' : 'Private Message'}</label>
+                                    <textarea value={editForm.privateMessage || ''} onChange={e => setEditForm({...editForm, privateMessage: e.target.value})} rows={3} className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-2 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 transition-colors resize-none" />
+                                </div>
+
+                                <div className="flex items-center gap-3 mt-2">
+                                    <input type="checkbox" id="includeNameEditPage" checked={editForm.includeName} onChange={e => setEditForm({...editForm, includeName: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded" />
+                                    <label htmlFor="includeNameEditPage" className="text-sm font-semibold dark:text-slate-300 text-slate-700">{t('includeName' as any)}</label>
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-[#2A303C]">
+                                <button type="button" onClick={() => setEditingRule(null)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#2A303C] dark:hover:bg-[#3A404C] text-slate-700 dark:text-white font-medium rounded-xl transition-all">
+                                    {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                                <button type="submit" disabled={isSaving} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2">
+                                    {isSaving ? <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span> : <Save size={18} />}
+                                    {locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
         </div>

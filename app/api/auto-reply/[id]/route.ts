@@ -19,7 +19,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const { isActive } = await req.json();
+        const body = await req.json();
 
         // Verify ownership before updating
         const rule = await prisma.autoReplyRule.findUnique({
@@ -30,9 +30,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             return NextResponse.json({ error: "Rule not found or unauthorized" }, { status: 404 });
         }
 
+        const updateData: any = {};
+        
+        if (body.isActive !== undefined) updateData.isActive = Boolean(body.isActive);
+        if (body.replyText !== undefined) updateData.replyText = body.replyText;
+        if (body.replyText2 !== undefined) updateData.replyText2 = body.replyText2 || null;
+        if (body.replyText3 !== undefined) updateData.replyText3 = body.replyText3 || null;
+        if (body.privateMessage !== undefined) updateData.privateMessage = body.privateMessage || null;
+        if (body.keywords !== undefined) updateData.keywords = body.keywords ? String(body.keywords).toLowerCase() : null;
+        if (body.activeDays !== undefined) updateData.activeDays = parseInt(body.activeDays, 10);
+        if (body.includeName !== undefined) updateData.includeName = Boolean(body.includeName);
+
         const updatedRule = await prisma.autoReplyRule.update({
             where: { id },
-            data: { isActive: Boolean(isActive) }
+            data: updateData
         });
 
         return NextResponse.json(updatedRule);

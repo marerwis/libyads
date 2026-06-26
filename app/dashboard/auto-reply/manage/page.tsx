@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
-import { MessageSquareShare, Trash2, Power, PowerOff, Settings, AlertCircle, Calendar, ExternalLink, TimerOff } from "lucide-react";
+import { MessageSquareShare, Trash2, Power, PowerOff, Settings, AlertCircle, Calendar, ExternalLink, TimerOff, Edit3, X, Save } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ar, enUS } from 'date-fns/locale';
@@ -14,6 +14,11 @@ export default function ManageAutoReplies() {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [sysConfig, setSysConfig] = useState({ autoReplyEnabled: true });
+    
+    // Edit Modal State
+    const [editingRule, setEditingRule] = useState<any>(null);
+    const [editForm, setEditForm] = useState<any>({});
+    const [isSaving, setIsSaving] = useState(false);
 
     const fetchRules = async () => {
         try {
@@ -80,6 +85,27 @@ export default function ManageAutoReplies() {
             console.error(error);
         } finally {
             setActionLoading(null);
+        }
+    };
+
+    const saveEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        try {
+            const res = await fetch(`/api/auto-reply/${editingRule.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(editForm)
+            });
+            if (res.ok) {
+                const updatedRule = await res.json();
+                setRules(prev => prev.map(r => r.id === updatedRule.id ? updatedRule : r));
+                setEditingRule(null);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -237,6 +263,17 @@ export default function ManageAutoReplies() {
                                                 <Power size={16} /> {t("resumeRule" as any)}
                                             </button>
                                             <button
+                                                onClick={() => {
+                                                    setEditingRule(rule);
+                                                    setEditForm(rule);
+                                                }}
+                                                disabled={actionLoading === rule.id}
+                                                className="p-2 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 border border-transparent hover:border-blue-200 dark:hover:border-blue-500/20 transition-colors"
+                                                title={locale === 'ar' ? 'تعديل' : 'Edit'}
+                                            >
+                                                <Edit3 size={18} />
+                                            </button>
+                                            <button
                                                 onClick={() => deleteRule(rule.id)}
                                                 disabled={actionLoading === rule.id}
                                                 className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-colors"
@@ -262,6 +299,66 @@ export default function ManageAutoReplies() {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {editingRule && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto pt-20 pb-20">
+                    <div className="bg-white dark:bg-[#151921] rounded-2xl shadow-xl w-full max-w-2xl border border-slate-200 dark:border-[#2A303C] overflow-hidden relative" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+                        <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-[#2A303C]">
+                            <h3 className="text-xl font-bold dark:text-white text-slate-900 flex items-center gap-2">
+                                <Edit3 className="w-5 h-5 text-indigo-500" />
+                                {locale === 'ar' ? 'تعديل قاعدة الرد التلقائي' : 'Edit Auto-Reply Rule'}
+                            </h3>
+                            <button onClick={() => setEditingRule(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={saveEdit} className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                            <div className="grid grid-cols-1 gap-5">
+                                <div>
+                                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2">{locale === 'ar' ? 'رسالة الرد 1 (إجبارية)' : 'Reply Message 1'} <span className="text-red-500">*</span></label>
+                                    <textarea value={editForm.replyText || ''} onChange={e => setEditForm({...editForm, replyText: e.target.value})} rows={2} required className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-2 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 transition-colors resize-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2">{locale === 'ar' ? 'رسالة الرد 2 (اختيارية)' : 'Reply Message 2'}</label>
+                                    <textarea value={editForm.replyText2 || ''} onChange={e => setEditForm({...editForm, replyText2: e.target.value})} rows={2} className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-2 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 transition-colors resize-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2">{locale === 'ar' ? 'رسالة الرد 3 (اختيارية)' : 'Reply Message 3'}</label>
+                                    <textarea value={editForm.replyText3 || ''} onChange={e => setEditForm({...editForm, replyText3: e.target.value})} rows={2} className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-2 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 transition-colors resize-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2">{locale === 'ar' ? 'الرسالة الخاصة (اختياري)' : 'Private Message'}</label>
+                                    <textarea value={editForm.privateMessage || ''} onChange={e => setEditForm({...editForm, privateMessage: e.target.value})} rows={2} className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-2 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 transition-colors resize-none" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2">{t('triggerKeywords' as any)}</label>
+                                        <input type="text" value={editForm.keywords || ''} onChange={e => setEditForm({...editForm, keywords: e.target.value})} className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-2 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 transition-colors" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold dark:text-slate-300 text-slate-700 mb-2">{locale === 'ar' ? 'أيام التفعيل' : 'Active Days'}</label>
+                                        <input type="number" min="1" value={editForm.activeDays || 30} onChange={e => setEditForm({...editForm, activeDays: parseInt(e.target.value) || 30})} className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-xl px-4 py-2 dark:text-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 transition-colors" />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 mt-2">
+                                    <input type="checkbox" id="includeNameEdit" checked={editForm.includeName} onChange={e => setEditForm({...editForm, includeName: e.target.checked})} className="w-5 h-5 text-indigo-600 rounded" />
+                                    <label htmlFor="includeNameEdit" className="text-sm font-semibold dark:text-slate-300 text-slate-700">{t('includeName' as any)}</label>
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-[#2A303C]">
+                                <button type="button" onClick={() => setEditingRule(null)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#2A303C] dark:hover:bg-[#3A404C] text-slate-700 dark:text-white font-medium rounded-xl transition-all">
+                                    {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                                <button type="submit" disabled={isSaving} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2">
+                                    {isSaving ? <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span> : <Save size={18} />}
+                                    {locale === 'ar' ? 'حفظ التعديلات' : 'Save Changes'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
         </div>

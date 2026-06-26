@@ -19,7 +19,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const { isActive } = await req.json();
+        const body = await req.json();
 
         // Verify ownership
         const rule = await prisma.pageAutoReplyRule.findUnique({
@@ -30,9 +30,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
             return NextResponse.json({ error: "Rule not found or unauthorized" }, { status: 404 });
         }
 
+        const updateData: any = {};
+        if (body.isActive !== undefined) updateData.isActive = body.isActive;
+        if (body.replyTexts !== undefined && Array.isArray(body.replyTexts)) {
+            const validReplies = body.replyTexts.filter((t: string) => t.trim().length > 0);
+            if (validReplies.length > 0) updateData.replyTexts = validReplies;
+        }
+        if (body.privateMessage !== undefined) updateData.privateMessage = body.privateMessage || null;
+        if (body.includeName !== undefined) updateData.includeName = Boolean(body.includeName);
+
         const updatedRule = await prisma.pageAutoReplyRule.update({
             where: { id },
-            data: { isActive: isActive }
+            data: updateData
         });
 
         return NextResponse.json(updatedRule);
