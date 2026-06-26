@@ -153,6 +153,10 @@ export async function POST(req: Request) {
                                 ? `${senderName}، ${selectedReplyText}`
                                 : selectedReplyText;
 
+                            // Human-like delay: Random wait between 2 to 6 seconds before replying to avoid spam detection
+                            const delayMs = Math.floor(Math.random() * (6000 - 2000 + 1) + 2000);
+                            await new Promise(resolve => setTimeout(resolve, delayMs));
+
                             // Send Reply via Facebook Graph API
                             const fbResponse = await fetch(`https://graph.facebook.com/v21.0/${commentId}/comments`, {
                                 method: 'POST',

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { Facebook, LogIn, Flag, RefreshCw } from "lucide-react";
+import { Facebook, LogIn, Flag, RefreshCw, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 
 function FacebookPagesContent() {
@@ -136,6 +136,18 @@ function FacebookPagesContent() {
                 </div>
             )}
 
+            {Object.values(pageStatus).includes("RESTRICTED") && (
+                <div className="p-4 rounded-xl text-sm font-medium dark:bg-red-900/20 bg-red-50 dark:text-red-300 text-red-700 border dark:border-red-900/50 border-red-200 flex gap-3 items-start animate-pulse">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div>
+                        <strong className="block mb-1">{locale === 'ar' ? 'تنبيه هام: حظر مؤقت من فيسبوك 🚨' : 'Important: Temporary Facebook Block 🚨'}</strong>
+                        {locale === 'ar' 
+                            ? 'لقد قام فيسبوك بتقييد التعليقات مؤقتاً لبعض صفحاتك بسبب إرسال عدد كبير من الردود المتطابقة. هذا الإجراء روتيني وسيزول تلقائياً بعد مرور 12 إلى 24 ساعة. نرجو منك إيقاف قواعد الرد التلقائي حالياً والانتظار.'
+                            : 'Facebook has temporarily restricted comments on some of your pages due to sending too many identical replies. This is a routine action and will automatically clear after 12 to 24 hours. Please pause your auto-reply rules for now and wait.'}
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Connect Facebook Card */}
                 <div className="lg:col-span-1">
@@ -236,6 +248,11 @@ function FacebookPagesContent() {
                                             {pageStatus[page.id] === "ACTIVE" && (
                                                 <span className="px-3 py-1.5 rounded-lg dark:bg-emerald-900/30 bg-emerald-50 dark:text-emerald-400 text-emerald-600 text-xs font-medium border dark:border-emerald-900/50 border-emerald-200">
                                                     Connected
+                                                </span>
+                                            )}
+                                            {pageStatus[page.id] === "RESTRICTED" && (
+                                                <span className="px-3 py-1.5 rounded-lg dark:bg-red-900/30 bg-red-50 dark:text-red-400 text-red-600 text-xs font-medium border dark:border-red-900/50 border-red-200" title={locale === 'ar' ? 'فيسبوك علّق الردود مؤقتاً بسبب الإزعاج' : 'Facebook suspended replies temporarily'}>
+                                                    {locale === 'ar' ? 'حظر مؤقت' : 'Temp Blocked'}
                                                 </span>
                                             )}
                                         </div>

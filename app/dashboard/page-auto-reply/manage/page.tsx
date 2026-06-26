@@ -156,10 +156,22 @@ export default function ManagePageAutoReplies() {
                     href="/dashboard/page-auto-reply"
                     className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/30 transition-all active:scale-95 inline-flex items-center justify-center gap-2"
                 >
-                    <MessageSquareShare size={18} />
+                    <Plus size={18} />
                     {locale === 'ar' ? 'إضافة رد صفحة' : 'Add Page Reply'}
                 </Link>
             </header>
+
+            {pages.some(p => p.status === 'RESTRICTED') && (
+                <div className="mb-8 p-4 rounded-xl text-sm font-medium dark:bg-red-900/20 bg-red-50 dark:text-red-300 text-red-700 border dark:border-red-900/50 border-red-200 flex gap-3 items-start animate-pulse">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div>
+                        <strong className="block mb-1">{locale === 'ar' ? 'تنبيه هام: حظر مؤقت من فيسبوك 🚨' : 'Important: Temporary Facebook Block 🚨'}</strong>
+                        {locale === 'ar' 
+                            ? 'لقد قام فيسبوك بتقييد التعليقات مؤقتاً لبعض صفحاتك بسبب إرسال عدد كبير من الردود المتطابقة مسبقاً. نرجو منك إيقاف قواعد الرد التلقائي لتلك الصفحات مؤقتاً والانتظار حتى يزول الحظر من فيسبوك (12-24 ساعة) ثم استخدام ميزة "تعديل" لتنويع الردود.'
+                            : 'Facebook has temporarily restricted comments on some of your pages due to sending too many identical replies earlier. Please pause your auto-reply rules for those pages and wait for the block to clear (12-24 hours), then edit the rules to add random variants.'}
+                    </div>
+                </div>
+            )}
 
             {rules.length === 0 ? (
                 <div className="dark:bg-[#151921] bg-white rounded-2xl border dark:border-[#2A303C] border-slate-200 text-center py-16 px-6">
@@ -206,6 +218,12 @@ export default function ManagePageAutoReplies() {
                                             <span className={`w-1.5 h-1.5 rounded-full ${rule.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
                                             {rule.isActive ? t("active" as any) : t("paused" as any)}
                                         </div>
+                                        {page?.status === 'RESTRICTED' && (
+                                            <div className="text-xs font-semibold px-2 py-1 rounded inline-flex items-center gap-1 w-max bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300 mt-1" title={locale === 'ar' ? 'فيسبوك علّق الردود مؤقتاً بسبب الإزعاج' : 'Facebook suspended replies temporarily'}>
+                                                <AlertCircle size={12} />
+                                                {locale === 'ar' ? 'حظر فيسبوك مؤقت' : 'Temp FB Blocked'}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex flex-col items-end gap-1">
                                          <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
