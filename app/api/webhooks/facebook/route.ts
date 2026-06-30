@@ -248,6 +248,17 @@ export async function POST(req: Request) {
                                         }
                                     });
                                 }
+                                // Create a log entry for SUCCESS
+                                await prisma.autoReplyLog.create({
+                                    data: {
+                                        userId: rule.userId,
+                                        pageId: pageId,
+                                        postId: extractedPostId,
+                                        commentId: commentId,
+                                        ruleType: isPageRule ? "PAGE" : "POST",
+                                        status: "SUCCESS"
+                                    }
+                                });
 
                                 console.log(`Successfully auto-replied to comment ${commentId}`);
                             } else {
@@ -269,6 +280,20 @@ export async function POST(req: Request) {
                                         }
                                     });
                                 }
+                                
+                                // Create a log entry for FAILED
+                                await prisma.autoReplyLog.create({
+                                    data: {
+                                        userId: rule.userId,
+                                        pageId: pageId,
+                                        postId: extractedPostId,
+                                        commentId: commentId,
+                                        ruleType: isPageRule ? "PAGE" : "POST",
+                                        status: "FAILED",
+                                        errorMsg: JSON.stringify(fbResult)
+                                    }
+                                });
+                                
                                 console.error(`Failed to auto-reply to Facebook:`, fbResult);
                             }
                         }

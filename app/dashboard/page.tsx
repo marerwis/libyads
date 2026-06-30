@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import PerformanceChart from "./PerformanceChart"
-import { Coins, Layers, Play, CreditCard, ChevronsUpDown, CheckCircle2, XCircle, BotMessageSquare, MessageCircleHeart } from "lucide-react"
+import { Coins, Layers, Play, CreditCard, ChevronsUpDown, CheckCircle2, XCircle, BotMessageSquare, MessageCircleHeart, AlertTriangle, Activity } from "lucide-react"
 import { getServerTranslations } from "@/lib/getServerTranslations"
 
 export default async function Dashboard() {
@@ -41,11 +41,30 @@ export default async function Dashboard() {
         orderBy: { lastExecutedAt: 'desc' }
     });
 
-    const totalPageReplies = pageRules.reduce((acc, rule) => acc + rule.repliesSentCount, 0);
+    // Calculate start of day in Tripoli timezone
+    const now = new Date();
+    const tripoliNow = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Tripoli" }));
+    const startOfDayTripoli = new Date(
+        Date.UTC(tripoliNow.getFullYear(), tripoliNow.getMonth(), tripoliNow.getDate(), -2, 0, 0, 0) // UTC equivalent of 00:00 Tripoli (+2)
+    );
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000);
+
+    const logs = await prisma.autoReplyLog.findMany({
+        where: { userId: user?.id },
+        orderBy: { createdAt: 'desc' }
+    });
+
+    const todayLogs = logs.filter((log: any) => new Date(log.createdAt).getTime() >= startOfDayTripoli.getTime());
+    
+    const totalPageRepliesToday = todayLogs.filter((log: any) => log.ruleType === "PAGE" && log.status === "SUCCESS").length;
+    const totalPostRepliesToday = todayLogs.filter((log: any) => log.ruleType === "POST" && log.status === "SUCCESS").length;
+
+    const recentFailedPageReplies = logs.filter((log: any) => log.ruleType === "PAGE" && log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()).length;
+    const recentFailedPostReplies = logs.filter((log: any) => log.ruleType === "POST" && log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()).length;
+
     const lastPageExecution = pageRules[0]?.lastExecutedAt;
     const lastPageExecutionStatus = pageRules[0]?.lastExecutionStatus;
 
-    const totalPostReplies = postRules.reduce((acc, rule) => acc + rule.repliesSentCount, 0);
     const lastPostExecution = postRules[0]?.lastExecutedAt;
     const lastPostExecutionStatus = postRules[0]?.lastExecutionStatus;
 
@@ -117,9 +136,26 @@ export default async function Dashboard() {
                         
                         <div className="grid grid-cols-2 gap-4 relative z-10">
                             <div>
-                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">إجمالي الردود المرسلة</span>
-                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalPageReplies}</div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">ردود اليوم</span>
+                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalPageRepliesToday}</div>
                             </div>
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">حالة البوت</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {recentFailedPageReplies > 0 ? (
+                                        <div className="flex items-center gap-1 text-red-500 bg-red-500/10 px-2 py-1 rounded-md text-xs font-bold">
+                                            <AlertTriangle size={14} /> توقف ({recentFailedPageReplies})
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1 text-green-500 bg-green-500/10 px-2 py-1 rounded-md text-xs font-bold">
+                                            <Activity size={14} /> يعمل
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t dark:border-slate-800 border-slate-100 flex items-center justify-between relative z-10">
                             <div>
                                 <span className="text-xs font-medium dark:text-slate-400 text-slate-500">آخر تنفيذ</span>
                                 <div className="flex items-center gap-2 mt-1">
@@ -156,9 +192,26 @@ export default async function Dashboard() {
                         
                         <div className="grid grid-cols-2 gap-4 relative z-10">
                             <div>
-                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">إجمالي الردود المرسلة</span>
-                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalPostReplies}</div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">ردود اليوم</span>
+                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalPostRepliesToday}</div>
                             </div>
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">حالة البوت</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {recentFailedPostReplies > 0 ? (
+                                        <div className="flex items-center gap-1 text-red-500 bg-red-500/10 px-2 py-1 rounded-md text-xs font-bold">
+                                            <AlertTriangle size={14} /> توقف ({recentFailedPostReplies})
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1 text-green-500 bg-green-500/10 px-2 py-1 rounded-md text-xs font-bold">
+                                            <Activity size={14} /> يعمل
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t dark:border-slate-800 border-slate-100 flex items-center justify-between relative z-10">
                             <div>
                                 <span className="text-xs font-medium dark:text-slate-400 text-slate-500">آخر تنفيذ</span>
                                 <div className="flex items-center gap-2 mt-1">

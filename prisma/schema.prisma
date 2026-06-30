@@ -37,6 +37,7 @@ model User {
   sessions            Session[]
   autoReplyRules      AutoReplyRule[]
   pageAutoReplyRules  PageAutoReplyRule[]
+  autoReplyLogs       AutoReplyLog[]
 }
 
 // -------------------------------------------------------------
@@ -223,6 +224,20 @@ model PageAutoReplyRule {
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model AutoReplyLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageId    String
+  postId    String?
+  commentId String?
+  ruleType  String   // "PAGE" or "POST"
+  status    String   // "SUCCESS" or "FAILED"
+  errorMsg  String?
+  
+  createdAt DateTime @default(now())
 }
 
 // -------------------------------------------------------------
