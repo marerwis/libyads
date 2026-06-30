@@ -126,7 +126,7 @@ export default async function Dashboard() {
                                     {lastPageExecution ? (
                                         <>
                                             <span className="text-sm font-semibold dark:text-slate-200 text-slate-700 dir-ltr text-left truncate">
-                                                {new Date(lastPageExecution).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(lastPageExecution).toLocaleString('en-US', { timeZone: 'Africa/Tripoli', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                             {lastPageExecutionStatus === "SUCCESS" ? (
                                                 <CheckCircle2 className="text-green-500 min-w-[16px]" size={16} />
@@ -165,7 +165,7 @@ export default async function Dashboard() {
                                     {lastPostExecution ? (
                                         <>
                                             <span className="text-sm font-semibold dark:text-slate-200 text-slate-700 dir-ltr text-left truncate">
-                                                {new Date(lastPostExecution).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(lastPostExecution).toLocaleString('en-US', { timeZone: 'Africa/Tripoli', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                             {lastPostExecutionStatus === "SUCCESS" ? (
                                                 <CheckCircle2 className="text-green-500 min-w-[16px]" size={16} />
