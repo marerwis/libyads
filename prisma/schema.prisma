@@ -199,6 +199,9 @@ model AutoReplyRule {
   activeDays       Int      @default(30) // How many days the rule is active
   repliesSentCount Int      @default(0) // Analytics: How many times it replied
   
+  lastExecutedAt      DateTime? // The exact time the rule was last executed
+  lastExecutionStatus String?   // "SUCCESS" or "FAILED"
+  
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -214,6 +217,9 @@ model PageAutoReplyRule {
   activeDays       Int      @default(30) // How many days the rule protects new posts
   isActive         Boolean  @default(true)
   repliesSentCount Int      @default(0) // Analytics: How many times it replied
+  
+  lastExecutedAt      DateTime? // The exact time the rule was last executed
+  lastExecutionStatus String?   // "SUCCESS" or "FAILED"
   
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

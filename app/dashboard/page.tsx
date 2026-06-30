@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import PerformanceChart from "./PerformanceChart"
-import { Coins, Layers, Play, CreditCard, ChevronsUpDown } from "lucide-react"
+import { Coins, Layers, Play, CreditCard, ChevronsUpDown, CheckCircle2, XCircle, BotMessageSquare, MessageCircleHeart } from "lucide-react"
 import { getServerTranslations } from "@/lib/getServerTranslations"
 
 export default async function Dashboard() {
@@ -29,6 +29,25 @@ export default async function Dashboard() {
     const totalCampaigns = stats?.campaigns.length || 0;
     const activeCampaigns = stats?.campaigns.filter((c: any) => c.status === "ACTIVE").length || 0;
     const totalSpent = stats?.campaigns.reduce((acc: number, curr: any) => acc + curr.budget, 0) || 0;
+
+    // Fetch Auto-Reply Stats
+    const pageRules = await prisma.pageAutoReplyRule.findMany({
+        where: { userId: user?.id },
+        orderBy: { lastExecutedAt: 'desc' }
+    });
+
+    const postRules = await prisma.autoReplyRule.findMany({
+        where: { userId: user?.id },
+        orderBy: { lastExecutedAt: 'desc' }
+    });
+
+    const totalPageReplies = pageRules.reduce((acc, rule) => acc + rule.repliesSentCount, 0);
+    const lastPageExecution = pageRules[0]?.lastExecutedAt;
+    const lastPageExecutionStatus = pageRules[0]?.lastExecutionStatus;
+
+    const totalPostReplies = postRules.reduce((acc, rule) => acc + rule.repliesSentCount, 0);
+    const lastPostExecution = postRules[0]?.lastExecutedAt;
+    const lastPostExecutionStatus = postRules[0]?.lastExecutionStatus;
 
     return (
         <>
@@ -76,6 +95,90 @@ export default async function Dashboard() {
                     </div>
                     <div className="p-2 md:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform duration-300">
                         <CreditCard size={20} strokeWidth={2.5} className="md:w-[22px] md:h-[22px]" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Auto-Reply Statistics Section */}
+            <div className="mb-8">
+                <h3 className="text-xl font-semibold dark:text-white text-slate-900 mb-4">{t("autoReplyStatistics") || "إحصائيات الرد التلقائي"}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    {/* Comprehensive Auto-Reply Stats */}
+                    <div className="dark:bg-[#151921]/80 bg-white p-5 rounded-2xl border dark:border-purple-500/20 border-purple-200 shadow-sm hover:border-purple-500/50 transition-colors group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                            <BotMessageSquare size={80} />
+                        </div>
+                        <div className="flex items-center gap-3 mb-4 relative z-10">
+                            <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500 group-hover:scale-110 transition-transform duration-300">
+                                <BotMessageSquare size={22} strokeWidth={2.5} />
+                            </div>
+                            <h4 className="text-lg font-bold dark:text-white text-slate-900">الرد التلقائي الشامل</h4>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 relative z-10">
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">إجمالي الردود المرسلة</span>
+                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalPageReplies}</div>
+                            </div>
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">آخر تنفيذ</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {lastPageExecution ? (
+                                        <>
+                                            <span className="text-sm font-semibold dark:text-slate-200 text-slate-700 dir-ltr text-left truncate">
+                                                {new Date(lastPageExecution).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                            {lastPageExecutionStatus === "SUCCESS" ? (
+                                                <CheckCircle2 className="text-green-500 min-w-[16px]" size={16} />
+                                            ) : lastPageExecutionStatus === "FAILED" ? (
+                                                <XCircle className="text-red-500 min-w-[16px]" size={16} />
+                                            ) : null}
+                                        </>
+                                    ) : (
+                                        <span className="text-sm dark:text-slate-500 text-slate-400">لم يُنفذ بعد</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Normal Auto-Reply Stats */}
+                    <div className="dark:bg-[#151921]/80 bg-white p-5 rounded-2xl border dark:border-pink-500/20 border-pink-200 shadow-sm hover:border-pink-500/50 transition-colors group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                            <MessageCircleHeart size={80} />
+                        </div>
+                        <div className="flex items-center gap-3 mb-4 relative z-10">
+                            <div className="p-2.5 rounded-xl bg-pink-500/10 text-pink-500 group-hover:scale-110 transition-transform duration-300">
+                                <MessageCircleHeart size={22} strokeWidth={2.5} />
+                            </div>
+                            <h4 className="text-lg font-bold dark:text-white text-slate-900">الرد التلقائي العادي</h4>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 relative z-10">
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">إجمالي الردود المرسلة</span>
+                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalPostReplies}</div>
+                            </div>
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">آخر تنفيذ</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {lastPostExecution ? (
+                                        <>
+                                            <span className="text-sm font-semibold dark:text-slate-200 text-slate-700 dir-ltr text-left truncate">
+                                                {new Date(lastPostExecution).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                            {lastPostExecutionStatus === "SUCCESS" ? (
+                                                <CheckCircle2 className="text-green-500 min-w-[16px]" size={16} />
+                                            ) : lastPostExecutionStatus === "FAILED" ? (
+                                                <XCircle className="text-red-500 min-w-[16px]" size={16} />
+                                            ) : null}
+                                        </>
+                                    ) : (
+                                        <span className="text-sm dark:text-slate-500 text-slate-400">لم يُنفذ بعد</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

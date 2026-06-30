@@ -228,8 +228,47 @@ export async function POST(req: Request) {
                                         })
                                     ]);
                                 }
+                                // Update rule execution stats for success
+                                if (isPageRule) {
+                                    await prisma.pageAutoReplyRule.update({
+                                        where: { id: rule.id },
+                                        data: {
+                                            repliesSentCount: { increment: 1 },
+                                            lastExecutedAt: new Date(),
+                                            lastExecutionStatus: "SUCCESS"
+                                        }
+                                    });
+                                } else {
+                                    await prisma.autoReplyRule.update({
+                                        where: { id: rule.id },
+                                        data: {
+                                            repliesSentCount: { increment: 1 },
+                                            lastExecutedAt: new Date(),
+                                            lastExecutionStatus: "SUCCESS"
+                                        }
+                                    });
+                                }
+
                                 console.log(`Successfully auto-replied to comment ${commentId}`);
                             } else {
+                                // Update rule execution stats for failure
+                                if (isPageRule) {
+                                    await prisma.pageAutoReplyRule.update({
+                                        where: { id: rule.id },
+                                        data: {
+                                            lastExecutedAt: new Date(),
+                                            lastExecutionStatus: "FAILED"
+                                        }
+                                    });
+                                } else {
+                                    await prisma.autoReplyRule.update({
+                                        where: { id: rule.id },
+                                        data: {
+                                            lastExecutedAt: new Date(),
+                                            lastExecutionStatus: "FAILED"
+                                        }
+                                    });
+                                }
                                 console.error(`Failed to auto-reply to Facebook:`, fbResult);
                             }
                         }
