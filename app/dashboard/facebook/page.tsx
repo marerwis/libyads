@@ -179,6 +179,20 @@ function FacebookPagesContent() {
                                     )}
                                 </button>
                                 <button
+                                    onClick={handleConnectFacebook}
+                                    disabled={connecting || syncing}
+                                    className="w-full px-4 py-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 disabled:opacity-50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2"
+                                >
+                                    {connecting ? (
+                                        "Redirecting..."
+                                    ) : (
+                                        <>
+                                            <LogIn size={18} />
+                                            {locale === 'ar' ? 'إعادة تسجيل الدخول (لتجديد الجلسة)' : 'Re-connect (Refresh Token)'}
+                                        </>
+                                    )}
+                                </button>
+                                <button
                                     onClick={handleDisconnectAll}
                                     disabled={connecting || syncing}
                                     className="w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-medium rounded-lg text-sm transition-all flex items-center justify-center gap-2"
