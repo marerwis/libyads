@@ -55,10 +55,7 @@ export default function DashboardLayout({
         { name: t("dashboard"), href: "/dashboard", icon: LayoutDashboard },
         { name: t("autoReply"), href: "/dashboard/auto-reply", icon: MessageCircleReply },
         { name: locale === 'ar' ? 'الرد الشامل للصفحات' : 'Page Auto-Reply', href: "/dashboard/page-auto-reply", icon: MessageSquareShare },
-        { name: t("wallet"), href: "/dashboard/wallet", icon: Wallet },
-        { name: locale === 'ar' ? 'صفحات الإعلانات' : 'Ad Pages', href: "/dashboard/facebook", icon: Flag },
-        { name: t("campaignHistory"), href: "/dashboard/campaigns", icon: Megaphone },
-        { name: t("createPromotion"), href: "/dashboard/campaigns/create", icon: PlusCircle, isPrimary: true },
+        { name: locale === 'ar' ? 'صفحات فيسبوك' : 'Facebook Pages', href: "/dashboard/facebook", icon: Flag },
     ];
 
     const adminItems = [
