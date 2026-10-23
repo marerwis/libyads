@@ -1,0 +1,254 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// -------------------------------------------------------------
+// USER MODULE
+// -------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("USER")
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  wallet              Wallet?
+  facebookPages       FacebookPage[]
+  campaigns           Campaign[]
+  walletTransactions  WalletTransaction[]
+  metaSettings        MetaSetting?
+  accounts            Account[]
+  sessions            Session[]
+  autoReplyRules      AutoReplyRule[]
+  pageAutoReplyRules  PageAutoReplyRule[]
+  autoReplyLogs       AutoReplyLog[]
+}
+
+// -------------------------------------------------------------
+// WALLET MODULE
+// -------------------------------------------------------------
+
+model Wallet {
+  id          String   @id @default(cuid())
+  balance     Float    @default(0.0)
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  updatedAt   DateTime @updatedAt
+}
+
+model WalletTransaction {
+  id          String   @id @default(cuid())
+  amount      Float
+  type        String   // "TOPUP" or "DEDUCTION"
+  description String?
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+}
+
+model PaymentMethod {
+  id            String   @id @default(cuid())
+  name          String   // e.g., "Vodafone Cash", "Stripe"
+  type          String   // e.g., "E_WALLET", "BANK_ACCOUNT", "STRIPE", "PAYPAL"
+  details       String   // e.g., "010xxxxxxx" or "Account: 123456"
+  instructions  String?  // Optional instructions for the user
+  isActive      Boolean  @default(true)
+  
+  // API Gateway Specific Fields
+  environment   String   @default("SANDBOX") // "SANDBOX" or "LIVE"
+  publicKey     String?  // e.g., Stripe Publishable Key
+  secretKey     String?  // e.g., Stripe Secret Key
+  webhookSecret String?  // e.g., Stripe Webhook Secret
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// -------------------------------------------------------------
+// FACEBOOK & META MODULE
+// -------------------------------------------------------------
+
+model FacebookPage {
+  id              String   @id @default(cuid())
+  pageId          String   @unique // Facebook's Page ID
+  pageName        String
+  pageAccessToken String
+  status          String   @default("PENDING") // PENDING, ACTIVE, REJECTED
+  isAutoReplyActive Boolean  @default(false)
+  
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model MetaSetting {
+  id                    String   @id @default(cuid())
+  appId                 String?
+  appSecret             String?
+  systemUserToken       String?
+  userAccessToken       String? // Stored User Access Token for page syncing
+  businessId            String?
+  adAccountId           String?
+  
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// -------------------------------------------------------------
+// CAMPAIGNS MODULE
+// -------------------------------------------------------------
+
+model Campaign {
+  id          String   @id @default(cuid())
+  campaignId  String?  // Meta Campaign ID
+  adsetId     String?  // Meta AdSet ID
+  adId        String?  // Meta Ad ID
+  
+  budget      Float    // Deduction amount
+  status      String   @default("PAUSED") // "PAUSED", "ACTIVE", "FAILED"
+  
+  pageId      String?  // Reference to FacebookPage used
+  postId      String?  // Post ID that was promoted
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// -------------------------------------------------------------
+// NEXTAUTH OAUTH MODULE
+// -------------------------------------------------------------
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// -------------------------------------------------------------
+// AUTO-REPLY MODULE
+// -------------------------------------------------------------
+
+model AutoReplyRule {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageId           String   // Facebook Page ID
+  postId           String   // Facebook Post ID
+  replyText        String   // The content of the reply
+  replyText2       String?  // Second optional reply variant
+  replyText3       String?  // Third optional reply variant
+  privateMessage   String?  // Optional private message to send
+  includeName      Boolean  @default(true) // Whether to prepend the user's name
+  keywords         String?  // Optional: comma separated keywords to trigger the reply
+  isActive         Boolean  @default(true)
+  activeDays       Int      @default(30) // How many days the rule is active
+  repliesSentCount Int      @default(0) // Analytics: How many times it replied
+  
+  lastExecutedAt      DateTime? // The exact time the rule was last executed
+  lastExecutionStatus String?   // "SUCCESS" or "FAILED"
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model PageAutoReplyRule {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageId           String   // Facebook Page ID
+  replyTexts       String[] // Array of different replies to pick randomly
+  privateMessage   String?  // Optional private message to send
+  includeName      Boolean  @default(true) // Whether to prepend the user's name
+  activeDays       Int      @default(30) // How many days the rule protects new posts
+  isActive         Boolean  @default(true)
+  repliesSentCount Int      @default(0) // Analytics: How many times it replied
+  
+  lastExecutedAt      DateTime? // The exact time the rule was last executed
+  lastExecutionStatus String?   // "SUCCESS" or "FAILED"
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model AutoReplyLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageId    String
+  postId    String?
+  commentId String?
+  ruleType  String   // "PAGE" or "POST"
+  status    String   // "SUCCESS" or "FAILED"
+  errorMsg  String?
+  
+  createdAt DateTime @default(now())
+}
+
+// -------------------------------------------------------------
+// SYSTEM SETTINGS (ADMIN)
+// -------------------------------------------------------------
+
+model SystemSetting {
+  id                  String   @id @default(cuid())
+  autoReplyPrice      Float    @default(0.00) // Price per reply (post-level)
+  pageAutoReplyPrice  Float    @default(0.00) // Price per reply (page-level)
+  autoReplyEnabled    Boolean  @default(true) // Global toggle
+  
+  updatedAt           DateTime @updatedAt
+}
