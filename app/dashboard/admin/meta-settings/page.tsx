@@ -11,8 +11,6 @@ export default function AdminMetaSettings() {
         appId: "",
         appSecret: "",
         systemUserToken: "",
-        businessId: "",
-        adAccountId: ""
     });
 
     const { t, locale } = useLanguage();
@@ -26,8 +24,6 @@ export default function AdminMetaSettings() {
                         appId: data.appId || "",
                         appSecret: data.appSecret || "",
                         systemUserToken: data.systemUserToken || "",
-                        businessId: data.businessId || "",
-                        adAccountId: data.adAccountId || ""
                     });
                 }
                 setLoading(false);
@@ -52,12 +48,12 @@ export default function AdminMetaSettings() {
             });
 
             if (res.ok) {
-                setMessage({ type: "success", text: "Settings saved successfully!" });
+                setMessage({ type: "success", text: locale === 'ar' ? "تم حفظ الإعدادات بنجاح!" : "Settings saved successfully!" });
             } else {
-                setMessage({ type: "error", text: "Failed to save settings." });
+                setMessage({ type: "error", text: locale === 'ar' ? "فشل حفظ الإعدادات." : "Failed to save settings." });
             }
         } catch (error) {
-            setMessage({ type: "error", text: "An error occurred." });
+            setMessage({ type: "error", text: locale === 'ar' ? "حدث خطأ." : "An error occurred." });
         } finally {
             setSaving(false);
         }
@@ -103,29 +99,15 @@ export default function AdminMetaSettings() {
                         <label className={`block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("systemUserToken")}</label>
                         <input
                             type="password" name="systemUserToken" value={formData.systemUserToken} onChange={handleChange}
-                            className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors flex-1"
+                            className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
                             placeholder="EAAC... token" required
                         />
-                        <p className={`text-xs dark:text-slate-500 text-slate-500 mt-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`} dir={locale === 'ar' ? 'rtl' : 'ltr'}>{t("systemTokenDesc")}</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div dir="ltr">
-                            <label className={`block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("businessManagerId")}</label>
-                            <input
-                                type="text" name="businessId" value={formData.businessId} onChange={handleChange}
-                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
-                                placeholder={t("enterBusinessId")} required
-                            />
-                        </div>
-                        <div dir="ltr">
-                            <label className={`block text-sm font-medium dark:text-slate-300 text-slate-700 mb-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`}>{t("adAccountId")}</label>
-                            <input
-                                type="text" name="adAccountId" value={formData.adAccountId} onChange={handleChange}
-                                className="w-full dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg px-4 py-3 dark:text-white text-slate-900 focus:outline-none focus:border-[#1877F2] focus:ring-1 focus:ring-[#1877F2] transition-colors"
-                                placeholder={t("adAccountExample")} required
-                            />
-                        </div>
+                        <p className={`text-xs dark:text-slate-500 text-slate-500 mt-2 ${locale === 'ar' ? 'text-right' : 'text-left'}`} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+                            {locale === 'ar'
+                                ? 'أدخل رمز دخول النظام مع الصلاحيات المطلوبة: pages_show_list, pages_read_engagement, pages_manage_engagement, pages_messaging'
+                                : 'Enter a System User Token with the required permissions: pages_show_list, pages_read_engagement, pages_manage_engagement, pages_messaging'
+                            }
+                        </p>
                     </div>
 
                     <div className={`pt-4 border-t dark:border-[#2A303C] border-slate-200 flex ${locale === 'ar' ? 'justify-start' : 'justify-end'}`}>

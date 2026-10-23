@@ -29,28 +29,27 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { appId, appSecret, systemUserToken, businessId, adAccountId } = body;
+        const { appId, appSecret, systemUserToken } = body;
 
         const user = await prisma.user.findUnique({ where: { email: session.user.email } });
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-        // We ensure only one global setting row exists across the entire app.
         const existing = await prisma.metaSetting.findFirst();
 
         let settings;
         if (existing) {
             settings = await prisma.metaSetting.update({
                 where: { id: existing.id },
-                data: { appId, appSecret, systemUserToken, businessId, adAccountId, userId: user.id },
+                data: { appId, appSecret, systemUserToken, userId: user.id },
             });
 
-            // Cleanup any accidental duplicates to enforce exactly one row
+            // Cleanup any accidental duplicates
             await prisma.metaSetting.deleteMany({
                 where: { id: { not: existing.id } }
             });
         } else {
             settings = await prisma.metaSetting.create({
-                data: { appId, appSecret, systemUserToken, businessId, adAccountId, userId: user.id },
+                data: { appId, appSecret, systemUserToken, userId: user.id },
             });
         }
 
