@@ -18,7 +18,6 @@ export async function GET(req: Request) {
             return NextResponse.redirect(new URL("/login", req.url));
         }
 
-        // Parse the URL to get the authorization code
         const url = new URL(req.url);
         const code = url.searchParams.get("code");
         const error = url.searchParams.get("error");
@@ -32,17 +31,17 @@ export async function GET(req: Request) {
             return NextResponse.redirect(new URL("/dashboard/facebook?error=no_code", req.url));
         }
 
-        // Fetch Meta Settings to get App ID and Secret
         const metaSetting = await prisma.metaSetting.findFirst();
 
         if (!metaSetting || !metaSetting.appId || !metaSetting.appSecret) {
             return NextResponse.redirect(new URL("/dashboard/facebook?error=missing_meta_api_settings", req.url));
         }
 
-        // Define the Redirect URI exactly as provided to Facebook
-        const redirectUri = `${url.origin}/api/facebook/callback`;
+        // Use NEXTAUTH_URL to build the correct redirect URI (NOT url.origin which can be localhost)
+        const baseUrl = process.env.NEXTAUTH_URL || "https://libyadsweb.onrender.com";
+        const redirectUri = `${baseUrl}/api/facebook/callback`;
 
-        // 1. Exchange the code for a User Access Token
+        // Exchange code for User Access Token
         const tokenExchangeUrl = `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${metaSetting.appId}&redirect_uri=${encodeURIComponent(redirectUri)}&client_secret=${metaSetting.appSecret}&code=${code}`;
 
         const tokenRes = await fetch(tokenExchangeUrl);
@@ -55,15 +54,15 @@ export async function GET(req: Request) {
 
         const userAccessToken = tokenData.access_token;
 
-        // 2. Save the User Access Token for later page syncing
+        // Save the User Access Token
         await prisma.metaSetting.update({
             where: { id: metaSetting.id },
             data: { userAccessToken: userAccessToken }
         });
 
-        // 3. Fetch the User's Pages using the User Access Token
+        // Fetch the User Pages
         let accounts: any[] = [];
-        let pagesUrl = `https://graph.facebook.com/v19.0/me/accounts?limit=500&access_token=${userAccessToken}`;
+        let pagesUrl: string | null = `https://graph.facebook.com/v19.0/me/accounts?limit=500&access_token=${userAccessToken}`;
 
         while (pagesUrl) {
             const pagesRes = await fetch(pagesUrl);
@@ -78,12 +77,10 @@ export async function GET(req: Request) {
                 accounts = accounts.concat(pagesData.data);
             }
 
-            // Check for next page
             pagesUrl = pagesData.paging?.next || null;
         }
 
-        // 3. Save all fetched pages to the database
-        // Using upsert logic: if pageId belongs to the user update the token and name, else create it.
+        // Save pages to DB
         if (accounts.length > 0) {
             await prisma.$transaction(
                 accounts.map((page: any) =>
@@ -105,7 +102,6 @@ export async function GET(req: Request) {
             );
         }
 
-        // Redirect back to the Facebook pages UI with success parameter
         return NextResponse.redirect(new URL("/dashboard/facebook?success=pages_connected", req.url));
 
     } catch (error) {

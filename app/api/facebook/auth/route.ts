@@ -21,12 +21,12 @@ export async function GET(req: Request) {
 
         const APP_ID = metaSetting.appId;
 
-        // Define scopes required for managing campaigns, viewing pages, and webhook subscriptions
-        const SCOPES = "pages_show_list,pages_read_engagement,pages_manage_metadata,pages_manage_engagement";
+        // Define scopes required for auto-reply
+        const SCOPES = "pages_show_list,pages_read_engagement,pages_manage_metadata,pages_manage_engagement,pages_messaging";
 
-        // Generate the App URL based on the request origin (e.g. http://localhost:3000)
-        const url = new URL(req.url);
-        const redirectUri = `${url.origin}/api/facebook/callback`;
+        // Use NEXTAUTH_URL env variable to build the correct redirect URI
+        const baseUrl = process.env.NEXTAUTH_URL || "https://libyadsweb.onrender.com";
+        const redirectUri = `${baseUrl}/api/facebook/callback`;
 
         // We use State parameter to mitigate CSRF attacks
         const state = Math.random().toString(36).substring(7);
@@ -34,7 +34,6 @@ export async function GET(req: Request) {
         // Construct Facebook OAuth URL
         const fbOAuthURL = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${SCOPES}`;
 
-        // Return a JSON response pointing the frontend to the authorization URL
         return NextResponse.json({ url: fbOAuthURL });
 
     } catch (error) {
