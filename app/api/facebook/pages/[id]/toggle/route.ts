@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -21,7 +21,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         if (!page) return NextResponse.json({ error: "Page not found" }, { status: 404 });
 
         const updated = await prisma.facebookPage.update({
-            where: { id: page.id },  // use actual DB UUID for update
+            where: { id: page.id },
             data: { isAutoReplyActive: Boolean(isAutoReplyActive) }
         });
 
@@ -58,7 +58,5 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     } catch (error) {
         console.error("Toggle error:", error);
         return NextResponse.json({ error: "Internal error" }, { status: 500 });
-    }
-}  return NextResponse.json({ error: "Internal error" }, { status: 500 });
     }
 }
