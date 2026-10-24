@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // Use a secure token that should be matched in Facebook App Settings
-const VERIFY_TOKEN = process.env.FACEBOOK_WEBHOOK_VERIFY_TOKEN || "libyads_webhook_verify_secure_123";
+const VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN || process.env.FACEBOOK_WEBHOOK_VERIFY_TOKEN || "intag_webhook_token";
 
 export async function GET(req: Request) {
     const url = new URL(req.url);
@@ -150,7 +150,7 @@ export async function POST(req: Request) {
                             // Note: Facebook Graph API currently restricts explicit @mentions for pages replying to users
                             // so we fall back to just using their name text.
                             const replyMessage = rule.includeName
-                                ? `${senderName}، ${selectedReplyText}`
+                                ? `${senderName}طŒ ${selectedReplyText}`
                                 : selectedReplyText;
 
                             // Human-like delay: Random wait between 2 to 6 seconds before replying to avoid spam detection
