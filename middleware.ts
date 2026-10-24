@@ -2,7 +2,8 @@ import { withAuth } from "next-auth/middleware";
 
 export default withAuth({
     pages: {
-        signIn: "/login",
+        // Redirect unauthenticated users to the home page
+        signIn: "/",
     },
 });
 
@@ -12,6 +13,7 @@ export const config = {
         "/api/facebook/:path*",
         "/api/campaigns/:path*",
         "/api/wallet/:path*",
-        "/api/admin/:path*"
+        "/api/admin/:path*",
+        "/api/auto-reply/:path*",
     ],
 };
