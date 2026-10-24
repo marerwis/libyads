@@ -6,23 +6,26 @@ import { Suspense } from "react";
 import {
     Facebook, LogIn, Flag, RefreshCw, Search,
     ChevronLeft, ChevronRight, Zap, Link2Off,
-    Grid3X3, List, Loader2, CheckCircle2, XCircle
+    Grid3X3, List, Loader2, CheckCircle2, XCircle,
+    AlertTriangle, RotateCcw
 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 
 const ITEMS_PER_PAGE = 12;
 
 function FacebookPagesContent() {
-    const [pages, setPages] = useState<any[]>([]);
+    const [pages, setPages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [connecting, setConnecting] = useState(false);
     const [syncing, setSyncing] = useState(false);
-    const [togglingId, setTogglingId] = useState<string | null>(null);
-    const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
+    const [disconnecting, setDisconnecting] = useState(false);
+    const [togglingId, setTogglingId] = useState(null);
+    const [message, setMessage] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
-    const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+    const [filterStatus, setFilterStatus] = useState("all");
+    const [viewMode, setViewMode] = useState("list");
     const [currentPage, setCurrentPage] = useState(1);
+    const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
 
     const searchParams = useSearchParams();
     const { t, locale } = useLanguage();
@@ -32,7 +35,7 @@ function FacebookPagesContent() {
         const error = searchParams.get("error");
         const success = searchParams.get("success");
         if (error) setMessage({ type: "error", text: isRtl ? "فشل الاتصال: " + error : "Connection failed: " + error });
-        else if (success) setMessage({ type: "success", text: isRtl ? "تم ربط صفحات فيسبوك بنجاح!" : "Facebook Pages connected successfully!" });
+        else if (success) setMessage({ type: "success", text: isRtl ? "تم ربط صفحات فيسبوك بنجاح!" : "Facebook Pages connected!" });
         if (error || success) window.history.replaceState(null, "", window.location.pathname);
         fetchPages();
     }, [searchParams]);
@@ -65,14 +68,32 @@ function FacebookPagesContent() {
             const res = await fetch("/api/facebook/pages/sync", { method: "POST" });
             const data = await res.json();
             if (res.ok && data.success) {
-                setMessage({ type: "success", text: isRtl ? "تمت المزامنة!" : "Synced!" });
+                setMessage({ type: "success", text: isRtl ? "تمت المزامنة! تم جلب " + data.count + " صفحة" : "Synced! Fetched " + data.count + " pages" });
                 fetchPages();
-            } else setMessage({ type: "error", text: data.error || "Failed" });
+            } else {
+                setMessage({ type: "error", text: data.error || "Sync failed" });
+            }
         } catch { setMessage({ type: "error", text: "Error" }); }
         finally { setSyncing(false); }
     };
 
-    const handleToggle = async (page: any) => {
+    const handleDisconnect = async () => {
+        setDisconnecting(true);
+        setShowDisconnectConfirm(false);
+        try {
+            const res = await fetch("/api/facebook/disconnect", { method: "DELETE" });
+            const data = await res.json();
+            if (res.ok) {
+                setPages([]);
+                setMessage({ type: "success", text: isRtl ? "تم فك الارتباط بنجاح. يمكنك إعادة الربط الآن." : "Disconnected! You can reconnect now." });
+            } else {
+                setMessage({ type: "error", text: data.error || "Failed" });
+            }
+        } catch { setMessage({ type: "error", text: "Error" }); }
+        finally { setDisconnecting(false); }
+    };
+
+    const handleToggle = async (page) => {
         setTogglingId(page.id);
         const newState = !page.isAutoReplyActive;
         try {
@@ -86,21 +107,13 @@ function FacebookPagesContent() {
                 setMessage({
                     type: "success",
                     text: isRtl
-                        ? (newState ? "تم تفعيل الرد التلقائي لـ " : "تم إيقاف الرد التلقائي لـ ") + page.pageName
+                        ? (newState ? "✅ تفعيل الرد التلقائي لـ " : "⏸ إيقاف الرد التلقائي لـ ") + page.pageName
                         : "Auto-reply " + (newState ? "enabled" : "disabled") + " for " + page.pageName
                 });
                 setTimeout(() => setMessage(null), 3000);
             }
         } catch { setMessage({ type: "error", text: "Toggle failed" }); }
         finally { setTogglingId(null); }
-    };
-
-    const handleDisconnect = async () => {
-        if (!confirm(isRtl ? "فك ارتباط كل الصفحات؟" : "Disconnect all pages?")) return;
-        try {
-            await fetch("/api/facebook/disconnect", { method: "DELETE" });
-            setPages([]);
-        } catch { setMessage({ type: "error", text: "Error" }); }
     };
 
     const filtered = useMemo(() => pages.filter(p => {
@@ -124,6 +137,40 @@ function FacebookPagesContent() {
 
     return (
         <div className="space-y-5" dir={isRtl ? "rtl" : "ltr"}>
+
+            {/* Disconnect Confirm Modal */}
+            {showDisconnectConfirm && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="dark:bg-[#151921] bg-white rounded-2xl border dark:border-[#2A303C] border-slate-200 p-6 max-w-md w-full shadow-2xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+                                <AlertTriangle size={24} className="text-red-500" />
+                            </div>
+                            <div>
+                                <h3 className="dark:text-white text-slate-900 font-bold text-lg">{isRtl ? "فك ارتباط فيسبوك" : "Disconnect Facebook"}</h3>
+                                <p className="dark:text-slate-400 text-slate-500 text-sm">{isRtl ? "سيتم حذف كل الصفحات المحفوظة" : "All saved pages will be deleted"}</p>
+                            </div>
+                        </div>
+                        <p className="dark:text-slate-300 text-slate-600 text-sm mb-6 leading-relaxed">
+                            {isRtl
+                                ? "سيتم حذف جميع صفحاتك المرتبطة من قاعدة البيانات. يمكنك إعادة الربط في أي وقت لجلب كل صفحاتك مجدداً."
+                                : "All your connected pages will be removed from the database. You can reconnect anytime to fetch all your pages fresh."}
+                        </p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowDisconnectConfirm(false)}
+                                className="flex-1 py-2.5 rounded-xl dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 dark:text-slate-300 text-slate-700 text-sm font-medium hover:opacity-80 transition-all">
+                                {isRtl ? "إلغاء" : "Cancel"}
+                            </button>
+                            <button onClick={handleDisconnect} disabled={disconnecting}
+                                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                                {disconnecting ? <Loader2 size={15} className="animate-spin" /> : <Link2Off size={15} />}
+                                {isRtl ? "فك الارتباط" : "Disconnect"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
@@ -134,21 +181,30 @@ function FacebookPagesContent() {
                         {isRtl ? "صفحات فيسبوك" : "Facebook Pages"}
                     </h2>
                     <p className="dark:text-slate-400 text-slate-500 text-sm mt-1 ms-[52px]">
-                        {pages.length > 0 ? (isRtl ? pages.length + " صفحة · " + activeCount + " مفعّلة" : pages.length + " pages · " + activeCount + " active") : (isRtl ? "لا توجد صفحات مرتبطة" : "No pages connected")}
+                        {pages.length > 0
+                            ? (isRtl ? pages.length + " صفحة · " + activeCount + " مفعّلة" : pages.length + " pages · " + activeCount + " active")
+                            : (isRtl ? "لا توجد صفحات مرتبطة" : "No pages connected")}
                     </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     {pages.length > 0 && (
-                        <button onClick={handleSync} disabled={syncing || connecting}
-                            className="flex items-center gap-2 px-4 py-2.5 dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 dark:text-slate-300 text-slate-700 rounded-xl text-sm font-medium hover:border-[#1877F2]/40 transition-all disabled:opacity-50 shadow-sm">
-                            {syncing ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
-                            {isRtl ? "مزامنة" : "Sync"}
-                        </button>
+                        <>
+                            <button onClick={handleSync} disabled={syncing || connecting || disconnecting}
+                                className="flex items-center gap-2 px-4 py-2.5 dark:bg-[#151921] bg-white border dark:border-[#2A303C] border-slate-200 dark:text-slate-300 text-slate-700 rounded-xl text-sm font-medium hover:border-[#1877F2]/40 transition-all disabled:opacity-50 shadow-sm">
+                                {syncing ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+                                {isRtl ? "مزامنة الصفحات" : "Sync Pages"}
+                            </button>
+                            <button onClick={() => setShowDisconnectConfirm(true)} disabled={disconnecting}
+                                className="flex items-center gap-2 px-4 py-2.5 dark:bg-red-900/20 bg-red-50 border dark:border-red-900/40 border-red-200 dark:text-red-400 text-red-600 rounded-xl text-sm font-semibold hover:dark:bg-red-900/30 hover:bg-red-100 transition-all disabled:opacity-50 shadow-sm">
+                                {disconnecting ? <Loader2 size={15} className="animate-spin" /> : <Link2Off size={15} />}
+                                {isRtl ? "فك الارتباط" : "Disconnect"}
+                            </button>
+                        </>
                     )}
-                    <button onClick={handleConnect} disabled={connecting || syncing}
+                    <button onClick={handleConnect} disabled={connecting || syncing || disconnecting}
                         className="flex items-center gap-2 px-4 py-2.5 bg-[#1877F2] hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-all disabled:opacity-50 shadow-lg shadow-blue-500/25">
-                        {connecting ? <Loader2 size={15} className="animate-spin" /> : <LogIn size={15} />}
-                        {isRtl ? (pages.length > 0 ? "تجديد" : "ربط") : (pages.length > 0 ? "Refresh" : "Connect")}
+                        {connecting ? <Loader2 size={15} className="animate-spin" /> : pages.length > 0 ? <RotateCcw size={15} /> : <LogIn size={15} />}
+                        {isRtl ? (pages.length > 0 ? "إعادة الربط لجلب كل الصفحات" : "ربط فيسبوك") : (pages.length > 0 ? "Re-connect & Fetch All" : "Connect Facebook")}
                     </button>
                 </div>
             </div>
@@ -169,8 +225,11 @@ function FacebookPagesContent() {
                         <Facebook size={40} className="text-[#1877F2]" />
                     </div>
                     <h3 className="text-xl font-semibold dark:text-white text-slate-900 mb-2">{isRtl ? "لم يتم ربط أي صفحة" : "No Pages Connected"}</h3>
-                    <p className="dark:text-slate-400 text-slate-500 text-sm mb-8 max-w-sm">{isRtl ? "اضغط زر الربط للاتصال بفيسبوك وجلب صفحاتك" : "Connect your Facebook account to load your pages"}</p>
-                    <button onClick={handleConnect} disabled={connecting} className="flex items-center gap-2 px-8 py-3 bg-[#1877F2] hover:bg-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all">
+                    <p className="dark:text-slate-400 text-slate-500 text-sm mb-8 max-w-sm">
+                        {isRtl ? "اضغط زر الربط للاتصال بفيسبوك وجلب جميع صفحاتك" : "Connect your Facebook account to load all your pages"}
+                    </p>
+                    <button onClick={handleConnect} disabled={connecting}
+                        className="flex items-center gap-2 px-8 py-3 bg-[#1877F2] hover:bg-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all">
                         {connecting ? <Loader2 size={18} className="animate-spin" /> : <LogIn size={18} />}
                         {isRtl ? "ربط فيسبوك" : "Connect Facebook"}
                     </button>
@@ -182,13 +241,23 @@ function FacebookPagesContent() {
                         {[
                             { label: isRtl ? "إجمالي" : "Total", value: pages.length, cls: "text-[#1877F2]" },
                             { label: isRtl ? "مفعّل" : "Active", value: activeCount, cls: "text-emerald-500" },
-                            { label: isRtl ? "موقوف" : "Inactive", value: pages.length - activeCount, cls: "dark:text-slate-300 text-slate-600" },
+                            { label: isRtl ? "موقوف" : "Off", value: pages.length - activeCount, cls: "dark:text-slate-300 text-slate-600" },
                         ].map((s, i) => (
                             <div key={i} className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 p-4 shadow-sm text-center">
                                 <p className="dark:text-slate-400 text-slate-500 text-xs mb-1">{s.label}</p>
                                 <p className={"text-2xl font-bold " + s.cls}>{s.value}</p>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Info Banner */}
+                    <div className="flex items-start gap-3 p-4 rounded-xl dark:bg-blue-900/10 bg-blue-50 border dark:border-blue-900/30 border-blue-200">
+                        <AlertTriangle size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-xs dark:text-blue-300 text-blue-700 leading-relaxed">
+                            {isRtl
+                                ? "إذا كانت هناك صفحات مفقودة، اضغط \"فك الارتباط\" ثم \"إعادة الربط لجلب كل الصفحات\" لجلب جميع صفحاتك من جديد."
+                                : "If pages are missing, click \"Disconnect\" then \"Re-connect & Fetch All\" to refresh all your pages from Facebook."}
+                        </p>
                     </div>
 
                     {/* Search & Filter */}
@@ -202,14 +271,14 @@ function FacebookPagesContent() {
                             </div>
                             <div className="flex gap-2 flex-wrap">
                                 {[{ k: "all", ar: "الكل", en: "All" }, { k: "active", ar: "مفعّل", en: "Active" }, { k: "inactive", ar: "موقوف", en: "Off" }].map(f => (
-                                    <button key={f.k} onClick={() => { setFilterStatus(f.k as any); setCurrentPage(1); }}
+                                    <button key={f.k} onClick={() => { setFilterStatus(f.k); setCurrentPage(1); }}
                                         className={"px-3 py-2 rounded-lg text-sm font-medium transition-all " + (filterStatus === f.k ? "bg-[#1877F2] text-white" : "dark:bg-[#0B0E14] bg-slate-50 dark:text-slate-400 text-slate-600 border dark:border-[#2A303C] border-slate-200 hover:border-[#1877F2]/40")}>
                                         {isRtl ? f.ar : f.en}
                                     </button>
                                 ))}
                                 <div className="flex dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 rounded-lg overflow-hidden">
                                     {[{ m: "list", Icon: List }, { m: "grid", Icon: Grid3X3 }].map(({ m, Icon }) => (
-                                        <button key={m} onClick={() => setViewMode(m as any)}
+                                        <button key={m} onClick={() => setViewMode(m)}
                                             className={"p-2.5 transition-colors " + (viewMode === m ? "bg-[#1877F2] text-white" : "dark:text-slate-400 text-slate-500")}>
                                             <Icon size={15} />
                                         </button>
@@ -217,10 +286,9 @@ function FacebookPagesContent() {
                                 </div>
                             </div>
                         </div>
-                        {searchQuery && <p className="dark:text-slate-500 text-slate-400 text-xs mt-2">{filtered.length} {isRtl ? "نتيجة" : "result(s)"}</p>}
                     </div>
 
-                    {/* Pages */}
+                    {/* Pages List/Grid */}
                     {filtered.length === 0 ? (
                         <div className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 p-12 text-center shadow-sm">
                             <p className="dark:text-slate-400 text-slate-500">{isRtl ? "لا توجد نتائج" : "No results"}</p>
@@ -244,7 +312,7 @@ function FacebookPagesContent() {
                                             {page.isAutoReplyActive ? (isRtl ? "مفعّل" : "Active") : (isRtl ? "موقوف" : "Off")}
                                         </span>
                                         <button onClick={() => handleToggle(page)} disabled={togglingId === page.id}
-                                            className={"relative w-14 h-7 rounded-full transition-all duration-300 flex-shrink-0 " + (page.isAutoReplyActive ? "bg-emerald-500" : "dark:bg-slate-700 bg-slate-200")}>
+                                            className={"relative w-14 h-7 rounded-full transition-all duration-300 " + (page.isAutoReplyActive ? "bg-emerald-500" : "dark:bg-slate-700 bg-slate-200")}>
                                             <span className={"absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 flex items-center justify-center " + (page.isAutoReplyActive ? (isRtl ? "right-0.5" : "left-7") : (isRtl ? "right-7" : "left-0.5"))}>
                                                 {togglingId === page.id ? <Loader2 size={11} className="animate-spin text-slate-400" /> : <Zap size={10} className={page.isAutoReplyActive ? "text-emerald-500" : "text-slate-400"} />}
                                             </span>
@@ -256,7 +324,7 @@ function FacebookPagesContent() {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {paginated.map(page => (
-                                <div key={page.id} className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 p-5 shadow-sm hover:shadow-md dark:hover:border-[#1877F2]/30 hover:border-[#1877F2]/30 transition-all">
+                                <div key={page.id} className="dark:bg-[#151921] bg-white rounded-xl border dark:border-[#2A303C] border-slate-200 p-5 shadow-sm hover:shadow-md transition-all">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="w-12 h-12 rounded-xl bg-[#1877F2]/10 flex items-center justify-center">
                                             <Flag size={20} className="text-[#1877F2]" />
@@ -298,7 +366,7 @@ function FacebookPagesContent() {
                                     }
                                     return (
                                         <button key={pg} onClick={() => setCurrentPage(pg)}
-                                            className={"w-9 h-9 rounded-lg text-sm font-medium transition-all " + (currentPage === pg ? "bg-[#1877F2] text-white shadow-lg shadow-blue-500/20" : "dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 dark:text-slate-400 text-slate-600 hover:border-[#1877F2]/40")}>
+                                            className={"w-9 h-9 rounded-lg text-sm font-medium transition-all " + (currentPage === pg ? "bg-[#1877F2] text-white shadow-lg" : "dark:bg-[#0B0E14] bg-slate-50 border dark:border-[#2A303C] border-slate-200 dark:text-slate-400 text-slate-600")}>
                                             {pg}
                                         </button>
                                     );
@@ -310,13 +378,6 @@ function FacebookPagesContent() {
                             </div>
                         </div>
                     )}
-
-                    <div className="flex justify-end">
-                        <button onClick={handleDisconnect} className="flex items-center gap-2 px-4 py-2 text-sm dark:text-slate-500 text-slate-400 hover:text-red-500 transition-colors">
-                            <Link2Off size={14} />
-                            {isRtl ? "فك ارتباط كل الصفحات" : "Disconnect all"}
-                        </button>
-                    </div>
                 </>
             )}
         </div>
