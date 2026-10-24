@@ -14,13 +14,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         const body = await req.json();
         const { isAutoReplyActive } = body;
 
+        // FIX: params.id is the Facebook pageId (not DB UUID)
         const page = await prisma.facebookPage.findFirst({
-            where: { id: params.id, userId: user.id }
+            where: { pageId: params.id, userId: user.id }
         });
         if (!page) return NextResponse.json({ error: "Page not found" }, { status: 404 });
 
         const updated = await prisma.facebookPage.update({
-            where: { id: params.id },
+            where: { id: page.id },  // use actual DB UUID for update
             data: { isAutoReplyActive: Boolean(isAutoReplyActive) }
         });
 
@@ -28,7 +29,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         if (page.pageAccessToken) {
             try {
                 if (isAutoReplyActive) {
-                    // Subscribe page to webhook events
                     const subRes = await fetch(
                         `https://graph.facebook.com/v19.0/${page.pageId}/subscribed_apps`,
                         {
@@ -43,7 +43,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
                     const subData = await subRes.json();
                     console.log(`Webhook subscription for page ${page.pageId}:`, JSON.stringify(subData));
                 } else {
-                    // Unsubscribe page from webhook
                     await fetch(
                         `https://graph.facebook.com/v19.0/${page.pageId}/subscribed_apps?access_token=${page.pageAccessToken}`,
                         { method: "DELETE" }
@@ -52,7 +51,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
                 }
             } catch (webhookErr) {
                 console.error("Webhook subscription error:", webhookErr);
-                // Don"t fail the toggle if webhook subscription fails
             }
         }
 
@@ -60,5 +58,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     } catch (error) {
         console.error("Toggle error:", error);
         return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    }
+}  return NextResponse.json({ error: "Internal error" }, { status: 500 });
     }
 }
