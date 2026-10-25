@@ -95,25 +95,46 @@ function FacebookPagesContent() {
 
     const handleToggle = async (page) => {
         setTogglingId(page.id);
-        const newState = !page.isAutoReplyActive;
+        setMessage(null);
+
         try {
-            const res = await fetch("/api/facebook/pages/" + page.id + "/toggle", {
-                method: "PATCH",
+            // Use proven activate/deactivate endpoints from auto-reply/pages
+            const endpoint = page.isAutoReplyActive
+                ? "/api/auto-reply/deactivate-page"
+                : "/api/auto-reply/activate-page";
+
+            const res = await fetch(endpoint, {
+                method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ isAutoReplyActive: newState })
+                body: JSON.stringify({ pageId: page.pageId })
             });
-            if (res.ok) {
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                const newState = !page.isAutoReplyActive;
                 setPages(prev => prev.map(p => p.id === page.id ? { ...p, isAutoReplyActive: newState } : p));
                 setMessage({
                     type: "success",
-                    text: isRtl
-                        ? (newState ? "✅ تفعيل الرد التلقائي لـ " : "⏸ إيقاف الرد التلقائي لـ ") + page.pageName
-                        : "Auto-reply " + (newState ? "enabled" : "disabled") + " for " + page.pageName
+                    text: page.isAutoReplyActive
+                        ? (isRtl ? `تم إيقاف الرد التلقائي لصفحة ${page.pageName}` : `Auto-replies deactivated for ${page.pageName}`)
+                        : (isRtl ? `تم تفعيل الرد التلقائي لصفحة ${page.pageName} بنجاح!` : `Auto-replies activated for ${page.pageName}!`)
                 });
-                setTimeout(() => setMessage(null), 3000);
+                setTimeout(() => setMessage(null), 4000);
+            } else {
+                setMessage({
+                    type: "error",
+                    text: data.error || (isRtl ? "فشلت العملية" : "Operation failed")
+                });
             }
-        } catch { setMessage({ type: "error", text: "Toggle failed" }); }
-        finally { setTogglingId(null); }
+        } catch (error) {
+            setMessage({
+                type: "error",
+                text: isRtl ? "خطأ في الاتصال بالخادم" : "Server connection error"
+            });
+        } finally {
+            setTogglingId(null);
+        }
     };
 
     const filtered = useMemo(() => pages.filter(p => {

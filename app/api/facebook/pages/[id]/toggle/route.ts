@@ -16,7 +16,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
         // FIX: params.id is the Facebook pageId (not DB UUID)
         const page = await prisma.facebookPage.findFirst({
-            where: { pageId: params.id, userId: user.id }
+            where: {
+                OR: [
+                    { id: params.id },
+                    { pageId: params.id }
+                ],
+                userId: user.id
+            }
         });
         if (!page) return NextResponse.json({ error: "Page not found" }, { status: 404 });
 
