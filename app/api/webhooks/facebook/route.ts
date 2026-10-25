@@ -149,9 +149,25 @@ export async function POST(req: Request) {
 
                             // Note: Facebook Graph API currently restricts explicit @mentions for pages replying to users
                             // so we fall back to just using their name text.
-                            const replyMessage = rule.includeName
-                                ? `${senderName}طŒ ${selectedReplyText}`
-                                : selectedReplyText;
+                            // Clean sender name (strip zero-width characters)
+                            const cleanSenderName = (senderName || "").replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+                            let replyMessage = (selectedReplyText || "").trim();
+
+                            // Support placeholder replacement [الاسم] / [اسم] / [name] / {name}
+                            if (
+                                replyMessage.includes("[الاسم]") ||
+                                replyMessage.includes("[اسم]") ||
+                                /\[name\]/i.test(replyMessage) ||
+                                /\{name\}/i.test(replyMessage)
+                            ) {
+                                replyMessage = replyMessage
+                                    .replace(/\[الاسم\]/g, cleanSenderName)
+                                    .replace(/\[اسم\]/g, cleanSenderName)
+                                    .replace(/\[name\]/gi, cleanSenderName)
+                                    .replace(/\{name\}/gi, cleanSenderName);
+                            } else if (rule.includeName && cleanSenderName) {
+                                replyMessage = `${cleanSenderName} ${replyMessage}`;
+                            }
 
                             // Human-like delay: Random wait between 2 to 6 seconds before replying to avoid spam detection
                             const delayMs = Math.floor(Math.random() * (6000 - 2000 + 1) + 2000);
@@ -172,12 +188,20 @@ export async function POST(req: Request) {
                             if (fbResponse.ok && fbResult.id) {
                                 // Send Private Message if configured
                                 if (rule.privateMessage) {
+                                    let pmText = (rule.privateMessage || "").trim();
+                                    if (cleanSenderName) {
+                                        pmText = pmText
+                                            .replace(/\[الاسم\]/g, cleanSenderName)
+                                            .replace(/\[اسم\]/g, cleanSenderName)
+                                            .replace(/\[name\]/gi, cleanSenderName)
+                                            .replace(/\{name\}/gi, cleanSenderName);
+                                    }
                                     const pmMessageResponse = await fetch(`https://graph.facebook.com/v21.0/${pageId}/messages`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({
                                             recipient: { comment_id: commentId },
-                                            message: { text: rule.privateMessage },
+                                            message: { text: pmText },
                                             access_token: page.pageAccessToken
                                         })
                                     });
