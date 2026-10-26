@@ -13,6 +13,7 @@ export default function SetupAiPageAutoReply() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
+    const [conflictPrompt, setConflictPrompt] = useState<{ rule: any } | null>(null);
 
     // AI vs Static Reply Mode
     const [replyMode, setReplyMode] = useState<"AI" | "STATIC">("AI");
@@ -108,8 +109,53 @@ export default function SetupAiPageAutoReply() {
                         : "Page-level rule saved successfully!"
                 });
                 setTimeout(() => router.push('/dashboard/ai-page-auto-reply/manage'), 1500);
+            } else if (res.status === 409 && data.error === "RULE_EXISTS") {
+                setConflictPrompt({ rule: data.rule });
             } else {
                 setMessage({ type: "error", text: data.error || (locale === 'ar' ? "فشل حفظ القاعدة" : "Failed to save rule") });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: t("errServerConnection" as any) });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+
+    const handleExecuteAction = async (action: 'update' | 'extend') => {
+        setSubmitting(true);
+        setMessage(null);
+        setConflictPrompt(null);
+
+        const payload = {
+            ...formData,
+            replyTexts: replyMode === "AI" ? ["__AI_REPLY__"] : formData.replyTexts.filter(t => t.trim() !== ""),
+            pageId: formData.pageId,
+            updateOnly: action === 'update',
+            extend: action === 'extend'
+        };
+
+        try {
+            const res = await fetch("/api/page-auto-reply", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setMessage({
+                    type: "success",
+                    text: locale === 'ar'
+                        ? (action === 'update' 
+                            ? "تم تحديث الصفحة وتحويلها إلى الرد الذكي بنجاح! 🤖" 
+                            : "تم تمديد وتحديث قاعدة الرد الذكي بنجاح!")
+                        : "Rule updated successfully!"
+                });
+                setTimeout(() => router.push('/dashboard/ai-page-auto-reply/manage'), 1500);
+            } else {
+                setMessage({ type: "error", text: data.error || (locale === 'ar' ? "فشل تنفيذ العملية" : "Failed to execute") });
             }
         } catch (error) {
             setMessage({ type: "error", text: t("errServerConnection" as any) });
@@ -362,6 +408,57 @@ export default function SetupAiPageAutoReply() {
                     </button>
                 </div>
             </form>
+        
+            {/* Conflict / Existing Rule Resolution Modal */}
+            {conflictPrompt && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-[#151921] rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-[#2A303C] overflow-hidden" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+                        <div className="p-6">
+                            <div className="w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4 mx-auto ring-8 ring-purple-500/5">
+                                <Sparkles size={28} />
+                            </div>
+                            <h3 className="text-xl font-bold text-center text-slate-900 dark:text-white mb-2">
+                                {locale === 'ar' ? 'توجد قاعدة سابقة لهذه الصفحة!' : 'Rule Already Exists For This Page!'}
+                            </h3>
+                            <p className="text-center text-slate-600 dark:text-slate-400 mb-6 text-sm leading-relaxed">
+                                {locale === 'ar' 
+                                    ? `هذه الصفحة تحتوي مسبقاً على رد شامل مفعل (متبقي من صلاحيتها ${conflictPrompt.rule?.activeDays || 0} يوماً). كيف تود المتابعة؟`
+                                    : `This page already has an active auto-reply rule (${conflictPrompt.rule?.activeDays || 0} active days remaining). How would you like to proceed?`}
+                            </p>
+                            <div className="space-y-2.5">
+                                <button
+                                    onClick={() => handleExecuteAction('update')}
+                                    disabled={submitting}
+                                    type="button"
+                                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-purple-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Bot size={18} />
+                                    {locale === 'ar' ? 'تحويل للرد الذكي مع الحفاظ على الأيام (مجاناً)' : 'Convert to AI Keeping Active Days (Free)'}
+                                </button>
+                                
+                                <button
+                                    onClick={() => handleExecuteAction('extend')}
+                                    disabled={submitting}
+                                    type="button"
+                                    className="w-full px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                                >
+                                    {locale === 'ar' ? `تحديث + تمديد الصلاحية (+${formData.activeDays} يوم)` : `Update + Extend (+${formData.activeDays} days)`}
+                                </button>
+
+                                <button
+                                    onClick={() => setConflictPrompt(null)}
+                                    disabled={submitting}
+                                    type="button"
+                                    className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors text-sm"
+                                >
+                                    {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

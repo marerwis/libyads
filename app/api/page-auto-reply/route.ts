@@ -47,7 +47,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const { pageId, replyTexts, privateMessage, includeName, activeDays, extend } = await req.json();
+        const { pageId, replyTexts, privateMessage, includeName, activeDays, extend, updateOnly } = await req.json();
 
         if (!pageId || !replyTexts || !Array.isArray(replyTexts) || replyTexts.length === 0) {
             return NextResponse.json({ error: "Missing required fields or empty replies" }, { status: 400 });
@@ -69,6 +69,20 @@ export async function POST(req: Request) {
                 pageId: pageId
             }
         });
+
+        // Fast update without new billing (e.g. converting to AI or modifying text)
+        if (existingRule && updateOnly) {
+            const updatedRule = await prisma.pageAutoReplyRule.update({
+                where: { id: existingRule.id },
+                data: {
+                    replyTexts: validReplies,
+                    privateMessage: privateMessage || null,
+                    includeName: Boolean(includeName),
+                    isActive: true
+                }
+            });
+            return NextResponse.json(updatedRule);
+        }
 
         if (existingRule && !extend) {
             return NextResponse.json({ 

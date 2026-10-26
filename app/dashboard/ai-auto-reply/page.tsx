@@ -13,6 +13,7 @@ export default function SetupAiAutoReply() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
+    const [conflictPrompt, setConflictPrompt] = useState<{ rule: any } | null>(null);
     const [duplicateWarning, setDuplicateWarning] = useState(false);
 
     // AI vs Static Reply Mode (Default: AI)
@@ -141,12 +142,60 @@ export default function SetupAiAutoReply() {
                         : "Rule saved successfully!" 
                 });
                 setTimeout(() => router.push('/dashboard/ai-auto-reply/manage'), 1500);
+            } else if (res.status === 409 && data.error === "RULE_EXISTS") {
+                setConflictPrompt({ rule: data.rule });
             } else {
                 if (data.isDuplicate) {
                     setDuplicateWarning(true);
                 } else {
                     setMessage({ type: "error", text: data.error || (locale === 'ar' ? "فشل حفظ القاعدة" : "Failed to save rule") });
                 }
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: t("errServerConnection" as any) });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+
+    const handleExecuteUpdate = async () => {
+        setSubmitting(true);
+        setMessage(null);
+        setConflictPrompt(null);
+
+        const replyPayload = {
+            pageId: formData.pageId,
+            postId: formData.postId,
+            replyText: replyMode === "AI" ? "__AI_REPLY__" : formData.replyText,
+            replyText2: replyMode === "AI" ? null : (formData.replyText2 || null),
+            replyText3: replyMode === "AI" ? null : (formData.replyText3 || null),
+            privateMessage: formData.privateMessage || null,
+            includeName: formData.includeName,
+            keywords: formData.keywords || null,
+            activeDays: formData.activeDays,
+            updateOnly: true
+        };
+
+        try {
+            const res = await fetch("/api/auto-reply", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(replyPayload)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setMessage({ 
+                    type: "success", 
+                    text: locale === 'ar' 
+                        ? "تم تحديث المنشور وتحويله إلى الرد الذكي بنجاح! 🤖" 
+                        : "Post rule converted to AI successfully!" 
+                });
+                setTimeout(() => router.push('/dashboard/ai-auto-reply/manage'), 1500);
+            } else {
+                setMessage({ type: "error", text: data.error || (locale === 'ar' ? "فشل التحديث" : "Failed to update") });
             }
         } catch (error) {
             setMessage({ type: "error", text: t("errServerConnection" as any) });
@@ -459,6 +508,48 @@ export default function SetupAiAutoReply() {
                     </button>
                 </div>
             </form>
+        
+            {/* Conflict / Existing Rule Resolution Modal */}
+            {conflictPrompt && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-[#151921] rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-[#2A303C] overflow-hidden" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+                        <div className="p-6">
+                            <div className="w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4 mx-auto ring-8 ring-purple-500/5">
+                                <Sparkles size={28} />
+                            </div>
+                            <h3 className="text-xl font-bold text-center text-slate-900 dark:text-white mb-2">
+                                {locale === 'ar' ? 'توجد قاعدة سابقة لهذا المنشور!' : 'Rule Already Exists For This Post!'}
+                            </h3>
+                            <p className="text-center text-slate-600 dark:text-slate-400 mb-6 text-sm leading-relaxed">
+                                {locale === 'ar' 
+                                    ? `هذا المنشور يحتوي بالفعل على رد تلقائي مُنشأ مسبقاً. هل ترغب في تحديثه وتحويله إلى الرد الذكي بالذكاء الاصطناعي فوراً؟`
+                                    : `This post already has an active auto-reply rule. Would you like to update and convert it to AI Auto-Reply now?`}
+                            </p>
+                            <div className="space-y-2.5">
+                                <button
+                                    onClick={handleExecuteUpdate}
+                                    disabled={submitting}
+                                    type="button"
+                                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-purple-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Bot size={18} />
+                                    {locale === 'ar' ? 'تحديث وتحويل إلى الذكاء الاصطناعي فوراً' : 'Update & Convert to AI Now'}
+                                </button>
+
+                                <button
+                                    onClick={() => setConflictPrompt(null)}
+                                    disabled={submitting}
+                                    type="button"
+                                    className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors text-sm"
+                                >
+                                    {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

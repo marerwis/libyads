@@ -113,6 +113,41 @@ export default function SetupPageAutoReply() {
         }
     };
 
+
+    const handleUpdateOnlyRule = async () => {
+        setSubmitting(true);
+        setMessage(null);
+        setExtensionPrompt(null);
+        
+        try {
+            const res = await fetch("/api/page-auto-reply", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    pageId: formData.pageId,
+                    replyTexts: formData.replyTexts.filter(t => t.trim() !== ""),
+                    privateMessage: formData.privateMessage,
+                    includeName: formData.includeName,
+                    activeDays: formData.activeDays,
+                    updateOnly: true
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setMessage({ type: "success", text: locale === 'ar' ? "تم تحديث نصوص الردود بنجاح!" : "Page rule updated successfully!" });
+                setTimeout(() => router.push('/dashboard/page-auto-reply/manage'), 1500);
+            } else {
+                setMessage({ type: "error", text: data.error || (locale === 'ar' ? "فشل التحديث" : "Failed to update") });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: t("errServerConnection" as any) });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     const handleExtendRule = async () => {
         setSubmitting(true);
         setMessage(null);
@@ -398,20 +433,27 @@ export default function SetupPageAutoReply() {
                                     ? `هذه الصفحة تحتوي مسبقاً على رد شامل مفعل. هل ترغب في تمديد فترة الصلاحية الحالية بـ ${formData.activeDays} يوم إضافي وتحديث نصوص الردود لتطابق المدخلات الجديدة (سيتم خصم التكلفة)؟`
                                     : `This page already has an active global reply. Do you want to extend the current validity by ${formData.activeDays} days and update the reply texts to match the new inputs (Cost will be deducted)?`}
                             </p>
-                            <div className="flex gap-3">
+                            <div className="space-y-2.5">
                                 <button
-                                    onClick={() => setExtensionPrompt(null)}
+                                    onClick={handleUpdateOnlyRule}
                                     type="button"
-                                    className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors"
+                                    className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium shadow-lg shadow-indigo-600/20 transition-all active:scale-95 flex items-center justify-center"
                                 >
-                                    {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+                                    {locale === 'ar' ? 'تحديث النصوص فقط (مجاناً)' : 'Update Replies Only (Free)'}
                                 </button>
                                 <button
                                     onClick={handleExtendRule}
                                     type="button"
-                                    className="flex-1 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-medium shadow-lg shadow-amber-600/20 transition-all active:scale-95 flex items-center justify-center"
+                                    className="w-full px-4 py-2 bg-amber-600/10 hover:bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-600/20 rounded-xl font-medium transition-colors flex items-center justify-center"
                                 >
-                                    {locale === 'ar' ? 'نعم، قم بالتمديد' : 'Yes, Extend Rule'}
+                                    {locale === 'ar' ? `تحديث + تمديد الصلاحية (+${formData.activeDays} يوم)` : `Update + Extend (+${formData.activeDays} days)`}
+                                </button>
+                                <button
+                                    onClick={() => setExtensionPrompt(null)}
+                                    type="button"
+                                    className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors text-sm"
+                                >
+                                    {locale === 'ar' ? 'إلغاء' : 'Cancel'}
                                 </button>
                             </div>
                         </div>
