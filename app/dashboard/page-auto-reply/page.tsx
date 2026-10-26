@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircleReply, Users, Save, AlertCircle, DollarSign, Settings, ToggleRight, MessageSquareShare, ListPlus } from "lucide-react";
+import { MessageCircleReply, Users, Save, AlertCircle, DollarSign, Settings, ToggleRight, MessageSquareShare, ListPlus, Wallet } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import Link from "next/link";
 
@@ -14,6 +14,8 @@ export default function SetupPageAutoReply() {
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: "error" | "success", text: string } | null>(null);
     const [extensionPrompt, setExtensionPrompt] = useState<{ rule: any } | null>(null);
+    const [walletBalance, setWalletBalance] = useState<number>(0);
+    const [insufficientBalanceModal, setInsufficientBalanceModal] = useState<{ required: number, current: number } | null>(null);
 
     // Global Config
     const [sysConfig, setSysConfig] = useState({ pageAutoReplyPrice: 0.5, autoReplyEnabled: true });
@@ -34,10 +36,16 @@ export default function SetupPageAutoReply() {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const [configRes, pagesRes] = await Promise.all([
+                const [configRes, pagesRes, walletRes] = await Promise.all([
                     fetch('/api/auto-reply/config'),
-                    fetch('/api/facebook/pages')
+                    fetch('/api/facebook/pages'),
+                    fetch('/api/wallet')
                 ]);
+
+                if (walletRes.ok) {
+                    const wData = await walletRes.json();
+                    setWalletBalance(wData.balance ?? 0);
+                }
 
                 const configData = await configRes.json();
                 setSysConfig(configData);
@@ -452,6 +460,56 @@ export default function SetupPageAutoReply() {
                                     onClick={() => setExtensionPrompt(null)}
                                     type="button"
                                     className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors text-sm"
+                                >
+                                    {locale === 'ar' ? 'إلغاء' : 'Cancel'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Insufficient Balance Modal */}
+            {insufficientBalanceModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-[#151921] rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-[#2A303C] overflow-hidden" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+                        <div className="p-6 text-center space-y-4">
+                            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto ring-8 ring-amber-500/5">
+                                <Wallet size={32} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                                    {locale === 'ar' ? 'رصيد المحفظة غير كافٍ 💳' : 'Insufficient Wallet Balance'}
+                                </h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    {locale === 'ar' ? 'يجب شحن محفظتك أولاً لتتمكن من تفعيل الرد التلقائي لهذا المنشور.' : 'Please top up your wallet first to activate this service.'}
+                                </p>
+                            </div>
+
+                            <div className="bg-slate-50 dark:bg-[#0B0E14] p-4 rounded-xl border border-slate-200 dark:border-[#2A303C] space-y-2 text-sm">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 dark:text-slate-400">{locale === 'ar' ? 'المبلغ المطلوب:' : 'Required:'}</span>
+                                    <span className="font-bold text-slate-900 dark:text-white">${insufficientBalanceModal.required.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 dark:text-slate-400">{locale === 'ar' ? 'رصيدك الحالي:' : 'Your Balance:'}</span>
+                                    <span className="font-bold text-red-500">${insufficientBalanceModal.current.toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 pt-2">
+                                <Link
+                                    href="/dashboard/wallet"
+                                    className="w-full px-5 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Wallet size={18} />
+                                    {locale === 'ar' ? 'شحن المحفظة الآن ⚡' : 'Top Up Wallet Now'}
+                                </Link>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setInsufficientBalanceModal(null)}
+                                    className="w-full px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium transition-colors text-sm"
                                 >
                                     {locale === 'ar' ? 'إلغاء' : 'Cancel'}
                                 </button>

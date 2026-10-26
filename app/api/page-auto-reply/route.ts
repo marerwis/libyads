@@ -41,6 +41,7 @@ export async function POST(req: Request) {
 
         const user = await prisma.user.findUnique({
             where: { email: session.user.email },
+            include: { wallet: true }
         });
 
         if (!user) {
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
         // Validate if rule already exists for this page
         const existingRule = await prisma.pageAutoReplyRule.findFirst({
             where: {
-                userId: user.id,
+                userId: user.role === "ADMIN" ? undefined : user.id,
                 pageId: pageId
             }
         });
@@ -96,20 +97,23 @@ export async function POST(req: Request) {
         const sysConfig = await prisma.systemSetting.findFirst();
         let totalCost = 0;
         
-        if (sysConfig?.autoReplyEnabled) {
+        // Admins are exempt from billing; regular users pay if billing is enabled
+        if (user.role !== "ADMIN" && sysConfig?.autoReplyEnabled) {
             const price = sysConfig.pageAutoReplyPrice || 0;
             // Calculate cost: (Days / 30) * Price per 30 days
             totalCost = (parsedActiveDays / 30) * price;
         }
 
-        const userWallet = await prisma.wallet.findUnique({
-            where: { userId: user.id }
-        });
+        const userWallet = user.wallet;
+        const currentBalance = userWallet?.balance || 0;
 
         if (totalCost > 0) {
-            if (!userWallet || userWallet.balance < totalCost) {
+            if (!userWallet || currentBalance < totalCost) {
                 return NextResponse.json({ 
-                    error: `Insufficient balance. This configuration requires $${totalCost.toFixed(2)}.` 
+                    error: "INSUFFICIENT_BALANCE",
+                    message: `رصيد محفظتك غير كافٍ. التكلفة المطلوبة هي $${totalCost.toFixed(2)} بينما رصيدك الحالي هو $${currentBalance.toFixed(2)}. يرجى شحن المحفظة أولاً.`,
+                    requiredAmount: totalCost,
+                    currentBalance: currentBalance
                 }, { status: 402 });
             }
         }
@@ -125,7 +129,7 @@ export async function POST(req: Request) {
                     data: {
                         replyTexts: validReplies,
                         privateMessage: privateMessage || null,
-                        includeName,
+                        includeName: Boolean(includeName),
                         isActive: true, // Auto-resume if paused
                         activeDays: { increment: parsedActiveDays }
                     }
@@ -138,7 +142,7 @@ export async function POST(req: Request) {
                         pageId,
                         replyTexts: validReplies,
                         privateMessage: privateMessage || null,
-                        includeName,
+                        includeName: Boolean(includeName),
                         isActive: true,
                         activeDays: parsedActiveDays
                     }
@@ -156,7 +160,7 @@ export async function POST(req: Request) {
                         userId: user.id,
                         amount: -totalCost,
                         type: "DEDUCTION",
-                        description: `Upfront payment for Page-Level Auto-Reply ${existingRule && extend ? 'Extension' : 'Setup'} (${parsedActiveDays} days) for page ${pageId}`
+                        description: `اشتراك الرد الشامل للصفحة (${parsedActiveDays} يوم) للصفحة ${pageId}`
                     }
                 });
             }
