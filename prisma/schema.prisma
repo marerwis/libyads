@@ -38,6 +38,7 @@ model User {
   autoReplyRules      AutoReplyRule[]
   pageAutoReplyRules  PageAutoReplyRule[]
   autoReplyLogs       AutoReplyLog[]
+  allowedPages        UserAllowedPage[]
 }
 
 // -------------------------------------------------------------
@@ -249,6 +250,34 @@ model SystemSetting {
   autoReplyPrice      Float    @default(0.00) // Price per reply (post-level)
   pageAutoReplyPrice  Float    @default(0.00) // Price per reply (page-level)
   autoReplyEnabled    Boolean  @default(true) // Global toggle
+  restrictPagesByUser Boolean  @default(false) // Toggle per-user page restriction
   
   updatedAt           DateTime @updatedAt
+}
+
+// -------------------------------------------------------------
+// USER PAGE PERMISSIONS & NAV ITEMS
+// -------------------------------------------------------------
+
+model UserAllowedPage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pageId    String   // Facebook Page ID
+  createdAt DateTime @default(now())
+
+  @@unique([userId, pageId])
+}
+
+model NavItemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  nameAr    String
+  nameEn    String
+  href      String
+  icon      String?
+  badge     String?
+  order     Int      @default(0)
+  isVisible Boolean  @default(true)
+  updatedAt DateTime @updatedAt
 }

@@ -22,7 +22,9 @@ import {
     Bot,
     Sparkles,
     ToggleRight, // Added ToggleRight
-    List // Added List for autoReplyLinks
+    List,
+    ShieldCheck,
+    Eye
 } from "lucide-react";
 
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -44,6 +46,33 @@ export default function DashboardLayout({
         setIsMobileMenuOpen(false);
     }, [pathname]);
 
+    const [hiddenNavKeys, setHiddenNavKeys] = useState<string[]>([]);
+
+    useEffect(() => {
+        fetch("/api/nav-items")
+            .then(res => res.json())
+            .then(data => {
+                if (data && Array.isArray(data.items)) {
+                    if (!data.isAdmin) {
+                        const hidden = data.items.filter((i: any) => !i.isVisible).map((i: any) => i.key);
+                        setHiddenNavKeys(hidden);
+                    } else {
+                        setHiddenNavKeys([]);
+                    }
+                }
+            })
+            .catch(() => {});
+    }, [pathname]);
+
+    useEffect(() => {
+        if (hiddenNavKeys.length > 0) {
+            const isCurrentPageHidden = navItems.some((item: any) => hiddenNavKeys.includes(item.key) && item.href === pathname);
+            if (isCurrentPageHidden) {
+                window.location.href = "/dashboard";
+            }
+        }
+    }, [pathname, hiddenNavKeys]);
+
     const isActive = (path: string) => pathname === path;
 
     // Auto-Reply Links Submenu
@@ -54,15 +83,17 @@ export default function DashboardLayout({
     ];
 
     const navItems = [
-        { name: t("dashboard"), href: "/dashboard", icon: LayoutDashboard },
-        { name: locale === 'ar' ? 'الرد الذكي للمنشورات' : 'AI Post Auto-Reply', href: "/dashboard/ai-auto-reply", icon: Bot, isNew: true },
-        { name: locale === 'ar' ? 'الرد الشامل الذكي' : 'AI Page Auto-Reply', href: "/dashboard/ai-page-auto-reply", icon: Sparkles, isNew: true },
-        { name: t("autoReply"), href: "/dashboard/auto-reply", icon: MessageCircleReply },
-        { name: locale === 'ar' ? 'الرد الشامل للصفحات' : 'Page Auto-Reply', href: "/dashboard/page-auto-reply", icon: MessageSquareShare },
-        { name: locale === 'ar' ? 'صفحات فيسبوك' : 'Facebook Pages', href: "/dashboard/facebook", icon: Flag },
+        { key: "dashboard", name: t("dashboard"), href: "/dashboard", icon: LayoutDashboard },
+        { key: "ai_post_reply", name: locale === 'ar' ? 'الرد الذكي للمنشورات' : 'AI Post Auto-Reply', href: "/dashboard/ai-auto-reply", icon: Bot, isNew: true },
+        { key: "ai_page_reply", name: locale === 'ar' ? 'الرد الشامل الذكي' : 'AI Page Auto-Reply', href: "/dashboard/ai-page-auto-reply", icon: Sparkles, isNew: true },
+        { key: "auto_reply", name: t("autoReply"), href: "/dashboard/auto-reply", icon: MessageCircleReply },
+        { key: "page_auto_reply", name: locale === 'ar' ? 'الرد الشامل للصفحات' : 'Page Auto-Reply', href: "/dashboard/page-auto-reply", icon: MessageSquareShare },
+        { key: "facebook_pages", name: locale === 'ar' ? 'صفحات فيسبوك' : 'Facebook Pages', href: "/dashboard/facebook", icon: Flag },
     ];
 
     const adminItems = [
+        { name: locale === 'ar' ? "صلاحيات صفحات المستخدمين" : "User Page Permissions", href: "/dashboard/admin/user-pages", icon: ShieldCheck },
+        { name: locale === 'ar' ? "إدارة صفحات الموقع" : "Nav Pages Manager", href: "/dashboard/admin/nav-management", icon: Eye },
         { name: t("settings"), href: "/dashboard/settings", icon: Settings },
         { name: t("autoReplySettings"), href: "/dashboard/admin/auto-reply-settings", icon: MessageSquareShare },
         { name: t("paymentMethods"), href: "/dashboard/admin/payment-methods", icon: CreditCard },
@@ -137,7 +168,7 @@ export default function DashboardLayout({
                         <div className={`px-3 mb-2 text-xs font-semibold dark:text-slate-500 text-slate-400 uppercase tracking-wider ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
                             {t("mainMenu")}
                         </div>
-                        {navItems.map((item: any) => {
+                        {navItems.filter((item: any) => !hiddenNavKeys.includes(item.key)).map((item: any) => {
                             const active = isActive(item.href);
                             return (
                                 <Link
