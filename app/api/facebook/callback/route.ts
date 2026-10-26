@@ -66,8 +66,8 @@ export async function GET(req: Request) {
         let pagesUrl: string | null = `https://graph.facebook.com/v19.0/me/accounts?limit=500&access_token=${userAccessToken}`;
 
         while (pagesUrl) {
-            const pagesRes = await fetch(pagesUrl);
-            const pagesData = await pagesRes.json();
+            const pagesRes: Response = await fetch(pagesUrl);
+            const pagesData: any = await pagesRes.json();
 
             if (pagesData.error) {
                 console.error("Error fetching pages:", pagesData.error);

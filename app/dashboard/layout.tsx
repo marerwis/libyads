@@ -19,6 +19,8 @@ import {
     X,
     MessageCircleReply,
     MessageSquareShare,
+    Bot,
+    Sparkles,
     ToggleRight, // Added ToggleRight
     List // Added List for autoReplyLinks
 } from "lucide-react";
@@ -53,6 +55,8 @@ export default function DashboardLayout({
 
     const navItems = [
         { name: t("dashboard"), href: "/dashboard", icon: LayoutDashboard },
+        { name: locale === 'ar' ? 'الرد الذكي للمنشورات' : 'AI Post Auto-Reply', href: "/dashboard/ai-auto-reply", icon: Bot, isNew: true },
+        { name: locale === 'ar' ? 'الرد الشامل الذكي' : 'AI Page Auto-Reply', href: "/dashboard/ai-page-auto-reply", icon: Sparkles, isNew: true },
         { name: t("autoReply"), href: "/dashboard/auto-reply", icon: MessageCircleReply },
         { name: locale === 'ar' ? 'الرد الشامل للصفحات' : 'Page Auto-Reply', href: "/dashboard/page-auto-reply", icon: MessageSquareShare },
         { name: locale === 'ar' ? 'صفحات فيسبوك' : 'Facebook Pages', href: "/dashboard/facebook", icon: Flag },
@@ -133,7 +137,7 @@ export default function DashboardLayout({
                         <div className={`px-3 mb-2 text-xs font-semibold dark:text-slate-500 text-slate-400 uppercase tracking-wider ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
                             {t("mainMenu")}
                         </div>
-                        {navItems.map((item) => {
+                        {navItems.map((item: any) => {
                             const active = isActive(item.href);
                             return (
                                 <Link
@@ -156,7 +160,12 @@ export default function DashboardLayout({
                                         <div className={`absolute top-1/2 -translate-y-1/2 w-1 h-5 bg-[#1877F2] ${locale === 'ar' ? 'right-0 rounded-l-full' : 'left-0 rounded-r-full'}`} />
                                     )}
                                     <item.icon size={18} className={`${active ? (item.isPrimary ? "text-[#1877F2]" : "dark:text-slate-200 text-[#1877F2]") : "dark:text-slate-500 text-slate-400 dark:group-hover:text-slate-300 group-hover:text-slate-600"} ${item.isPrimary && !active ? "text-[#1877F2]" : ""}`} />
-                                    {item.name}
+                                    <span className="flex-1 truncate">{item.name}</span>
+                                    {(item as any).isNew && (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 tracking-wider">
+                                            AI
+                                        </span>
+                                    )}
                                 </Link>
                             );
                         })}

@@ -14,13 +14,13 @@ import { useLanguage } from "@/components/LanguageProvider";
 const ITEMS_PER_PAGE = 12;
 
 function FacebookPagesContent() {
-    const [pages, setPages] = useState([]);
+    const [pages, setPages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [connecting, setConnecting] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [disconnecting, setDisconnecting] = useState(false);
-    const [togglingId, setTogglingId] = useState(null);
-    const [message, setMessage] = useState(null);
+    const [togglingId, setTogglingId] = useState<any>(null);
+    const [message, setMessage] = useState<any>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
     const [viewMode, setViewMode] = useState("list");
@@ -93,7 +93,7 @@ function FacebookPagesContent() {
         finally { setDisconnecting(false); }
     };
 
-    const handleToggle = async (page) => {
+    const handleToggle = async (page: any) => {
         setTogglingId(page.id);
         setMessage(null);
 

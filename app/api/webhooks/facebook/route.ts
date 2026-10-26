@@ -1,3 +1,4 @@
+import { generateAiCommentReply } from "@/lib/aiService";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -147,26 +148,43 @@ export async function POST(req: Request) {
                                 }
                             }
 
-                            // Note: Facebook Graph API currently restricts explicit @mentions for pages replying to users
-                            // so we fall back to just using their name text.
                             // Clean sender name (strip zero-width characters)
                             const cleanSenderName = (senderName || "").replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
-                            let replyMessage = (selectedReplyText || "").trim();
 
-                            // Support placeholder replacement [الاسم] / [اسم] / [name] / {name}
-                            if (
-                                replyMessage.includes("[الاسم]") ||
-                                replyMessage.includes("[اسم]") ||
-                                /\[name\]/i.test(replyMessage) ||
-                                /\{name\}/i.test(replyMessage)
-                            ) {
-                                replyMessage = replyMessage
-                                    .replace(/\[الاسم\]/g, cleanSenderName)
-                                    .replace(/\[اسم\]/g, cleanSenderName)
-                                    .replace(/\[name\]/gi, cleanSenderName)
-                                    .replace(/\{name\}/gi, cleanSenderName);
-                            } else if (rule.includeName && cleanSenderName) {
-                                replyMessage = `${cleanSenderName} ${replyMessage}`;
+                            // Check if this rule is an AI Agent rule
+                            const isAiRule = (isPageRule && rule.replyTexts?.includes("__AI_REPLY__")) ||
+                                             (!isPageRule && rule.replyText === "__AI_REPLY__") ||
+                                             selectedReplyText === "__AI_REPLY__";
+
+                            let replyMessage = "";
+
+                            if (isAiRule) {
+                                console.log(`🤖 [AI Auto-Reply] Generating Nemotron reply for comment ${commentId} from "${cleanSenderName}"...`);
+                                replyMessage = await generateAiCommentReply({
+                                    senderName: cleanSenderName,
+                                    commentText: message,
+                                    pageName: page.pageName
+                                });
+                                console.log(`🤖 [AI Auto-Reply] Generated: "${replyMessage}"`);
+                            } else {
+                                // Normal / Static Reply
+                                replyMessage = (selectedReplyText || "").trim();
+
+                                // Support placeholder replacement [الاسم] / [اسم] / [name] / {name}
+                                if (
+                                    replyMessage.includes("[الاسم]") ||
+                                    replyMessage.includes("[اسم]") ||
+                                    /\[name\]/i.test(replyMessage) ||
+                                    /\{name\}/i.test(replyMessage)
+                                ) {
+                                    replyMessage = replyMessage
+                                        .replace(/\[الاسم\]/g, cleanSenderName)
+                                        .replace(/\[اسم\]/g, cleanSenderName)
+                                        .replace(/\[name\]/gi, cleanSenderName)
+                                        .replace(/\{name\}/gi, cleanSenderName);
+                                } else if (rule.includeName && cleanSenderName) {
+                                    replyMessage = `${cleanSenderName} ${replyMessage}`;
+                                }
                             }
 
                             // Human-like delay: Random wait between 2 to 6 seconds before replying to avoid spam detection

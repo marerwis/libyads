@@ -120,7 +120,7 @@ export default async function Dashboard() {
 
             {/* Auto-Reply Statistics Section */}
             <div className="mb-8">
-                <h3 className="text-xl font-semibold dark:text-white text-slate-900 mb-4">{t("autoReplyStatistics") || "إحصائيات الرد التلقائي"}</h3>
+                <h3 className="text-xl font-semibold dark:text-white text-slate-900 mb-4">{t("autoReplyStatistics" as any) || "إحصائيات الرد التلقائي"}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     {/* Comprehensive Auto-Reply Stats */}
                     <div className="dark:bg-[#151921]/80 bg-white p-5 rounded-2xl border dark:border-purple-500/20 border-purple-200 shadow-sm hover:border-purple-500/50 transition-colors group relative overflow-hidden">
