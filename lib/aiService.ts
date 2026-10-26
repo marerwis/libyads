@@ -12,29 +12,61 @@ const SYSTEM_PROMPT = `أنت مساعد مبيعات ذكي ومحترف لصف
    - يُحظر تماماً استخدام: (أستاذ، أستاذي، أستاذة، أخي، أختي، دكتور، دكتورة، سيدي، سيدتي، كابتن، باشا، غالي، عزيزي، عزيزتي، إلخ).
    - لا تحاول أبداً تخمين جنس صاحب الحساب؛ خاطب الجميع بصيغة محايدة تماماً وراقية تناسب الذكر والأنثى بالتساوي.
 2. الصيغ المحايدة الموصى بها:
-   - استخدم عبارات ترحيبية مهذبة وعامة، مثل:
+   - استخدم عبارات ترحيبية مهذبة وعامة تختلف في كل مرة، مثل:
      - "أهلاً بك، راجع رسائلك الخاصة 🤍"
      - "تم الرد في الخاص، أهلاً وسهلاً بك ✨"
      - "أهلاً بك، تفاصيلك في الرسائل الخاصة 📩"
      - "راجع رسائلك الخاصة لطفاً 🌸"
      - "تم التواصل معك في الخاص، نورتنا 🌿"
-     - "أهلاً وسهلاً بك، تفقد بريدك الخاص ✉️"
-     - "شكراً لتواصلك، كل التفاصيل عندك في الخاص 🤍"
 3. الإيجاز الشديد:
-   - اجعل الرد قصيراً وخفيفاً وطبيعياً (لا يتجاوز بضع كلمات).
+   - اجعل الرد قصيراً وخفيفاً وطبيعياً (بضع كلمات فقط).
 4. التنويع الدائم:
    - نوّع دائماً بين صيغ الردود والرموز التعبيرية اللطيفة لتجنب حظر فيسبوك للتكرار.
 5. لا تذكر أسعاراً أو أرقاماً في التعليق العام؛ فقط وجّه العميل للخاص بلطف وأدب.`;
 
-const FALLBACK_REPLIES = [
+export const FALLBACK_REPLIES = [
     "أهلاً بك، راجع رسائلك الخاصة 🤍",
     "تم الرد في الخاص، أهلاً وسهلاً بك ✨",
     "أهلاً بك، تفاصيلك في الرسائل الخاصة 📩",
     "راجع رسائلك الخاصة لطفاً 🌸",
     "تم التواصل معك في الخاص، نورتنا 🌿",
     "أهلاً وسهلاً بك، تفقد بريدك الخاص ✉️",
-    "شكراً لتواصلك، كل التفاصيل عندك في الخاص 🤍"
+    "شكراً لتواصلك، كل التفاصيل عندك في الخاص 🤍",
+    "مرحباً بك، أرسلنا لك الرد في الخاص 💌",
+    "تم الرد عبر الرسائل الخاصة، يومك سعيد 💫",
+    "أهلاً وسهلاً، تجد كافة التفاصيل في بريدك الخاص 🌷",
+    "تفضل بمراجعة رسائلك الخاصة 🤍",
+    "أرسلنا لك كل التفاصيل في الخاص، يسعدنا تواصلك 🌟",
+    "أهلاً بك، تم إرسال التفاصيل عبر الخاص 📩",
+    "تم إرسال كافة المعلومات في رسالة خاصة 🌸",
+    "مرحباً بك، الرد موجود في صندوق رسائلك 🤍",
+    "تفقد رسائلك الخاصة، أهلاً بك دائماً ✨",
+    "شكراً لاهتمامك، الرد كامل في الخاص 📩",
+    "أهلاً بك، يمكنك مراجعة الخاص لمعرفة كامل التفاصيل 🌿",
+    "تم الرد عليك في الخاص، أهلاً وسهلاً 🤍",
+    "أهلاً بك، كل ما يهمك أرسلناه لك في الخاص ✉️",
+    "مرحباً، تم التواصل في الرسائل الخاصة 🌸",
+    "راجع صندوق الوارد في الخاص لطفاً ✨",
+    "أهلاً بك، تجد الرد بانتظارك في الخاص 🤍",
+    "يسعدنا تواصلك، أرسلنا لك في الخاص 💫",
+    "تم الرد على استفسارك في الرسائل الخاصة 📩",
+    "أهلاً وسهلاً، أرسلنا لك التفاصيل بالكامل في الخاص 🌷",
+    "مرحباً بك، تفاصيل طلبك في الخاص 🤍",
+    "تمت مراسلتك في الخاص، أهلاً بك 🌟",
+    "أهلاً بك، الرد متوفر الآن في رسائلك الخاصة ✉️",
+    "شكراً لك، تفقد الرسائل الخاصة لطفاً 🌿"
 ];
+
+let lastFallbackIndex = -1;
+
+export function getRandomFallback(): string {
+    let index: number;
+    do {
+        index = Math.floor(Math.random() * FALLBACK_REPLIES.length);
+    } while (index === lastFallbackIndex && FALLBACK_REPLIES.length > 1);
+    lastFallbackIndex = index;
+    return FALLBACK_REPLIES[index];
+}
 
 export interface AiReplyOptions {
     senderName?: string;
@@ -46,7 +78,7 @@ export interface AiReplyOptions {
  * Sanitize AI reply by stripping any accidental gender-specific honorifics or titles
  */
 export function sanitizeAiReply(text: string): string {
-    if (!text) return text;
+    if (!text) return getRandomFallback();
 
     // Remove quotes or backticks
     let cleaned = text.replace(/^[\"'«“`]+|[\"'»”`]+$/g, "").trim();
@@ -62,19 +94,22 @@ export function sanitizeAiReply(text: string): string {
     cleaned = cleaned.replace(/([،,؛;])\s*([،,؛;])/g, "$1");
     cleaned = cleaned.trim();
 
-    return cleaned || "أهلاً بك، راجع رسائلك الخاصة 🤍";
+    if (!cleaned || cleaned.length > 100) {
+        return getRandomFallback();
+    }
+    return cleaned;
 }
 
 /**
  * Generate a smart, human-like, polite, and brief reply for a Facebook comment using OpenRouter.
  */
 export async function generateAiCommentReply(options: AiReplyOptions): Promise<string> {
-    const { senderName, commentText } = options;
-    const cleanSenderName = (senderName || "").replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+    const { commentText } = options;
+    // NOTE: senderName is intentionally ignored to prevent gender assumption errors
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
@@ -86,8 +121,11 @@ export async function generateAiCommentReply(options: AiReplyOptions): Promise<s
             },
             body: JSON.stringify({
                 model: OPENROUTER_MODEL,
-                temperature: 0.7,
-                max_tokens: 150,
+                temperature: 0.95,
+                top_p: 0.9,
+                frequency_penalty: 1.5,
+                presence_penalty: 0.8,
+                max_tokens: 60,
                 messages: [
                     {
                         role: "system",
@@ -95,7 +133,7 @@ export async function generateAiCommentReply(options: AiReplyOptions): Promise<s
                     },
                     {
                         role: "user",
-                        content: `اسم المعلق: ${cleanSenderName || "العميل"}\nنص التعليق: ${commentText || "استفسار"}\nاكتب رداً مناسباً ومختصراً جداً ومحايداً بدون أي ألقاب (مثل أستاذ أو أخي).`
+                        content: `التعليق: ${commentText || "استفسار"}\n\nاكتب رداً قصيراً جداً (سطر واحد فقط) محايداً بدون أي ألقاب ولا توصيفات ولا اسم المعلق. وجّهه للخاص فقط.`
                     }
                 ]
             }),
@@ -107,27 +145,19 @@ export async function generateAiCommentReply(options: AiReplyOptions): Promise<s
         if (!response.ok) {
             const errData = await response.text();
             console.error("OpenRouter API error response:", response.status, errData);
-            return getRandomFallback(cleanSenderName);
+            return getRandomFallback();
         }
 
         const data = await response.json();
         let reply = data.choices?.[0]?.message?.content?.trim() || "";
 
         if (!reply) {
-            return getRandomFallback(cleanSenderName);
+            return getRandomFallback();
         }
 
         return sanitizeAiReply(reply);
     } catch (err: any) {
         console.error("OpenRouter request failed, using safe fallback:", err.message || err);
-        return getRandomFallback(cleanSenderName);
+        return getRandomFallback();
     }
-}
-
-function getRandomFallback(name?: string): string {
-    const randomTemplate = FALLBACK_REPLIES[Math.floor(Math.random() * FALLBACK_REPLIES.length)];
-    if (name) {
-        return `${name} ${randomTemplate}`;
-    }
-    return randomTemplate;
 }
