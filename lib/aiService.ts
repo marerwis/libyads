@@ -4,21 +4,65 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
 const OPENROUTER_MODEL =
     process.env.OPENROUTER_MODEL || "nvidia/nemotron-3-ultra-550b-a55b:free";
 
-const SYSTEM_PROMPT = `أنت مساعد مبيعات ذكي لمتجر إلكتروني يخدم عملاء في مجتمع مسلم محافظ. مهمتك الرد على تعليقات العملاء في فيسبوك بكلمات راقية، مهذبة، ومختصرة جداً (لا تتجاوز 3 كلمات إن أمكن). يجب أن تنوع صيغ الردود باستمرار لتجنب حظر فيسبوك. اعلم أنه فور نشر ردك، سيقوم النظام أوتوماتيكياً بإرسال رسالة خاصة للعميل تحتوي على جميع تفاصيل المتجر وسعر المنتج. لذلك، يجب أن يقتصر ردك في التعليق على الترحيب باحترام وتوجيه العميل لمراجعة رسائله الخاصة (مثل: "تم الرد بالخاص أخي"، "راجع رسائلك أستاذي"). استخدم اسم العميل بلباقة، ولا تقم أبداً باختراع أسعار أو تفاصيل.`;
+const SYSTEM_PROMPT = `أنت مساعد مبيعات ذكي ومحترف لصفحات ومتاجر فيسبوك في مجتمع عربي ومحافظ.
+مهمتك: الرد على تعليقات العملاء بكلمات راقية، مهذبة، ومختصرة جداً، وتوجيههم لمراجعة الرسائل الخاصة (Inbox / DM) حيث تم إرسال كافة التفاصيل والأسعار لهم تلقائياً.
+
+قواعد صارمة وإلزامية للرد:
+1. ممنوع منعاً باتاً استخدام أي ألقاب أو توصيفات جندرية:
+   - يُحظر تماماً استخدام: (أستاذ، أستاذي، أستاذة، أخي، أختي، دكتور، دكتورة، سيدي، سيدتي، كابتن، باشا، غالي، عزيزي، عزيزتي، إلخ).
+   - لا تحاول أبداً تخمين جنس صاحب الحساب؛ خاطب الجميع بصيغة محايدة تماماً وراقية تناسب الذكر والأنثى بالتساوي.
+2. الصيغ المحايدة الموصى بها:
+   - استخدم عبارات ترحيبية مهذبة وعامة، مثل:
+     - "أهلاً بك، راجع رسائلك الخاصة 🤍"
+     - "تم الرد في الخاص، أهلاً وسهلاً بك ✨"
+     - "أهلاً بك، تفاصيلك في الرسائل الخاصة 📩"
+     - "راجع رسائلك الخاصة لطفاً 🌸"
+     - "تم التواصل معك في الخاص، نورتنا 🌿"
+     - "أهلاً وسهلاً بك، تفقد بريدك الخاص ✉️"
+     - "شكراً لتواصلك، كل التفاصيل عندك في الخاص 🤍"
+3. الإيجاز الشديد:
+   - اجعل الرد قصيراً وخفيفاً وطبيعياً (لا يتجاوز بضع كلمات).
+4. التنويع الدائم:
+   - نوّع دائماً بين صيغ الردود والرموز التعبيرية اللطيفة لتجنب حظر فيسبوك للتكرار.
+5. لا تذكر أسعاراً أو أرقاماً في التعليق العام؛ فقط وجّه العميل للخاص بلطف وأدب.`;
 
 const FALLBACK_REPLIES = [
     "أهلاً بك، راجع رسائلك الخاصة 🤍",
-    "تم الرد في الخاص أخي العزيز ✨",
-    "أهلاً بك، تفاصيلك في الرسائل الخاصة 💕",
-    "راجع رسائلك الخاصة أستاذي 🌸",
-    "تم التواصل معك في الخاص أهلاً بك 🌿",
-    "أهلاً وسهلاً بك، تفقد بريدك الخاص ✉️"
+    "تم الرد في الخاص، أهلاً وسهلاً بك ✨",
+    "أهلاً بك، تفاصيلك في الرسائل الخاصة 📩",
+    "راجع رسائلك الخاصة لطفاً 🌸",
+    "تم التواصل معك في الخاص، نورتنا 🌿",
+    "أهلاً وسهلاً بك، تفقد بريدك الخاص ✉️",
+    "شكراً لتواصلك، كل التفاصيل عندك في الخاص 🤍"
 ];
 
 export interface AiReplyOptions {
     senderName?: string;
     commentText: string;
     pageName?: string;
+}
+
+/**
+ * Sanitize AI reply by stripping any accidental gender-specific honorifics or titles
+ */
+export function sanitizeAiReply(text: string): string {
+    if (!text) return text;
+
+    // Remove quotes or backticks
+    let cleaned = text.replace(/^[\"'«“`]+|[\"'»”`]+$/g, "").trim();
+
+    // Regex to remove gendered titles/honorifics safely
+    const forbiddenPattern = /(?:^|[\s،,؛;.-])(?:يا\s+)?(?:[أاإ]خ[يتا]\s+العزيز[ة]?|[أاإ]خت[يتا]\s+العزيزة|[أاإ]ستاذ[ةي]?|[أاإ]خ[يتا][ةي]?|دكتور[ةي]?|سيد[يية]|عزيز[يية]|غالي[ة]?|باشا|كابتن|حبيب[يية])(?=[\s،,؛;.-]|$)/gi;
+
+    cleaned = cleaned.replace(forbiddenPattern, " ");
+    cleaned = cleaned.replace(/\s{2,}/g, " ");
+    cleaned = cleaned.replace(/[\s،,؛;.-]+$/, "");
+    cleaned = cleaned.replace(/^[\s،,؛;.-]+/, "");
+    cleaned = cleaned.replace(/\s+([،,؛;])/g, "$1");
+    cleaned = cleaned.replace(/([،,؛;])\s*([،,؛;])/g, "$1");
+    cleaned = cleaned.trim();
+
+    return cleaned || "أهلاً بك، راجع رسائلك الخاصة 🤍";
 }
 
 /**
@@ -51,7 +95,7 @@ export async function generateAiCommentReply(options: AiReplyOptions): Promise<s
                     },
                     {
                         role: "user",
-                        content: `اسم المعلق: ${cleanSenderName || "العميل"}\nنص التعليق: ${commentText || "استفسار"}\nاكتب رداً مناسباً ومختصراً جداً لهذا التعليق.`
+                        content: `اسم المعلق: ${cleanSenderName || "العميل"}\nنص التعليق: ${commentText || "استفسار"}\nاكتب رداً مناسباً ومختصراً جداً ومحايداً بدون أي ألقاب (مثل أستاذ أو أخي).`
                     }
                 ]
             }),
@@ -73,10 +117,7 @@ export async function generateAiCommentReply(options: AiReplyOptions): Promise<s
             return getRandomFallback(cleanSenderName);
         }
 
-        // Clean any quotes or backticks the model might enclose the answer in
-        reply = reply.replace(/^[\"'«“]+|[\"'»”]+$/g, "").trim();
-
-        return reply;
+        return sanitizeAiReply(reply);
     } catch (err: any) {
         console.error("OpenRouter request failed, using safe fallback:", err.message || err);
         return getRandomFallback(cleanSenderName);
