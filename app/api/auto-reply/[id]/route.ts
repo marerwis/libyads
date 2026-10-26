@@ -26,7 +26,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             where: { id }
         });
 
-        if (!rule || rule.userId !== user.id) {
+        if (!rule || (user.role !== 'ADMIN' && rule.userId !== user.id)) {
             return NextResponse.json({ error: "Rule not found or unauthorized" }, { status: 404 });
         }
 
@@ -75,7 +75,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
             where: { id }
         });
 
-        if (!rule || rule.userId !== user.id) {
+        if (!rule || (user.role !== 'ADMIN' && rule.userId !== user.id)) {
             return NextResponse.json({ error: "Rule not found or unauthorized" }, { status: 404 });
         }
 

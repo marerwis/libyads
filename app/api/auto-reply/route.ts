@@ -21,7 +21,7 @@ export async function GET(req: Request) {
         }
 
         const rules = await prisma.autoReplyRule.findMany({
-            where: { userId: user.id },
+            where: user.role === 'ADMIN' ? {} : { userId: user.id },
             orderBy: { createdAt: 'desc' }
         });
 

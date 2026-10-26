@@ -21,7 +21,7 @@ import {
     MessageSquareShare,
     Bot,
     Sparkles,
-    ToggleRight, // Added ToggleRight
+    ToggleRight,
     List,
     ShieldCheck,
     Eye
@@ -40,45 +40,64 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const { t, locale } = useLanguage();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [hiddenNavKeys, setHiddenNavKeys] = useState<string[]>([]);
+    const [navLoaded, setNavLoaded] = useState(false);
 
     // Close mobile menu on route change
     useEffect(() => {
         setIsMobileMenuOpen(false);
     }, [pathname]);
 
-    const [hiddenNavKeys, setHiddenNavKeys] = useState<string[]>([]);
-
     useEffect(() => {
         fetch("/api/nav-items")
             .then(res => res.json())
             .then(data => {
-                if (data && Array.isArray(data.items)) {
-                    if (!data.isAdmin) {
-                        const hidden = data.items.filter((i: any) => !i.isVisible).map((i: any) => i.key);
-                        setHiddenNavKeys(hidden);
-                    } else {
+                if (data) {
+                    const adminFlag = Boolean(data.isAdmin);
+                    setIsAdmin(adminFlag);
+                    if (adminFlag) {
                         setHiddenNavKeys([]);
+                    } else if (Array.isArray(data.hiddenKeys)) {
+                        setHiddenNavKeys(data.hiddenKeys);
+                    } else if (Array.isArray(data.items)) {
+                        setHiddenNavKeys(data.items.filter((i: any) => !i.isVisible).map((i: any) => i.key));
                     }
                 }
+                setNavLoaded(true);
             })
-            .catch(() => {});
+            .catch(() => {
+                setNavLoaded(true);
+            });
     }, [pathname]);
 
+    // Route guard: Protect admin routes and hidden routes from regular users
     useEffect(() => {
-        if (hiddenNavKeys.length > 0) {
-            const isCurrentPageHidden = navItems.some((item: any) => hiddenNavKeys.includes(item.key) && item.href === pathname);
+        if (!navLoaded) return;
+
+        // Block regular users from admin pages
+        if (!isAdmin && pathname.startsWith("/dashboard/admin")) {
+            window.location.href = "/dashboard";
+            return;
+        }
+
+        // Block regular users from hidden pages
+        if (!isAdmin && hiddenNavKeys.length > 0) {
+            const isCurrentPageHidden = navItems.some(
+                (item: any) => hiddenNavKeys.includes(item.key) && item.href === pathname
+            );
             if (isCurrentPageHidden) {
                 window.location.href = "/dashboard";
             }
         }
-    }, [pathname, hiddenNavKeys]);
+    }, [pathname, hiddenNavKeys, isAdmin, navLoaded]);
 
     const isActive = (path: string) => pathname === path;
 
     // Auto-Reply Links Submenu
     const autoReplyLinks = [
         { name: locale === 'ar' ? 'تفعيل الصفحات' : 'Activate Pages', href: '/dashboard/auto-reply/pages', icon: ToggleRight },
-        { name: locale === 'ar' ? 'إعداد رد جديد' : 'Setup Rule', href: '/dashboard/auto-reply', icon: PlusCircle },
+        { name: locale === 'ar' ? 'إنشاء رد آلي' : 'Setup Rule', href: '/dashboard/auto-reply', icon: PlusCircle },
         { name: locale === 'ar' ? 'إدارة الردود' : 'Manage Rules', href: '/dashboard/auto-reply/manage', icon: List }
     ];
 
@@ -89,17 +108,26 @@ export default function DashboardLayout({
         { key: "auto_reply", name: t("autoReply"), href: "/dashboard/auto-reply", icon: MessageCircleReply },
         { key: "page_auto_reply", name: locale === 'ar' ? 'الرد الشامل للصفحات' : 'Page Auto-Reply', href: "/dashboard/page-auto-reply", icon: MessageSquareShare },
         { key: "facebook_pages", name: locale === 'ar' ? 'صفحات فيسبوك' : 'Facebook Pages', href: "/dashboard/facebook", icon: Flag },
+        { key: "wallet", name: locale === 'ar' ? 'المحفظة والرصيد' : (t("wallet") || 'Wallet'), href: "/dashboard/wallet", icon: Wallet },
     ];
 
+    // Admin exclusive navigation items
     const adminItems = [
         { name: locale === 'ar' ? "صلاحيات صفحات المستخدمين" : "User Page Permissions", href: "/dashboard/admin/user-pages", icon: ShieldCheck },
         { name: locale === 'ar' ? "إدارة صفحات الموقع" : "Nav Pages Manager", href: "/dashboard/admin/nav-management", icon: Eye },
-        { name: t("settings"), href: "/dashboard/settings", icon: Settings },
-        { name: t("autoReplySettings"), href: "/dashboard/admin/auto-reply-settings", icon: MessageSquareShare },
-        { name: t("paymentMethods"), href: "/dashboard/admin/payment-methods", icon: CreditCard },
-        { name: t("usersManagement"), href: "/dashboard/admin/users", icon: Users },
-        { name: t("metaConfig"), href: "/dashboard/admin/meta-settings", icon: MonitorCog },
+        { name: t("settings") || (locale === 'ar' ? "الإعدادات" : "Settings"), href: "/dashboard/settings", icon: Settings },
+        { name: t("autoReplySettings") || (locale === 'ar' ? "إعدادات الرد التلقائي" : "Auto-Reply Settings"), href: "/dashboard/admin/auto-reply-settings", icon: MessageSquareShare },
+        { name: t("paymentMethods") || (locale === 'ar' ? "طرق الدفع" : "Payment Methods"), href: "/dashboard/admin/payment-methods", icon: CreditCard },
+        { name: t("usersManagement") || (locale === 'ar' ? "إدارة المستخدمين" : "Users Management"), href: "/dashboard/admin/users", icon: Users },
+        { name: t("metaConfig") || (locale === 'ar' ? "إعدادات الميتا" : "Meta Config"), href: "/dashboard/admin/meta-settings", icon: MonitorCog },
     ];
+
+    // Regular user administration items (Settings only)
+    const userAdminItems = [
+        { name: t("settings") || (locale === 'ar' ? "الإعدادات" : "Settings"), href: "/dashboard/settings", icon: Settings }
+    ];
+
+    const currentAdminItems = isAdmin ? adminItems : userAdminItems;
 
     const sidebarTransform = isMobileMenuOpen
         ? 'translate-x-0'
@@ -118,34 +146,39 @@ export default function DashboardLayout({
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg overflow-hidden shrink-0 shadow-lg shadow-blue-500/20 border border-white/10">
                         <img src="/brand-logo.jpg" alt="Libya Ads Logo" className="w-full h-full object-cover" />
                     </div>
-                    <h1 className="font-bold text-sm tracking-tight dark:text-slate-100 text-slate-900" dir="ltr">Libya Ads</h1>
+                    <div>
+                        <h1 className="font-bold text-sm tracking-tight dark:text-slate-100 text-slate-800" dir="ltr">Libya Ads</h1>
+                        <p className="text-[10px] uppercase font-medium tracking-wider dark:text-slate-500 text-slate-400 mt-0.5" dir="ltr">Centralized Account</p>
+                    </div>
                 </div>
 
-                {/* Row 2: Icons & Menu */}
-                <div className="flex items-center justify-between pt-3">
+                {/* Row 2: Controls & Menu (Full Width) */}
+                <div className="flex items-center justify-between pt-2">
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="p-2 -ml-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none"
+                    >
+                        {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                    </button>
                     <div className="flex items-center gap-2">
-                        <ThemeSwitcher compact />
+                        <ThemeSwitcher />
                         <LanguageSwitcher />
                     </div>
-                    <button
-                        onClick={() => setIsMobileMenuOpen(true)}
-                        className="p-2 -mr-2 dark:text-slate-400 text-slate-500 hover:text-[#1877F2] transition-colors bg-slate-100 dark:bg-slate-800/50 rounded-xl"
-                    >
-                        <Menu size={22} />
-                    </button>
                 </div>
             </div>
 
-            {/* Mobile Overlay */}
+            {/* Sidebar Overlay (Mobile) */}
             {isMobileMenuOpen && (
                 <div
-                    className="md:hidden fixed inset-0 dark:bg-black/80 bg-slate-900/50 z-40 backdrop-blur-sm transition-opacity"
+                    className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm transition-opacity animate-fade-in"
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed md:static inset-y-0 ${sidebarPosition} z-50 w-64 flex-shrink-0 flex flex-col justify-between dark:bg-[#0a0a0b] bg-white border-x dark:border-slate-800/60 border-slate-200 transition-all duration-300 ease-in-out transform ${sidebarTransform}`}>
+            <aside
+                className={`w-64 border-r dark:border-slate-800/60 border-slate-200 dark:bg-[#0e0e11] bg-white flex flex-col z-50 fixed md:static inset-y-0 ${sidebarPosition} transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarTransform} shadow-2xl md:shadow-none`}
+            >
                 <div className="flex-1 overflow-y-auto scrollbar-hide">
                     {/* Logo Section */}
                     <div className="pt-8 pb-3 min-h-[5.5rem] md:pt-0 md:min-h-20 flex items-center justify-between px-6 border-b dark:border-slate-800/60 border-slate-200 transition-colors duration-300">
@@ -168,46 +201,48 @@ export default function DashboardLayout({
                         <div className={`px-3 mb-2 text-xs font-semibold dark:text-slate-500 text-slate-400 uppercase tracking-wider ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
                             {t("mainMenu")}
                         </div>
-                        {navItems.filter((item: any) => !hiddenNavKeys.includes(item.key)).map((item: any) => {
-                            const active = isActive(item.href);
-                            return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-200 relative group
-                                        ${active
-                                            ? item.isPrimary
-                                                ? "bg-[#1877F2]/10 text-[#1877F2]"
-                                                : "dark:bg-slate-800/50 bg-[#1877F2]/5 dark:text-slate-100 text-[#1877F2]"
-                                            : "dark:text-slate-400 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800/30 dark:hover:text-slate-200 hover:text-slate-800"
-                                        }
-                                        ${item.isPrimary && !active ? "text-[#1877F2] hover:bg-[#1877F2]/10" : ""}
-                                    `}
-                                >
-                                    {active && !item.isPrimary && (
-                                        <div className={`absolute top-1/2 -translate-y-1/2 w-1 h-5 dark:bg-slate-300 bg-[#1877F2] ${locale === 'ar' ? 'right-0 rounded-l-full' : 'left-0 rounded-r-full'}`} />
-                                    )}
-                                    {active && item.isPrimary && (
-                                        <div className={`absolute top-1/2 -translate-y-1/2 w-1 h-5 bg-[#1877F2] ${locale === 'ar' ? 'right-0 rounded-l-full' : 'left-0 rounded-r-full'}`} />
-                                    )}
-                                    <item.icon size={18} className={`${active ? (item.isPrimary ? "text-[#1877F2]" : "dark:text-slate-200 text-[#1877F2]") : "dark:text-slate-500 text-slate-400 dark:group-hover:text-slate-300 group-hover:text-slate-600"} ${item.isPrimary && !active ? "text-[#1877F2]" : ""}`} />
-                                    <span className="flex-1 truncate">{item.name}</span>
-                                    {(item as any).isNew && (
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 tracking-wider">
-                                            AI
-                                        </span>
-                                    )}
-                                </Link>
-                            );
-                        })}
+                        {navItems
+                            .filter((item: any) => isAdmin || !hiddenNavKeys.includes(item.key))
+                            .map((item: any) => {
+                                const active = isActive(item.href);
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-200 relative group
+                                            ${active
+                                                ? item.isPrimary
+                                                    ? "bg-[#1877F2]/10 text-[#1877F2]"
+                                                    : "dark:bg-slate-800/50 bg-[#1877F2]/5 dark:text-slate-100 text-[#1877F2]"
+                                                : "dark:text-slate-400 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800/30 dark:hover:text-slate-200 hover:text-slate-800"
+                                            }
+                                            ${item.isPrimary && !active ? "text-[#1877F2] hover:bg-[#1877F2]/10" : ""}
+                                        `}
+                                    >
+                                        {active && !item.isPrimary && (
+                                            <div className={`absolute top-1/2 -translate-y-1/2 w-1 h-5 dark:bg-slate-300 bg-[#1877F2] ${locale === 'ar' ? 'right-0 rounded-l-full' : 'left-0 rounded-r-full'}`} />
+                                        )}
+                                        {active && item.isPrimary && (
+                                            <div className={`absolute top-1/2 -translate-y-1/2 w-1 h-5 bg-[#1877F2] ${locale === 'ar' ? 'right-0 rounded-l-full' : 'left-0 rounded-r-full'}`} />
+                                        )}
+                                        <item.icon size={18} className={`${active ? (item.isPrimary ? "text-[#1877F2]" : "dark:text-slate-200 text-[#1877F2]") : "dark:text-slate-500 text-slate-400 dark:group-hover:text-slate-300 group-hover:text-slate-600"} ${item.isPrimary && !active ? "text-[#1877F2]" : ""}`} />
+                                        <span className="flex-1 truncate">{item.name}</span>
+                                        {(item as any).isNew && (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 tracking-wider">
+                                                AI
+                                            </span>
+                                        )}
+                                    </Link>
+                                );
+                            })}
                     </nav>
 
-                    {/* Admin Navigation */}
+                    {/* Administration & System Navigation */}
                     <div className="mt-8 px-3 space-y-1 pb-4">
                         <div className={`px-3 mb-2 text-xs font-semibold dark:text-slate-500 text-slate-400 uppercase tracking-wider ${locale === 'ar' ? 'text-right' : 'text-left'}`}>
-                            {t("administration") || "Administration"}
+                            {locale === 'ar' ? "الإدارة والنظام" : (t("administration") || "Administration & System")}
                         </div>
-                        {adminItems.map((item) => {
+                        {currentAdminItems.map((item) => {
                             const active = isActive(item.href);
                             return (
                                 <Link

@@ -8,25 +8,34 @@ export const dynamic = "force-dynamic";
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
-        const isAdmin = session?.user?.role === "ADMIN";
+        
+        let isAdmin = false;
+        if (session?.user?.email) {
+            const dbUser = await prisma.user.findUnique({
+                where: { email: session.user.email },
+                select: { role: true }
+            });
+            isAdmin = dbUser?.role === "ADMIN";
+        }
 
         // Query settings
         const items = await prisma.navItemSetting.findMany({
             orderBy: { order: "asc" }
         });
 
-        // Filter for normal users
-        const visibleItems = items.filter(item => isAdmin ? true : item.isVisible);
+        // Compute keys that are hidden from normal users
+        const hiddenKeys = isAdmin ? [] : items.filter(item => !item.isVisible).map(item => item.key);
 
         return NextResponse.json({
             isAdmin,
-            items: visibleItems.map(item => ({
+            hiddenKeys,
+            items: items.map(item => ({
                 key: item.key,
                 nameAr: item.nameAr,
                 nameEn: item.nameEn,
                 href: item.href,
                 badge: item.badge,
-                isVisible: item.isVisible
+                isVisible: isAdmin ? true : item.isVisible
             }))
         });
 

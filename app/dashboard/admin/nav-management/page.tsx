@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/LanguageProvider";
-import { Eye, EyeOff, RefreshCw, Sparkles, CheckCircle2, AlertCircle, Compass, LayoutDashboard, Bot, MessageCircleReply, MessageSquareShare, Flag, ExternalLink } from "lucide-react";
+import { Eye, EyeOff, RefreshCw, Sparkles, CheckCircle2, AlertCircle, Compass, LayoutDashboard, Wallet, Bot, MessageCircleReply, MessageSquareShare, Flag, ExternalLink } from "lucide-react";
 
 export default function NavManagementPage() {
     const { t, locale } = useLanguage();
@@ -107,6 +107,7 @@ export default function NavManagementPage() {
             case "auto_reply": return <MessageCircleReply size={20} className="text-pink-500" />;
             case "page_auto_reply": return <MessageSquareShare size={20} className="text-indigo-500" />;
             case "facebook_pages": return <Flag size={20} className="text-cyan-500" />;
+            case "wallet": return <Wallet size={20} className="text-emerald-500" />;
             default: return <Compass size={20} className="text-slate-500" />;
         }
     };

@@ -12,6 +12,7 @@ export const DEFAULT_NAV_ITEMS = [
     { key: "auto_reply", nameAr: "الرد التلقائي", nameEn: "Auto-Reply", href: "/dashboard/auto-reply", order: 4 },
     { key: "page_auto_reply", nameAr: "الرد الشامل للصفحات", nameEn: "Page Auto-Reply", href: "/dashboard/page-auto-reply", order: 5 },
     { key: "facebook_pages", nameAr: "صفحات فيسبوك", nameEn: "Facebook Pages", href: "/dashboard/facebook", order: 6 },
+    { key: "wallet", nameAr: "المحفظة والرصيد", nameEn: "Wallet & Balance", href: "/dashboard/wallet", order: 7 },
 ];
 
 export async function GET() {

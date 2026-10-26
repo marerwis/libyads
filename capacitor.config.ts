@@ -5,9 +5,11 @@ const config: CapacitorConfig = {
   appName: 'Libya Ads',
   webDir: 'public',
   server: {
-    url: 'https://www.libyads.com', // Official project domain
+    url: 'https://libyadsweb.onrender.com', // Official project domain
     cleartext: true,
     allowNavigation: [
+      "libyadsweb.onrender.com",
+      "*.onrender.com",
       "accounts.google.com",
       "*.google.com",
       "*.facebook.com",
