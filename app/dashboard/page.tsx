@@ -31,13 +31,16 @@ export default async function Dashboard() {
     const totalSpent = stats?.campaigns.reduce((acc: number, curr: any) => acc + curr.budget, 0) || 0;
 
     // Fetch Auto-Reply Stats
+    const isAdmin = user?.role === 'ADMIN';
+    const ruleWhere = isAdmin ? {} : { userId: user?.id };
+
     const pageRules = await prisma.pageAutoReplyRule.findMany({
-        where: { userId: user?.id },
+        where: ruleWhere,
         orderBy: { lastExecutedAt: 'desc' }
     });
 
     const postRules = await prisma.autoReplyRule.findMany({
-        where: { userId: user?.id },
+        where: ruleWhere,
         orderBy: { lastExecutedAt: 'desc' }
     });
 
@@ -57,7 +60,7 @@ export default async function Dashboard() {
     const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000);
 
     const logs = await prisma.autoReplyLog.findMany({
-        where: { userId: user?.id },
+        where: ruleWhere,
         orderBy: { createdAt: 'desc' }
     });
 
@@ -84,11 +87,56 @@ export default async function Dashboard() {
         log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()
     ).length;
 
-    const lastAiPostExecution = aiPostRules[0]?.lastExecutedAt;
-    const lastAiPostStatus = aiPostRules[0]?.lastExecutionStatus;
+    // Helper to calculate the most accurate, latest execution timestamp across rules and execution logs
+    function getLatestExecution(rulesList: any[], logsList: any[], isAi: boolean, isPage: boolean) {
+        // 1. Get all rules with a valid lastExecutedAt and pick the latest one
+        const validRules = rulesList
+            .filter((r: any) => r && r.lastExecutedAt)
+            .sort((a: any, b: any) => new Date(b.lastExecutedAt).getTime() - new Date(a.lastExecutedAt).getTime());
+        const latestRule = validRules[0];
 
-    const lastAiPageExecution = aiPageRules[0]?.lastExecutedAt;
-    const lastAiPageStatus = aiPageRules[0]?.lastExecutionStatus;
+        // 2. Find the latest matching log from autoReplyLog
+        const targetType = isAi ? (isPage ? "AI_PAGE" : "AI_POST") : (isPage ? "PAGE" : "POST");
+        const latestLog = logsList.find((l: any) => {
+            if (l.ruleType === targetType) return true;
+            if (isPage && l.ruleType === "PAGE" && rulesList.some((r: any) => r.pageId === l.pageId)) {
+                return isAi ? rulesList.some((r: any) => r.pageId === l.pageId && r.replyTexts?.includes('__AI_REPLY__'))
+                            : rulesList.some((r: any) => r.pageId === l.pageId && !r.replyTexts?.includes('__AI_REPLY__'));
+            }
+            if (!isPage && l.ruleType === "POST" && rulesList.some((r: any) => r.postId === l.postId)) {
+                return isAi ? rulesList.some((r: any) => r.postId === l.postId && r.replyText === '__AI_REPLY__')
+                            : rulesList.some((r: any) => r.postId === l.postId && r.replyText !== '__AI_REPLY__');
+            }
+            return false;
+        });
+
+        const ruleTime = latestRule?.lastExecutedAt ? new Date(latestRule.lastExecutedAt).getTime() : 0;
+        const logTime = latestLog?.createdAt ? new Date(latestLog.createdAt).getTime() : 0;
+
+        if (ruleTime === 0 && logTime === 0) {
+            return { execution: null, status: null };
+        }
+
+        if (ruleTime >= logTime) {
+            return {
+                execution: latestRule.lastExecutedAt,
+                status: latestRule.lastExecutionStatus || "SUCCESS"
+            };
+        } else {
+            return {
+                execution: latestLog.createdAt,
+                status: latestLog.status || "SUCCESS"
+            };
+        }
+    }
+
+    const aiPageExec = getLatestExecution(aiPageRules, logs, true, true);
+    const lastAiPageExecution = aiPageExec.execution;
+    const lastAiPageStatus = aiPageExec.status;
+
+    const aiPostExec = getLatestExecution(aiPostRules, logs, true, false);
+    const lastAiPostExecution = aiPostExec.execution;
+    const lastAiPostStatus = aiPostExec.status;
 
     // Regular Stats
     const totalRegularPostRepliesToday = todayLogs.filter((log: any) => 
@@ -111,11 +159,13 @@ export default async function Dashboard() {
         log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()
     ).length;
 
-    const lastRegularPostExecution = regularPostRules[0]?.lastExecutedAt;
-    const lastRegularPostStatus = regularPostRules[0]?.lastExecutionStatus;
+    const regPostExec = getLatestExecution(regularPostRules, logs, false, false);
+    const lastRegularPostExecution = regPostExec.execution;
+    const lastRegularPostStatus = regPostExec.status;
 
-    const lastRegularPageExecution = regularPageRules[0]?.lastExecutedAt;
-    const lastRegularPageStatus = regularPageRules[0]?.lastExecutionStatus;
+    const regPageExec = getLatestExecution(regularPageRules, logs, false, true);
+    const lastRegularPageExecution = regPageExec.execution;
+    const lastRegularPageStatus = regPageExec.status;
 
     return (
         <>
