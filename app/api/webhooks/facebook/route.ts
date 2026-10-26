@@ -291,13 +291,14 @@ export async function POST(req: Request) {
                                     });
                                 }
                                 // Create a log entry for SUCCESS
+                                const executedRuleType = isAiRule ? (isPageRule ? "AI_PAGE" : "AI_POST") : (isPageRule ? "PAGE" : "POST");
                                 await prisma.autoReplyLog.create({
                                     data: {
                                         userId: rule.userId,
                                         pageId: pageId,
                                         postId: extractedPostId,
                                         commentId: commentId,
-                                        ruleType: isPageRule ? "PAGE" : "POST",
+                                        ruleType: executedRuleType,
                                         status: "SUCCESS"
                                     }
                                 });
@@ -324,13 +325,14 @@ export async function POST(req: Request) {
                                 }
                                 
                                 // Create a log entry for FAILED
+                                const failedRuleType = isAiRule ? (isPageRule ? "AI_PAGE" : "AI_POST") : (isPageRule ? "PAGE" : "POST");
                                 await prisma.autoReplyLog.create({
                                     data: {
                                         userId: rule.userId,
                                         pageId: pageId,
                                         postId: extractedPostId,
                                         commentId: commentId,
-                                        ruleType: isPageRule ? "PAGE" : "POST",
+                                        ruleType: failedRuleType,
                                         status: "FAILED",
                                         errorMsg: JSON.stringify(fbResult)
                                     }

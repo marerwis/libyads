@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import PerformanceChart from "./PerformanceChart"
-import { Coins, Layers, Play, CreditCard, ChevronsUpDown, CheckCircle2, XCircle, BotMessageSquare, MessageCircleHeart, AlertTriangle, Activity } from "lucide-react"
+import { Coins, Layers, Play, CreditCard, ChevronsUpDown, CheckCircle2, XCircle, BotMessageSquare, MessageCircleHeart, AlertTriangle, Activity, Bot, Sparkles } from "lucide-react"
 import { getServerTranslations } from "@/lib/getServerTranslations"
 
 export default async function Dashboard() {
@@ -41,6 +41,13 @@ export default async function Dashboard() {
         orderBy: { lastExecutedAt: 'desc' }
     });
 
+    // Separate AI Rules vs Regular Rules
+    const aiPostRules = postRules.filter((r: any) => r.replyText === '__AI_REPLY__');
+    const regularPostRules = postRules.filter((r: any) => r.replyText !== '__AI_REPLY__');
+
+    const aiPageRules = pageRules.filter((r: any) => r.replyTexts?.includes('__AI_REPLY__'));
+    const regularPageRules = pageRules.filter((r: any) => !r.replyTexts?.includes('__AI_REPLY__'));
+
     // Calculate start of day in Tripoli timezone
     const now = new Date();
     const tripoliNow = new Date(now.toLocaleString("en-US", { timeZone: "Africa/Tripoli" }));
@@ -56,17 +63,59 @@ export default async function Dashboard() {
 
     const todayLogs = logs.filter((log: any) => new Date(log.createdAt).getTime() >= startOfDayTripoli.getTime());
     
-    const totalPageRepliesToday = todayLogs.filter((log: any) => log.ruleType === "PAGE" && log.status === "SUCCESS").length;
-    const totalPostRepliesToday = todayLogs.filter((log: any) => log.ruleType === "POST" && log.status === "SUCCESS").length;
+    // AI Stats
+    const totalAiPostRepliesToday = todayLogs.filter((log: any) => 
+        (log.ruleType === "AI_POST" || (log.ruleType === "POST" && aiPostRules.some((r: any) => r.postId === log.postId))) && 
+        log.status === "SUCCESS"
+    ).length;
 
-    const recentFailedPageReplies = logs.filter((log: any) => log.ruleType === "PAGE" && log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()).length;
-    const recentFailedPostReplies = logs.filter((log: any) => log.ruleType === "POST" && log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()).length;
+    const totalAiPageRepliesToday = todayLogs.filter((log: any) => 
+        (log.ruleType === "AI_PAGE" || (log.ruleType === "PAGE" && aiPageRules.some((r: any) => r.pageId === log.pageId))) && 
+        log.status === "SUCCESS"
+    ).length;
 
-    const lastPageExecution = pageRules[0]?.lastExecutedAt;
-    const lastPageExecutionStatus = pageRules[0]?.lastExecutionStatus;
+    const recentFailedAiPost = logs.filter((log: any) => 
+        (log.ruleType === "AI_POST" || aiPostRules.some((r: any) => r.postId === log.postId)) && 
+        log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()
+    ).length;
 
-    const lastPostExecution = postRules[0]?.lastExecutedAt;
-    const lastPostExecutionStatus = postRules[0]?.lastExecutionStatus;
+    const recentFailedAiPage = logs.filter((log: any) => 
+        (log.ruleType === "AI_PAGE" || aiPageRules.some((r: any) => r.pageId === log.pageId)) && 
+        log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()
+    ).length;
+
+    const lastAiPostExecution = aiPostRules[0]?.lastExecutedAt;
+    const lastAiPostStatus = aiPostRules[0]?.lastExecutionStatus;
+
+    const lastAiPageExecution = aiPageRules[0]?.lastExecutedAt;
+    const lastAiPageStatus = aiPageRules[0]?.lastExecutionStatus;
+
+    // Regular Stats
+    const totalRegularPostRepliesToday = todayLogs.filter((log: any) => 
+        log.ruleType === "POST" && !aiPostRules.some((r: any) => r.postId === log.postId) && 
+        log.status === "SUCCESS"
+    ).length;
+
+    const totalRegularPageRepliesToday = todayLogs.filter((log: any) => 
+        log.ruleType === "PAGE" && !aiPageRules.some((r: any) => r.pageId === log.pageId) && 
+        log.status === "SUCCESS"
+    ).length;
+
+    const recentFailedRegularPost = logs.filter((log: any) => 
+        log.ruleType === "POST" && !aiPostRules.some((r: any) => r.postId === log.postId) && 
+        log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()
+    ).length;
+
+    const recentFailedRegularPage = logs.filter((log: any) => 
+        log.ruleType === "PAGE" && !aiPageRules.some((r: any) => r.pageId === log.pageId) && 
+        log.status === "FAILED" && new Date(log.createdAt).getTime() >= fiveMinutesAgo.getTime()
+    ).length;
+
+    const lastRegularPostExecution = regularPostRules[0]?.lastExecutedAt;
+    const lastRegularPostStatus = regularPostRules[0]?.lastExecutionStatus;
+
+    const lastRegularPageExecution = regularPageRules[0]?.lastExecutedAt;
+    const lastRegularPageStatus = regularPageRules[0]?.lastExecutionStatus;
 
     return (
         <>
@@ -118,9 +167,152 @@ export default async function Dashboard() {
                 </div>
             </div>
 
-            {/* Auto-Reply Statistics Section */}
+            {/* AI Auto-Reply Readers Section (القارئ الذكي) */}
             <div className="mb-8">
-                <h3 className="text-xl font-semibold dark:text-white text-slate-900 mb-4">{t("autoReplyStatistics" as any) || "إحصائيات الرد التلقائي"}</h3>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold dark:text-white text-slate-900 flex items-center gap-2.5">
+                        <div className="p-1.5 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white">
+                            <Bot size={20} />
+                        </div>
+                        <span>القارئ الذكي (توقيت وإحصائيات الذكاء الاصطناعي AI)</span>
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-semibold">
+                            Nemotron 3 Ultra
+                        </span>
+                    </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
+                    {/* AI Post Auto-Reply Card */}
+                    <div className="dark:bg-[#151921]/90 bg-white p-5 rounded-2xl border dark:border-purple-500/30 border-purple-300 shadow-sm hover:border-purple-500 transition-colors group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                            <Bot size={80} />
+                        </div>
+                        <div className="flex items-center justify-between mb-4 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-300">
+                                    <Bot size={22} strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <h4 className="text-lg font-bold dark:text-white text-slate-900">القارئ الذكي للمنشورات</h4>
+                                    <p className="text-xs text-slate-400 font-mono">AI Post Agent</p>
+                                </div>
+                            </div>
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-500 border border-purple-500/20">
+                                ذكاء اصطناعي
+                            </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 relative z-10">
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">ردود اليوم الذكية</span>
+                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalAiPostRepliesToday}</div>
+                            </div>
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">حالة البوت الذكي</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {recentFailedAiPost > 0 ? (
+                                        <div className="flex items-center gap-1 text-red-500 bg-red-500/10 px-2 py-1 rounded-md text-xs font-bold">
+                                            <AlertTriangle size={14} /> توقف ({recentFailedAiPost})
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1 text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md text-xs font-bold">
+                                            <Activity size={14} /> يعمل بنشاط
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t dark:border-slate-800 border-slate-100 flex items-center justify-between relative z-10">
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">توقيت آخر تنفيذ ذكي (ليبيا)</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {lastAiPostExecution ? (
+                                        <>
+                                            <span className="text-sm font-semibold dark:text-slate-200 text-slate-700 dir-ltr text-left truncate">
+                                                {new Date(lastAiPostExecution).toLocaleString('en-US', { timeZone: 'Africa/Tripoli', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            </span>
+                                            {lastAiPostStatus === "SUCCESS" ? (
+                                                <CheckCircle2 className="text-emerald-500 min-w-[16px]" size={16} />
+                                            ) : lastAiPostStatus === "FAILED" ? (
+                                                <XCircle className="text-red-500 min-w-[16px]" size={16} />
+                                            ) : null}
+                                        </>
+                                    ) : (
+                                        <span className="text-sm dark:text-slate-500 text-slate-400">لم يُنفذ بعد</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* AI Page-Level Auto-Reply Card */}
+                    <div className="dark:bg-[#151921]/90 bg-white p-5 rounded-2xl border dark:border-indigo-500/30 border-indigo-300 shadow-sm hover:border-indigo-500 transition-colors group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                            <Sparkles size={80} />
+                        </div>
+                        <div className="flex items-center justify-between mb-4 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300">
+                                    <Sparkles size={22} strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <h4 className="text-lg font-bold dark:text-white text-slate-900">القارئ الشامل الذكي</h4>
+                                    <p className="text-xs text-slate-400 font-mono">AI Page Agent</p>
+                                </div>
+                            </div>
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                                شامل للصفحة
+                            </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 relative z-10">
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">ردود اليوم الذكية</span>
+                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalAiPageRepliesToday}</div>
+                            </div>
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">حالة البوت الذكي</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {recentFailedAiPage > 0 ? (
+                                        <div className="flex items-center gap-1 text-red-500 bg-red-500/10 px-2 py-1 rounded-md text-xs font-bold">
+                                            <AlertTriangle size={14} /> توقف ({recentFailedAiPage})
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1 text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md text-xs font-bold">
+                                            <Activity size={14} /> يعمل بنشاط
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t dark:border-slate-800 border-slate-100 flex items-center justify-between relative z-10">
+                            <div>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">توقيت آخر تنفيذ ذكي (ليبيا)</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {lastAiPageExecution ? (
+                                        <>
+                                            <span className="text-sm font-semibold dark:text-slate-200 text-slate-700 dir-ltr text-left truncate">
+                                                {new Date(lastAiPageExecution).toLocaleString('en-US', { timeZone: 'Africa/Tripoli', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            </span>
+                                            {lastAiPageStatus === "SUCCESS" ? (
+                                                <CheckCircle2 className="text-emerald-500 min-w-[16px]" size={16} />
+                                            ) : lastAiPageStatus === "FAILED" ? (
+                                                <XCircle className="text-red-500 min-w-[16px]" size={16} />
+                                            ) : null}
+                                        </>
+                                    ) : (
+                                        <span className="text-sm dark:text-slate-500 text-slate-400">لم يُنفذ بعد</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Standard Auto-Reply Timing & Stats */}
+                <h3 className="text-xl font-semibold dark:text-white text-slate-900 mb-4">{t("autoReplyStatistics" as any) || "إحصائيات الرد التلقائي العادي"}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     {/* Comprehensive Auto-Reply Stats */}
                     <div className="dark:bg-[#151921]/80 bg-white p-5 rounded-2xl border dark:border-purple-500/20 border-purple-200 shadow-sm hover:border-purple-500/50 transition-colors group relative overflow-hidden">
@@ -131,20 +323,20 @@ export default async function Dashboard() {
                             <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500 group-hover:scale-110 transition-transform duration-300">
                                 <BotMessageSquare size={22} strokeWidth={2.5} />
                             </div>
-                            <h4 className="text-lg font-bold dark:text-white text-slate-900">الرد التلقائي الشامل</h4>
+                            <h4 className="text-lg font-bold dark:text-white text-slate-900">الرد التلقائي الشامل (العادي)</h4>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4 relative z-10">
                             <div>
                                 <span className="text-xs font-medium dark:text-slate-400 text-slate-500">ردود اليوم</span>
-                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalPageRepliesToday}</div>
+                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalRegularPageRepliesToday}</div>
                             </div>
                             <div>
                                 <span className="text-xs font-medium dark:text-slate-400 text-slate-500">حالة البوت</span>
                                 <div className="flex items-center gap-2 mt-1">
-                                    {recentFailedPageReplies > 0 ? (
+                                    {recentFailedRegularPage > 0 ? (
                                         <div className="flex items-center gap-1 text-red-500 bg-red-500/10 px-2 py-1 rounded-md text-xs font-bold">
-                                            <AlertTriangle size={14} /> توقف ({recentFailedPageReplies})
+                                            <AlertTriangle size={14} /> توقف ({recentFailedRegularPage})
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-1 text-green-500 bg-green-500/10 px-2 py-1 rounded-md text-xs font-bold">
@@ -157,16 +349,16 @@ export default async function Dashboard() {
 
                         <div className="mt-4 pt-4 border-t dark:border-slate-800 border-slate-100 flex items-center justify-between relative z-10">
                             <div>
-                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">آخر تنفيذ</span>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">آخر تنفيذ (ليبيا)</span>
                                 <div className="flex items-center gap-2 mt-1">
-                                    {lastPageExecution ? (
+                                    {lastRegularPageExecution ? (
                                         <>
                                             <span className="text-sm font-semibold dark:text-slate-200 text-slate-700 dir-ltr text-left truncate">
-                                                {new Date(lastPageExecution).toLocaleString('en-US', { timeZone: 'Africa/Tripoli', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(lastRegularPageExecution).toLocaleString('en-US', { timeZone: 'Africa/Tripoli', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                             </span>
-                                            {lastPageExecutionStatus === "SUCCESS" ? (
+                                            {lastRegularPageStatus === "SUCCESS" ? (
                                                 <CheckCircle2 className="text-green-500 min-w-[16px]" size={16} />
-                                            ) : lastPageExecutionStatus === "FAILED" ? (
+                                            ) : lastRegularPageStatus === "FAILED" ? (
                                                 <XCircle className="text-red-500 min-w-[16px]" size={16} />
                                             ) : null}
                                         </>
@@ -187,20 +379,20 @@ export default async function Dashboard() {
                             <div className="p-2.5 rounded-xl bg-pink-500/10 text-pink-500 group-hover:scale-110 transition-transform duration-300">
                                 <MessageCircleHeart size={22} strokeWidth={2.5} />
                             </div>
-                            <h4 className="text-lg font-bold dark:text-white text-slate-900">الرد التلقائي العادي</h4>
+                            <h4 className="text-lg font-bold dark:text-white text-slate-900">الرد التلقائي للمنشورات (العادي)</h4>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4 relative z-10">
                             <div>
                                 <span className="text-xs font-medium dark:text-slate-400 text-slate-500">ردود اليوم</span>
-                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalPostRepliesToday}</div>
+                                <div className="text-2xl font-bold dark:text-white text-slate-900 mt-1">{totalRegularPostRepliesToday}</div>
                             </div>
                             <div>
                                 <span className="text-xs font-medium dark:text-slate-400 text-slate-500">حالة البوت</span>
                                 <div className="flex items-center gap-2 mt-1">
-                                    {recentFailedPostReplies > 0 ? (
+                                    {recentFailedRegularPost > 0 ? (
                                         <div className="flex items-center gap-1 text-red-500 bg-red-500/10 px-2 py-1 rounded-md text-xs font-bold">
-                                            <AlertTriangle size={14} /> توقف ({recentFailedPostReplies})
+                                            <AlertTriangle size={14} /> توقف ({recentFailedRegularPost})
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-1 text-green-500 bg-green-500/10 px-2 py-1 rounded-md text-xs font-bold">
@@ -213,16 +405,16 @@ export default async function Dashboard() {
 
                         <div className="mt-4 pt-4 border-t dark:border-slate-800 border-slate-100 flex items-center justify-between relative z-10">
                             <div>
-                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">آخر تنفيذ</span>
+                                <span className="text-xs font-medium dark:text-slate-400 text-slate-500">آخر تنفيذ (ليبيا)</span>
                                 <div className="flex items-center gap-2 mt-1">
-                                    {lastPostExecution ? (
+                                    {lastRegularPostExecution ? (
                                         <>
                                             <span className="text-sm font-semibold dark:text-slate-200 text-slate-700 dir-ltr text-left truncate">
-                                                {new Date(lastPostExecution).toLocaleString('en-US', { timeZone: 'Africa/Tripoli', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(lastRegularPostExecution).toLocaleString('en-US', { timeZone: 'Africa/Tripoli', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                             </span>
-                                            {lastPostExecutionStatus === "SUCCESS" ? (
+                                            {lastRegularPostStatus === "SUCCESS" ? (
                                                 <CheckCircle2 className="text-green-500 min-w-[16px]" size={16} />
-                                            ) : lastPostExecutionStatus === "FAILED" ? (
+                                            ) : lastRegularPostStatus === "FAILED" ? (
                                                 <XCircle className="text-red-500 min-w-[16px]" size={16} />
                                             ) : null}
                                         </>
